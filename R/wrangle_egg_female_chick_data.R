@@ -4,9 +4,7 @@ source("R/project_functions.R")
 # Here we extract all egg morphometric data for individually banded females 
 # and merge the estimated ages of the BaSTA analysis.
 
-# #### connect to CeutaCLOSED ####
-# CeutaCLOSED <- 
-#   dbConnect(SQLite(), dbname = "../Ceuta_Open/Ceuta_CLOSED/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v2-0-0.sqlite")
+load("output/BaSTA_age_estimates_2006-2020.rds")
 
 #### extract females and their nests ####
 nest_caps_F <-
@@ -14,8 +12,6 @@ nest_caps_F <-
   # extract snowy plover captures
   dbReadTable(CeutaCLOSED,"Captures") %>% 
   dplyr::filter(species == "SNPL") %>% 
-  # dplyr::select(year, ID, ring, sex, age, date, time, weight, bill, left_tarsus, 
-  #               right_tarsus, left_wing, right_wing, fat, observer)  %>% 
   
   # summarise body morphometric data with the earliest capture of each nest
   group_by(ID, ring, code, sex, age) %>% 
@@ -495,8 +491,7 @@ dbReadTable(CeutaCLOSED,"Captures") %>%
 
 ########## Remove 2020_C_4 measured by Diego
 # two females with the same nest ID (CN0215 and CN0424)
-dplyr::filter(nest_caps_F, ID == "2020_C_4") %>% 
-  View()
+dplyr::filter(nest_caps_F, ID == "2020_C_4") 
 dplyr::select(ID, ring, lay_date, no_chicks, length, width, egg)
 
 # CN0215 female in birdref and CN0424 assigned as a male

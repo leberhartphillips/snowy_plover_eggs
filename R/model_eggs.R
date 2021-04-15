@@ -3,231 +3,75 @@
 # Product: stats and figure of the chick egg volume ~ senescence + season model
 
 #### Libraries and data ----
-source("R/001_libraries.R")
-source("R/002_functions.R")
+source("R/project_functions.R")
+source("R/project_libraries.R")
+source("R/project_plotting.R")
 
-load("data/raw/ceuta_egg_chick_female_data.rds")
-
-#### Egg dimension plots ----
-egg_widths_plot <- 
-  ceuta_egg_chick_female_data %>% 
-  ggplot() + 
-  geom_boxplot(aes(x = width/10, y = 465), 
-               fill = brewer.pal(8, "Set1")[c(2)], 
-               color = brewer.pal(8, "Set1")[c(2)],
-               width = 18, alpha = 0.5) +
-  geom_jitter(aes(x = width/10, y = 428), 
-              fill = brewer.pal(8, "Set1")[c(2)], 
-              color = brewer.pal(8, "Set1")[c(2)],
-              height = 8, alpha = 0.1) +
-  geom_histogram(alpha = 0.5, aes(width/10), 
-                 fill = brewer.pal(8, "Set1")[c(2)], 
-                 # color = "white",
-                 binwidth = 0.02) +
-  luke_theme +
-  theme(axis.title.x = element_text(hjust = 0.4),
-        panel.border = element_blank(),
-        plot.margin = margin(0, 0, 0, 0.5, "cm")) +
-  ylab("Number of eggs") +
-  xlab("Egg width (cm)") +
-  scale_x_reverse(limits = c(25/10, 20/10),
-                  breaks = c(seq(from = 2, to = 2.4, by = 0.1))) +
-  scale_y_continuous(limits = c(0, 475),
-                     breaks = c(0, 100, 200, 300), position = "right") +
-  coord_flip()
-
-egg_lengths_plot <- 
-  ceuta_egg_chick_female_data %>% 
-  ggplot() + 
-  geom_boxplot(aes(x = length/10, y = 275), 
-               fill = brewer.pal(8, "Set1")[c(2)], 
-               color = brewer.pal(8, "Set1")[c(2)],
-               width = 10, alpha = 0.5) +
-  geom_jitter(aes(x = length/10, y = 255), 
-              fill = brewer.pal(8, "Set1")[c(2)], 
-              color = brewer.pal(8, "Set1")[c(2)],
-              height = 4, alpha = 0.1) +
-  geom_histogram(alpha = 0.5, aes(length/10), 
-                 fill = brewer.pal(8, "Set1")[c(2)], 
-                 # color = "white",
-                 binwidth = 0.02) +
-  luke_theme +
-  theme(axis.title.y = element_text(hjust = 0.7),
-        axis.title.x = element_text(vjust = -1),
-        panel.border = element_blank(),
-        plot.margin = margin(0, 0, 0.5, 0, "cm")) +
-  ylab("Number of eggs") +
-  xlab("Egg length (cm)") +
-  scale_x_continuous(limits = c(27/10, 35/10),
-                     breaks = c(2.8, 3, 3.2, 3.4)) +
-  scale_y_reverse(limits = c(280, 0),
-                  breaks = c(0, 50, 100, 150, 200))
+load("data/ceuta_egg_chick_female_data.rds")
 
 #### Modeling egg volume ----
-eggv_age_date_tarsi_mod <- 
-  lmer(volume_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
-         poly(jul_lay_date_std_num, 2) +
-         (1|ID) + (1|ring) + (1|year),
-       data = ceuta_egg_chick_female_data)
-
-eggv_age_date_tarsi_mod_tidy <-
-  tidy(eggv_age_date_tarsi_mod, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-save(eggv_age_date_tarsi_mod_tidy, file = "data/out/eggv_age_date_tarsi_mod_tidy.rds")
-
-eggv_age_date_tarsi_mod_R2 <-
-  partR2(eggv_age_date_tarsi_mod,
-         partvars = c("poly(est_age, 2)",
-                      "poly(jul_lay_date_std_num, 2)",
-                      "firstage",
-                      "lastage",
-                      "avg_ad_tarsi"),
-         R2_type = "marginal",
-         nboot = 1000,
-         CI = 0.95,
-         max_level = 1)
-save(eggv_age_date_tarsi_mod_R2, file = "data/out/eggv_age_date_tarsi_mod_R2.rds")
-
-eggv_age_date_tarsi_mod_rpt <-
-  rpt(volume_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
-        poly(jul_lay_date_std_num, 2) +
-        (1|ID) + (1|ring) + (1|year),
-      grname = c("ID", "ring", "year", "Fixed"),
-      data = ceuta_egg_chick_female_data,
-      datatype = "Gaussian",
-      nboot = 1000, npermut = 1000, ratio = TRUE,
-      adjusted = FALSE, ncores = 4, parallel = TRUE)
-
-save(eggv_age_date_tarsi_mod_rpt, file = "data/out/eggv_age_date_tarsi_mod_rpt.rds")
-
-# model summary a diagnostics
-summary(eggv_age_date_tarsi_mod)
-plot(allEffects(eggv_age_date_tarsi_mod))
-coefplot2(eggv_age_date_tarsi_mod)
-summary(glht(eggv_age_date_tarsi_mod))
-
-###
-eggv_age_date_mod <- 
-  lmer(volume_cm ~ poly(est_age, 2) + firstage + lastage + 
-         poly(jul_lay_date_std_num, 2) +
-         (1|ID) + (1|ring) + (1|year),
-       data = ceuta_egg_chick_female_data)
-
-# model summary a diagnostics
-summary(eggv_age_date_mod)
-plot(allEffects(eggv_age_date_mod))
-coefplot2(eggv_age_date_mod)
-summary(glht(eggv_age_date_mod))
-
-eggv_mod_tidy <-
-  tidy(eggv_age_date_mod, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-
-# save(eggv_mod_tidy, file = "data/out/eggv_mod_tidy.rds")
-
-eggv_mod_R2 <-
-  partR2(eggv_age_date_mod,
-         partvars = c("poly(est_age, 2)",
-                      "poly(jul_std_date, 2)",
-                      "firstage",
-                      "lastage"),
-         R2_type = "marginal",
-         nboot = 1000,
-         CI = 0.95,
-         max_level = 1)
-
-# save(eggv_mod_R2, file = "results/eggv_mod_R2.rds")
-
-eggv_mod_rpt <-
-  rpt(eggv ~ poly(est_age, 2) + firstage + lastage +
-        poly(jul_std_date, 2) +
-        (1|ID) + (1|ring) + (1|year),
-      grname = c("ring", "ID", "year", "Fixed"),
-      data = eggdf_2006_2020,
-      datatype = "Gaussian",
-      nboot = 1000, npermut = 1000, ratio = TRUE,
-      adjusted = TRUE, ncores = 4, parallel = TRUE)
-
-# save(eggv_mod_rpt, file = "results/eggv_mod_rpt.rds")
-
-#### Modeling egg width ----
-eggw_mod <-
-  lmer(width ~ poly(est_age, 2) + firstage + lastage +
-         poly(jul_std_date, 2) +
-         (1|ID) + (1|ring) + (1|year),
-       data = eggdf_2006_2020)
-
-# eggw_mod_tidy <- 
-#   tidy(eggw_mod, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-
-# save(eggw_mod_tidy, file = "results/eggw_mod_tidy.rds")
-
-# eggw_mod_R2 <- 
-#   partR2(eggw_mod,  
-#          partvars = c("poly(est_age, 2)", 
-#                       "poly(jul_std_date, 2)", 
-#                       "firstage", 
-#                       "lastage"),
-#          R2_type = "marginal", 
-#          nboot = 1000, 
-#          CI = 0.95, 
-#          max_level = 1)
-
-# save(eggw_mod_R2, file = "results/eggw_mod_R2.rds")
-
-# eggw_mod_rpt <-
-#   rpt(width ~ poly(est_age, 2) + firstage + lastage +
-#         poly(jul_std_date, 2) +
+# Full model predicting egg volume variation by:
+# - quadratic age effect
+# - selective appearence and dissapearence
+# - female structural size (tarsus)
+# - quadratic seasonal effect
+# Random intercepts: nest, individual, year
+# mod_eggv_age_date_tarsi <- 
+#   lmer(volume_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
+#          poly(jul_lay_date_std_num, 2) +
+#          (1|ID) + (1|ring) + (1|year),
+#        data = ceuta_egg_chick_female_data)
+# 
+# # run tidy bootstrap to obtain model diagnostics
+# tidy_eggv_age_date_tarsi <-
+#   tidy(mod_eggv_age_date_tarsi, conf.int = TRUE, conf.method = "boot", nsim = 1000)
+# 
+# # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
+# # weights
+# rpt_eggv_age_date_tarsi <-
+#   rpt(volume_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
+#         poly(jul_lay_date_std_num, 2) +
 #         (1|ID) + (1|ring) + (1|year),
-#       grname = c("ring", "ID", "year", "Fixed"), 
-#       data = eggdf_2006_2020, 
-#       datatype = "Gaussian", 
-#       nboot = 1000, npermut = 1000, ratio = TRUE,
-#       adjusted = TRUE, ncores = 4, parallel = TRUE)
-
-# save(eggw_mod_rpt, file = "results/eggw_mod_rpt.rds")
-
-#### Modeling egg length ----
-eggl_mod <- 
-  lmer(length ~ poly(est_age, 2) + firstage + lastage + 
-         poly(jul_std_date, 2) +
-         (1|ID) + (1|ring) + (1|year),
-       data = eggdf_2006_2020)
-
-# eggl_mod_tidy <- 
-#   tidy(eggl_mod, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-
-# save(eggl_mod_tidy, file = "results/eggl_mod_tidy.rds")
-
-# eggl_mod_R2 <- 
-#   partR2(eggl_mod,  
-#          partvars = c("poly(est_age, 2)", 
-#                       "poly(jul_std_date, 2)", 
-#                       "firstage", 
-#                       "lastage"),
-#          R2_type = "marginal", 
-#          nboot = 1000, 
-#          CI = 0.95, 
-#          max_level = 1)
-
-# save(eggl_mod_R2, file = "results/eggl_mod_R2.rds")
-
-# eggl_mod_rpt <-
-#   rpt(length ~ poly(est_age, 2) + firstage + lastage +
-#         poly(jul_std_date, 2) +
-#         (1|ID) + (1|ring) + (1|year),
-#       grname = c("ring", "ID", "year", "Fixed"),
-#       data = eggdf_2006_2020,
+#       grname = c("ID", "ring", "year", "Fixed"),
+#       data = ceuta_egg_chick_female_data,
 #       datatype = "Gaussian",
 #       nboot = 1000, npermut = 1000, ratio = TRUE,
-#       adjusted = TRUE, ncores = 4, parallel = TRUE)
+#       adjusted = FALSE, ncores = 4, parallel = TRUE)
+# 
+# # run rptR to obtain repeatabilities of random effects
+# R2_eggv_age_date_tarsi <-
+#   partR2(mod_eggv_age_date_tarsi,
+#          partvars = c("poly(est_age, 2)",
+#                       "poly(jul_lay_date_std_num, 2)",
+#                       "firstage",
+#                       "lastage",
+#                       "avg_ad_tarsi"),
+#          R2_type = "marginal",
+#          nboot = 1000,
+#          CI = 0.95,
+#          max_level = 1)
+# 
+# # save model, tidy, rptR, and partR2 output as a list
+# stats_eggv_age_date_tarsi <- 
+#   list(mod = mod_eggv_age_date_tarsi,
+#        tidy = tidy_eggv_age_date_tarsi,
+#        rptR = rpt_eggv_age_date_tarsi,
+#        partR2 = R2_eggv_age_date_tarsi)
+# 
+# save(stats_eggv_age_date_tarsi,
+#      file = "output/stats_eggv_age_date_tarsi.rds")
 
-# save(eggl_mod_rpt, file = "results/eggl_mod_rpt.rds")
+load("output/stats_eggv_age_date_tarsi.rds")
+# model summary a diagnostics
+summary(stats_eggv_age_date_tarsi$mod)
+plot(allEffects(stats_eggv_age_date_tarsi$mod))
+coefplot2(stats_eggv_age_date_tarsi$mod)
+summary(glht(stats_eggv_age_date_tarsi$mod))
+
+#### Present Results ----
+load("output/stats_eggv_age_date_tarsi.rds")
 
 #### Repeatabilities of egg morphometrics (Table) ----
-## ---- load_rpt_out --------
-load("results/eggv_mod_rpt.rds")
-load("results/eggw_mod_rpt.rds")
-load("results/eggl_mod_rpt.rds")
-
 eggv_mod_rpt_R <- 
   cbind(t(eggv_mod_rpt$R), eggv_mod_rpt$CI_emp) %>% 
   mutate(group = row.names(.)) %>% 
@@ -235,22 +79,6 @@ eggv_mod_rpt_R <-
          lower95 = `2.5%`,
          upper95 = `97.5%`) %>% 
   mutate(trait = "Volume")
-
-eggw_mod_rpt_R <- 
-  cbind(t(eggw_mod_rpt$R), eggw_mod_rpt$CI_emp) %>% 
-  mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggw_mod_rpt$R)`,
-         lower95 = `2.5%`,
-         upper95 = `97.5%`) %>% 
-  mutate(trait = "Width")
-
-eggl_mod_rpt_R <- 
-  cbind(t(eggl_mod_rpt$R), eggl_mod_rpt$CI_emp) %>% 
-  mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggl_mod_rpt$R)`,
-         lower95 = `2.5%`,
-         upper95 = `97.5%`) %>% 
-  mutate(trait = "Length")
 
 egg_shape_rpt_R <- 
   bind_rows(eggv_mod_rpt_R, eggw_mod_rpt_R, eggl_mod_rpt_R)
@@ -291,13 +119,7 @@ egg_shape_rpt_R %>%
                         "</sup>") }
   )
 
-#### Forest Plots of Marginal R2 egg morphometrics models ####
-## ---- load_R2_out --------
-load("results/eggv_mod_R2.rds")
-load("results/eggw_mod_R2.rds")
-load("results/eggl_mod_R2.rds")
-
-## ---- eggv model ---------
+#### Forest Plots of Marginal R2 egg volume model ####
 eggv_mod_out = eggv_mod_R2[["R2"]]
 col_all <- "#2E3440"
 
@@ -341,103 +163,7 @@ eggv_mod_R2_plot <-
              fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
   scale_x_continuous(limits = c(0, 0.11))
 
-## ---- eggl model ---------
-eggl_mod_out = eggl_mod_R2[["R2"]]
-col_all <- "#2E3440"
-
-eggl_mod_out[eggl_mod_out$term == "Full", 1] <- "Model"
-names(eggl_mod_out) <- c("combs", "pe", "CI_lower", "CI_upper", "ndf")
-eggl_mod_out <- 
-  eggl_mod_out %>% 
-  mutate(combs = ifelse(combs == "poly(est_age, 2)", "Quadratic age", 
-                        ifelse(combs == "poly(jul_std_date, 2)", "Quadratic lay date",
-                               ifelse(combs == "firstage", "First age breeding",
-                                      ifelse(combs == "lastage", "Last age breeding", "Model")))))
-eggl_mod_out$combs <- factor(eggl_mod_out$combs, levels = rev(eggl_mod_out$combs))
-
-eggl_mod_R2_plot <- 
-  eggl_mod_R2[["R2"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age, 2)", "Senescence", 
-                       ifelse(term == "poly(jul_std_date, 2)", "Seasonality",
-                              ifelse(term == "firstage", "First-age breeding",
-                                     ifelse(term == "lastage", "Last-age breeding", "Model"))))) %>% 
-  mutate(term = factor(term, levels = rev(c("Model", "Senescence", "First-age breeding", "Last-age breeding", "Seasonality")))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_text(color = col_all, size = 11, face = "italic"),
-        axis.text = element_text(color = col_all), 
-        axis.title.x = element_blank(),
-        panel.grid.major.x = element_line(colour = "grey70", size=0.25)) + 
-  xlab(expression(paste("R", ''^{2}, sep = ""))) +
-  ylab("Length model") +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
-  scale_x_continuous(limits = c(0, 0.11))
-
-## ---- eggw model ---------
-eggw_mod_out = eggw_mod_R2[["R2"]]
-col_all <- "#2E3440"
-
-eggw_mod_out[eggw_mod_out$term == "Full", 1] <- "Model"
-names(eggw_mod_out) <- c("combs", "pe", "CI_lower", "CI_upper", "ndf")
-eggw_mod_out <- 
-  eggw_mod_out %>% 
-  mutate(combs = ifelse(combs == "poly(est_age, 2)", "Quadratic age", 
-                        ifelse(combs == "poly(jul_std_date, 2)", "Quadratic lay date",
-                               ifelse(combs == "firstage", "First age breeding",
-                                      ifelse(combs == "lastage", "Last age breeding", "Model")))))
-eggw_mod_out$combs <- factor(eggw_mod_out$combs, levels = rev(eggw_mod_out$combs))
-
-eggw_mod_R2_plot <- 
-  eggw_mod_R2[["R2"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age, 2)", "Senescence", 
-                       ifelse(term == "poly(jul_std_date, 2)", "Seasonality",
-                              ifelse(term == "firstage", "First-age breeding",
-                                     ifelse(term == "lastage", "Last-age breeding", "Model"))))) %>% 
-  mutate(term = factor(term, levels = rev(c("Model", "Senescence", "First-age breeding", "Last-age breeding", "Seasonality")))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_text(color = col_all, size = 11, face = "italic"),
-        axis.text = element_text(color = col_all), 
-        axis.title.x = element_text(margin = margin(t = 8), color = col_all, size = 11),
-        panel.grid.major.x = element_line(colour = "grey70", size=0.25)) + 
-  xlab("Variance explained") +
-  ylab("Width model")  +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
-  scale_x_continuous(limits = c(0, 0.11))
-
-## ---- combo R2 plot --------
-egg_shape_R2_plot <- 
-  eggv_mod_R2_plot / eggl_mod_R2_plot / eggw_mod_R2_plot + 
-  plot_annotation(tag_levels = "A")
-egg_shape_R2_plot
-
-#### Forest Plots of egg morphometrics model estimates ####
-## ---- load_R2_out --------
-load("results/eggv_mod_R2.rds")
-load("results/eggw_mod_R2.rds")
-load("results/eggl_mod_R2.rds")
-
-## ---- eggv model ---------
+#### Forest Plot of egg volume model estimates ####
 eggv_mod_out_ests = eggv_mod_R2[["Ests"]]
 col_all <- "#2E3440"
 
@@ -483,107 +209,7 @@ eggv_mod_ests_plot <-
              fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) #+
   # scale_x_continuous(limits = c(0, 0.11))
 
-## ---- eggl model ---------
-eggl_mod_out_ests = eggl_mod_R2[["Ests"]]
-col_all <- "#2E3440"
-
-eggl_mod_out_ests[eggl_mod_out_ests$term == "Full", 1] <- "Model"
-names(eggl_mod_out_ests) <- c("combs", "pe", "CI_lower", "CI_upper")
-eggl_mod_out_ests <- 
-  eggl_mod_out_ests %>% 
-  mutate(combs = ifelse(combs == "poly(est_age, 2)1", "Linear age", 
-                        ifelse(combs == "poly(est_age, 2)2", "Quadratic age", 
-                               ifelse(combs == "poly(jul_std_date, 2)1", "Linear lay date",
-                                      ifelse(combs == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                             ifelse(combs == "firstage", "First-age breeding",
-                                                    ifelse(combs == "lastage", "Last-age breeding", "Model")))))))
-eggl_mod_out_ests$combs <- factor(eggl_mod_out_ests$combs, levels = rev(eggl_mod_out_ests$combs))
-
-eggl_mod_ests_plot <- 
-  eggl_mod_R2[["Ests"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age, 2)1", "Linear age", 
-                       ifelse(term == "poly(est_age, 2)2", "Quadratic age", 
-                              ifelse(term == "poly(jul_std_date, 2)1", "Linear lay date",
-                                     ifelse(term == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                            ifelse(term == "firstage", "First-age breeding",
-                                                   ifelse(term == "lastage", "Last-age breeding", "Model"))))))) %>% 
-  mutate(term = factor(term, levels = rev(term))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.text = element_text(color = col_all), 
-        axis.title.x = element_text(margin = margin(t = 8), color = col_all, size = 11)) + 
-  xlab("Length (mm)") +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) #+
-# scale_x_continuous(limits = c(0, 0.11))
-
-## ---- eggw model ---------
-eggw_mod_out_ests = eggw_mod_R2[["Ests"]]
-col_all <- "#2E3440"
-
-eggw_mod_out_ests[eggw_mod_out_ests$term == "Full", 1] <- "Model"
-names(eggw_mod_out_ests) <- c("combs", "pe", "CI_lower", "CI_upper")
-eggw_mod_out_ests <- 
-  eggw_mod_out_ests %>% 
-  mutate(combs = ifelse(combs == "poly(est_age, 2)1", "Linear age", 
-                        ifelse(combs == "poly(est_age, 2)2", "Quadratic age", 
-                               ifelse(combs == "poly(jul_std_date, 2)1", "Linear lay date",
-                                      ifelse(combs == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                             ifelse(combs == "firstage", "First-age breeding",
-                                                    ifelse(combs == "lastage", "Last-age breeding", "Model")))))))
-eggw_mod_out_ests$combs <- factor(eggw_mod_out_ests$combs, levels = rev(eggw_mod_out_ests$combs))
-
-eggw_mod_ests_plot <- 
-  eggw_mod_R2[["Ests"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age, 2)1", "Linear age", 
-                       ifelse(term == "poly(est_age, 2)2", "Quadratic age", 
-                              ifelse(term == "poly(jul_std_date, 2)1", "Linear lay date",
-                                     ifelse(term == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                            ifelse(term == "firstage", "First-age breeding",
-                                                   ifelse(term == "lastage", "Last-age breeding", "Model"))))))) %>% 
-  mutate(term = factor(term, levels = rev(term))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.text = element_text(color = col_all), 
-        axis.title.x = element_text(margin = margin(t = 8), color = col_all, size = 11)) + 
-  xlab("Width (mm)") +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) #+
-# scale_x_continuous(limits = c(0, 0.11))
-
-## ---- combo ests plot --------
-egg_shape_ests_plot <- 
-  eggv_mod_ests_plot / eggl_mod_ests_plot / eggw_mod_ests_plot + 
-  plot_annotation(tag_levels = "A")
-egg_shape_ests_plot
-
-#### Forest Plots of egg morphometrics beta weights (standardized estimates) ####
-## ---- load_R2_out --------
-load("results/eggv_mod_R2.rds")
-load("results/eggw_mod_R2.rds")
-load("results/eggl_mod_R2.rds")
-
-## ---- eggv model ---------
+#### Forest Plot of egg volume beta weights (standardized estimates) ####
 eggv_mod_out_BW = eggv_mod_R2[["BW"]]
 col_all <- "#2E3440"
 
@@ -631,111 +257,11 @@ eggv_mod_BW_plot <-
              fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
   scale_x_continuous(limits = c(-0.17, 0.22))
 
-## ---- eggl model ---------
-eggl_mod_out_BW = eggl_mod_R2[["Ests"]]
-col_all <- "#2E3440"
-
-eggl_mod_out_BW[eggl_mod_out_BW$term == "Full", 1] <- "Model"
-names(eggl_mod_out_BW) <- c("combs", "pe", "CI_lower", "CI_upper")
-eggl_mod_out_BW <- 
-  eggl_mod_out_BW %>% 
-  mutate(combs = ifelse(combs == "poly(est_age, 2)1", "Linear age", 
-                        ifelse(combs == "poly(est_age, 2)2", "Quadratic age", 
-                               ifelse(combs == "poly(jul_std_date, 2)1", "Linear lay date",
-                                      ifelse(combs == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                             ifelse(combs == "firstage", "First-age breeding",
-                                                    ifelse(combs == "lastage", "Last-age breeding", "Model")))))))
-eggl_mod_out_BW$combs <- factor(eggl_mod_out_BW$combs, levels = rev(eggl_mod_out_BW$combs))
-
-eggl_mod_BW_plot <- 
-  eggl_mod_R2[["BW"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age, 2)1", "Linear age", 
-                       ifelse(term == "poly(est_age, 2)2", "Quadratic age", 
-                              ifelse(term == "poly(jul_std_date, 2)1", "Linear lay date",
-                                     ifelse(term == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                            ifelse(term == "firstage", "First-age breeding",
-                                                   ifelse(term == "lastage", "Last-age breeding", "Model"))))))) %>% 
-  mutate(term = factor(term, levels = rev(term))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.text.x = element_text(color = col_all), 
-        axis.text.y = element_blank(), 
-        axis.title.x = element_blank(),
-        panel.grid.major.x = element_line(colour = "grey70", size=0.25)) + 
-  xlab("Standardized\nlength") +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
-  scale_x_continuous(limits = c(-0.17, 0.22))
-
-## ---- eggw model ---------
-eggw_mod_out_BW = eggw_mod_R2[["Ests"]]
-col_all <- "#2E3440"
-
-eggw_mod_out_BW[eggw_mod_out_BW$term == "Full", 1] <- "Model"
-names(eggw_mod_out_BW) <- c("combs", "pe", "CI_lower", "CI_upper")
-eggw_mod_out_BW <- 
-  eggw_mod_out_BW %>% 
-  mutate(combs = ifelse(combs == "poly(est_age, 2)1", "Linear age", 
-                        ifelse(combs == "poly(est_age, 2)2", "Quadratic age", 
-                               ifelse(combs == "poly(jul_std_date, 2)1", "Linear lay date",
-                                      ifelse(combs == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                             ifelse(combs == "firstage", "First-age breeding",
-                                                    ifelse(combs == "lastage", "Last-age breeding", "Model")))))))
-eggw_mod_out_BW$combs <- factor(eggw_mod_out_BW$combs, levels = rev(eggw_mod_out_BW$combs))
-
-eggw_mod_BW_plot <- 
-  eggw_mod_R2[["BW"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age, 2)1", "Linear age", 
-                       ifelse(term == "poly(est_age, 2)2", "Quadratic age", 
-                              ifelse(term == "poly(jul_std_date, 2)1", "Linear lay date",
-                                     ifelse(term == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                            ifelse(term == "firstage", "First-age breeding",
-                                                   ifelse(term == "lastage", "Last-age breeding", "Model"))))))) %>% 
-  mutate(term = factor(term, levels = rev(term))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.text.x = element_text(color = col_all), 
-        axis.text.y = element_blank(), 
-        axis.title.x = element_blank(),
-        panel.grid.major.x = element_line(colour = "grey70", size=0.25)) + 
-  xlab("Standardized\nwidth") +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
-scale_x_continuous(limits = c(-0.17, 0.22))
-
-## ---- combo BW plot --------
-egg_shape_BW_plot <- 
-  eggv_mod_BW_plot / eggl_mod_BW_plot / eggw_mod_BW_plot + 
-  plot_annotation(tag_levels = "A")
-egg_shape_BW_plot
-
 #### Full forest plot of model results ---- 
-egg_shape_plot <- 
-  (eggv_mod_R2_plot + eggv_mod_ests_plot + eggv_mod_BW_plot) /
-  (eggl_mod_R2_plot + eggl_mod_ests_plot + eggl_mod_BW_plot) /
-  (eggw_mod_R2_plot + eggw_mod_ests_plot + eggw_mod_BW_plot) +
+egg_volume_forest_plot <- 
+  (eggv_mod_R2_plot + eggv_mod_ests_plot + eggv_mod_BW_plot) +
   plot_annotation(tag_levels = "A")
-egg_shape_plot
+egg_volume_forest_plot
 
 #### Trend plot of egg volume over season ----
 # extract the fitted values of the polynomial season effect
@@ -810,71 +336,3 @@ Age_plot <-
   plot_layout(heights = unit(c(7, 7), c('cm', 'cm')))
 
 Age_plot
-
-#### JUNK CODE ####
-# plot with the polynomial term broken into two 
-# eggv_mod_R2_plot <- 
-eggv_mod_R2[["BW"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age, 2)1", "Linear age", 
-                       ifelse(term == "poly(est_age, 2)2", "Quadratic age", 
-                              ifelse(term == "poly(jul_std_date, 2)1", "Linear lay date",
-                                     ifelse(term == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                            ifelse(term == "firstage", "First-age breeding",
-                                                   ifelse(term == "lastage", "Last-age breeding", "Model"))))))) %>% 
-  dplyr::select(.data$term, .data$estimate, .data$CI_lower, .data$CI_upper) %>% 
-  # dplyr::rename(Predictor = .data$term, 
-  #               BW = .data$estimate) %>% 
-  dplyr::filter(!(.data$term == "(Intercept)")) %>%
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.text = element_text(color = col_all), 
-        axis.title.x = element_text(margin = margin(t = 8), color = col_all)) + 
-  xlab(expression(paste("R", ''^{2}, "", sep = ""))) +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5)
-
-
-p1 <- forestplot(eggv_mod_R2, type = "R2", text_size = 10)
-p2 <- forestplot(eggv_mod_R2, type = "Ests", text_size = 10)
-p3 <- forestplot(eggv_mod_R2, type = "SC", text_size = 10)
-p4 <- forestplot(eggv_mod_R2, type = "BW", text_size = 10)
-(p1 + p2) / (p3 + p4) + plot_annotation(tag_levels = "A")
-
-eggv_mod_rpt_R <- 
-  cbind(t(eggv_mod_rpt$R), eggv_mod_rpt$CI_emp) %>% 
-  mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggv_mod_rpt$R)`,
-         lower95 = `2.5%`,
-         upper95 = `97.5%`) %>% 
-  mutate(trait = "Volume")
-
-eggw_mod_rpt_R <- 
-  cbind(t(eggw_mod_rpt$R), eggw_mod_rpt$CI_emp) %>% 
-  mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggw_mod_rpt$R)`,
-         lower95 = `2.5%`,
-         upper95 = `97.5%`) %>% 
-  mutate(trait = "Width")
-
-eggl_mod_rpt_R <- 
-  cbind(t(eggl_mod_rpt$R), eggl_mod_rpt$CI_emp) %>% 
-  mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggl_mod_rpt$R)`,
-         lower95 = `2.5%`,
-         upper95 = `97.5%`) %>% 
-  mutate(trait = "Length")
-
-## ---- load_tidy_out --------
-load("results/eggv_mod_tidy.rds")
-load("results/eggw_mod_tidy.rds")
-load("results/eggl_mod_tidy.rds")

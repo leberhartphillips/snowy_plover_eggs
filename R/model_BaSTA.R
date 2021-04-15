@@ -14,7 +14,7 @@ library(snowfall)
 
 load(file = "data/BaSTA_checked_life_table_females_2006-2020.rds")
 
-# should be 46 if corrected version of data
+# should be 45 if corrected version of data
 length(BaSTA_checked_life_table_females_2006_2020$type6)
 
 multiout_females <-

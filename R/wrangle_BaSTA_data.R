@@ -1,5 +1,6 @@
-source("R/001_libraries.R")
-source("R/002_functions.R")
+source("R/project_functions.R")
+source("R/project_libraries.R")
+source("R/project_plotting.R")
 
 ## ---- BaSTA_wrangle --------
 # Wrangle the capture data
@@ -181,7 +182,7 @@ birth_death_mat <-
   distinct(ring, .keep_all = TRUE)
 
 # Unite the encounter history table with the birth and death matrices
-life_table <-
+raw_life_table_females_2006_2020 <-
   left_join(birth_death_mat, encounter_history_table, by = "ring") %>%
   as.data.frame() %>% 
   distinct() %>% 
@@ -202,7 +203,7 @@ life_table <-
 # ready for analysis. In total, we have 918 encounters of 452 individually 
 # marked females that were seen as adults, of which 46 are of known birth year.
 BaSTA_checked_life_table_females_2006_2020 <- 
-  DataCheck(object = life_table[, -c(length(life_table))], 
+  DataCheck(object = raw_life_table_females_2006_2020[, -c(length(raw_life_table_females_2006_2020))], 
             studyStart = 2006, studyEnd = 2020,
             autofix = rep(1, 7), silent = FALSE)
 
@@ -210,3 +211,6 @@ BaSTA_checked_life_table_females_2006_2020 <-
 # save cleaned encounter history file, now ready for BaSTA
 save(BaSTA_checked_life_table_females_2006_2020,
      file = "data/BaSTA_checked_life_table_females_2006-2020.rds")
+
+save(raw_life_table_females_2006_2020,
+     file = "data/raw_life_table_females_2006_2020.rds")
