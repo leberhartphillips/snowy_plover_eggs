@@ -357,42 +357,42 @@ hist(eggs_and_chicks_nest_summary$avg_egg_volume)
 # Procedure:
 # linear mixed effects regression of chick weight ~ egg volume with mother ID and
 # year as random effects 
-# mod_chickw_eggv <- 
-#   lmer(avg_chick_weight ~ avg_egg_volume +
-#          (1|mother_ring) + (1|year), 
-#        data = dplyr::filter(eggs_and_chicks_nest_summary, 
-#                             !is.na(avg_chick_weight)))
-# 
-# # run tidy bootstrap to obtain model diagnostics
-# tidy_chickw_eggv <-
-#   tidy(mod_chickw_eggv, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-# 
-# # run rptR to obtain repeatabilities of random effects
-# rpt_chickw_eggv <-
-#   rpt(avg_chick_weight ~ avg_egg_volume +
-#         (1|mother_ring) + (1|year), 
-#       grname = c("mother_ring", "year", "Fixed"), 
-#       data = dplyr::filter(eggs_and_chicks_nest_summary, !is.na(avg_chick_weight)), 
-#       datatype = "Gaussian", 
-#       nboot = 1000, npermut = 1000, ratio = TRUE,
-#       adjusted = FALSE, ncores = 4, parallel = TRUE)
-# 
-# # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
-# # weights
-# R2_chickw_eggv <- 
-#   partR2(mod_chickw_eggv,  
-#          partvars = c("avg_egg_volume"), 
-#          R2_type = "marginal", nboot = 1000, CI = 0.95, max_level = 1)
-# 
-# # save model, tidy, rptR, and partR2 output as a list
-# stats_chickw_eggv <- 
-#   list(mod = mod_chickw_eggv,
-#        tidy = tidy_chickw_eggv,
-#        rptR = rpt_chickw_eggv,
-#        partR2 = R2_chickw_eggv)
-# 
-# save(stats_chickw_eggv,
-#      file = "output/stats_chickw_eggv.rds")
+mod_chickw_eggv <-
+  lmer(avg_chick_weight ~ avg_egg_volume +
+         (1|mother_ring) + (1|year),
+       data = dplyr::filter(eggs_and_chicks_nest_summary,
+                            !is.na(avg_chick_weight)))
+
+# run tidy bootstrap to obtain model diagnostics
+tidy_chickw_eggv <-
+  tidy(mod_chickw_eggv, conf.int = TRUE, conf.method = "boot", nsim = 1000)
+
+# run rptR to obtain repeatabilities of random effects
+rpt_chickw_eggv <-
+  rpt(avg_chick_weight ~ avg_egg_volume +
+        (1|mother_ring) + (1|year),
+      grname = c("mother_ring", "year", "Fixed"),
+      data = dplyr::filter(eggs_and_chicks_nest_summary, !is.na(avg_chick_weight)),
+      datatype = "Gaussian",
+      nboot = 1000, npermut = 1000, ratio = TRUE,
+      adjusted = FALSE, ncores = 4, parallel = TRUE)
+
+# run partR2 on each model to obtain marginal R2, parameter estimates, and beta
+# weights
+R2_chickw_eggv <-
+  partR2(mod_chickw_eggv,
+         partvars = c("avg_egg_volume"),
+         R2_type = "marginal", nboot = 1000, CI = 0.95, max_level = 1)
+
+# save model, tidy, rptR, and partR2 output as a list
+stats_chickw_eggv <-
+  list(mod = mod_chickw_eggv,
+       tidy = tidy_chickw_eggv,
+       rptR = rpt_chickw_eggv,
+       partR2 = R2_chickw_eggv)
+
+save(stats_chickw_eggv,
+     file = "output/stats_chickw_eggv.rds")
 
 load("output/stats_chickw_eggv.rds")
 
@@ -457,50 +457,53 @@ ggsave(plot = chickw_eggv_plot,
 
 #### Modeling egg width ----
 # same model structure as above but predicting egg width
-mod_eggw_age_date_tarsi <- 
-  lmer(width_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
-         poly(jul_lay_date_std_num, 2) +
-         (1|ID) + (1|ring) + (1|year),
-       data = ceuta_egg_chick_female_data)
+# mod_eggw_age_date_tarsi <- 
+#   lmer(width_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#          poly(jul_lay_date_std_num, 2) +
+#          (1|ID) + (1|ring) + (1|year),
+#        data = ceuta_egg_chick_female_data)
+# 
+# # run tidy bootstrap to obtain model diagnostics
+# tidy_eggw_age_date_tarsi <-
+#   tidy(mod_eggw_age_date_tarsi, conf.int = TRUE, conf.method = "boot", nsim = 1000)
+# 
+# # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
+# # weights
+# rpt_eggw_age_date_tarsi <-
+#   rpt(width_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#         poly(jul_lay_date_std_num, 2) +
+#         (1|ID) + (1|ring) + (1|year),
+#       grname = c("ID", "ring", "year", "Fixed"),
+#       data = ceuta_egg_chick_female_data,
+#       datatype = "Gaussian",
+#       nboot = 1000, npermut = 1000, ratio = TRUE,
+#       adjusted = FALSE, ncores = 4, parallel = TRUE)
+# 
+# # run rptR to obtain repeatabilities of random effects
+# R2_eggw_age_date_tarsi <-
+#   partR2(mod_eggw_age_date_tarsi,
+#          partvars = c("poly(est_age_trans, 2)",
+#                       "poly(jul_lay_date_std_num, 2)",
+#                       "firstage",
+#                       "lastage",
+#                       "avg_ad_tarsi"),
+#          R2_type = "marginal",
+#          nboot = 1000,
+#          CI = 0.95,
+#          max_level = 1)
+# 
+# # save model, tidy, rptR, and partR2 output as a list
+# stats_eggw_age_date_tarsi <- 
+#   list(mod = mod_eggw_age_date_tarsi,
+#        tidy = tidy_eggw_age_date_tarsi,
+#        rptR = rpt_eggw_age_date_tarsi,
+#        partR2 = R2_eggw_age_date_tarsi)
+# 
+# save(stats_eggw_age_date_tarsi,
+#      file = "output/stats_eggw_age_date_tarsi.rds")
 
-# run tidy bootstrap to obtain model diagnostics
-tidy_eggw_age_date_tarsi <-
-  tidy(mod_eggw_age_date_tarsi, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-
-# run partR2 on each model to obtain marginal R2, parameter estimates, and beta
-# weights
-rpt_eggw_age_date_tarsi <-
-  rpt(width_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
-        poly(jul_lay_date_std_num, 2) +
-        (1|ID) + (1|ring) + (1|year),
-      grname = c("ID", "ring", "year", "Fixed"),
-      data = ceuta_egg_chick_female_data,
-      datatype = "Gaussian",
-      nboot = 1000, npermut = 1000, ratio = TRUE,
-      adjusted = FALSE, ncores = 4, parallel = TRUE)
-
-# run rptR to obtain repeatabilities of random effects
-R2_eggw_age_date_tarsi <-
-  partR2(mod_eggw_age_date_tarsi,
-         partvars = c("poly(est_age, 2)",
-                      "poly(jul_lay_date_std_num, 2)",
-                      "firstage",
-                      "lastage",
-                      "avg_ad_tarsi"),
-         R2_type = "marginal",
-         nboot = 1000,
-         CI = 0.95,
-         max_level = 1)
-
-# save model, tidy, rptR, and partR2 output as a list
-stats_eggw_age_date_tarsi <- 
-  list(mod = mod_eggw_age_date_tarsi,
-       tidy = tidy_eggw_age_date_tarsi,
-       rptR = rpt_eggw_age_date_tarsi,
-       partR2 = R2_eggw_age_date_tarsi)
-
-save(stats_eggw_age_date_tarsi,
-     file = "output/stats_eggw_age_date_tarsi.rds")
+# load the saved results
+load("output/stats_eggw_age_date_tarsi.rds")
 
 # model summary a diagnostics
 summary(eggw_age_date_tarsi_mod)
@@ -509,56 +512,59 @@ coefplot2(eggw_age_date_tarsi_mod)
 summary(glht(eggw_age_date_tarsi_mod))
 
 #### Modeling egg length ----
-mod_eggl_age_date_tarsi <- 
-  lmer(length_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
-         poly(jul_lay_date_std_num, 2) +
-         (1|ID) + (1|ring) + (1|year),
-       data = ceuta_egg_chick_female_data)
+# mod_eggl_age_date_tarsi <- 
+#   lmer(length_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#          poly(jul_lay_date_std_num, 2) +
+#          (1|ID) + (1|ring) + (1|year),
+#        data = ceuta_egg_chick_female_data)
+# 
+# # run tidy bootstrap to obtain model diagnostics
+# tidy_eggl_age_date_tarsi <-
+#   tidy(mod_eggl_age_date_tarsi, conf.int = TRUE, conf.method = "boot", nsim = 1000)
+# 
+# # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
+# # weights
+# rpt_eggl_age_date_tarsi <-
+#   rpt(length_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#         poly(jul_lay_date_std_num, 2) +
+#         (1|ID) + (1|ring) + (1|year),
+#       grname = c("ID", "ring", "year", "Fixed"),
+#       data = ceuta_egg_chick_female_data,
+#       datatype = "Gaussian",
+#       nboot = 1000, npermut = 1000, ratio = TRUE,
+#       adjusted = FALSE, ncores = 4, parallel = TRUE)
+# 
+# # run rptR to obtain repeatabilities of random effects
+# R2_eggl_age_date_tarsi <-
+#   partR2(mod_eggl_age_date_tarsi,
+#          partvars = c("poly(est_age_trans, 2)",
+#                       "poly(jul_lay_date_std_num, 2)",
+#                       "firstage",
+#                       "lastage",
+#                       "avg_ad_tarsi"),
+#          R2_type = "marginal",
+#          nboot = 1000,
+#          CI = 0.95,
+#          max_level = 1)
+# 
+# # save model, tidy, rptR, and partR2 output as a list
+# stats_eggl_age_date_tarsi <- 
+#   list(mod = mod_eggl_age_date_tarsi,
+#        tidy = tidy_eggl_age_date_tarsi,
+#        rptR = rpt_eggl_age_date_tarsi,
+#        partR2 = R2_eggl_age_date_tarsi)
+# 
+# save(stats_eggl_age_date_tarsi,
+#      file = "output/stats_eggl_age_date_tarsi.rds")
 
-# run tidy bootstrap to obtain model diagnostics
-tidy_eggl_age_date_tarsi <-
-  tidy(mod_eggl_age_date_tarsi, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-
-# run partR2 on each model to obtain marginal R2, parameter estimates, and beta
-# weights
-rpt_eggl_age_date_tarsi <-
-  rpt(length_cm ~ poly(est_age, 2) + firstage + lastage + avg_ad_tarsi +
-        poly(jul_lay_date_std_num, 2) +
-        (1|ID) + (1|ring) + (1|year),
-      grname = c("ID", "ring", "year", "Fixed"),
-      data = ceuta_egg_chick_female_data,
-      datatype = "Gaussian",
-      nboot = 1000, npermut = 1000, ratio = TRUE,
-      adjusted = FALSE, ncores = 4, parallel = TRUE)
-
-# run rptR to obtain repeatabilities of random effects
-R2_eggl_age_date_tarsi <-
-  partR2(mod_eggl_age_date_tarsi,
-         partvars = c("poly(est_age, 2)",
-                      "poly(jul_lay_date_std_num, 2)",
-                      "firstage",
-                      "lastage",
-                      "avg_ad_tarsi"),
-         R2_type = "marginal",
-         nboot = 1000,
-         CI = 0.95,
-         max_level = 1)
-
-# save model, tidy, rptR, and partR2 output as a list
-stats_eggl_age_date_tarsi <- 
-  list(mod = mod_eggl_age_date_tarsi,
-       tidy = tidy_eggl_age_date_tarsi,
-       rptR = rpt_eggl_age_date_tarsi,
-       partR2 = R2_eggl_age_date_tarsi)
-
-save(stats_eggl_age_date_tarsi,
-     file = "output/stats_eggl_age_date_tarsi.rds")
+# load the saved results
+load("output/stats_eggl_age_date_tarsi.rds")
 
 # model summary a diagnostics
-summary(eggl_age_date_tarsi_mod)
-plot(allEffects(eggl_age_date_tarsi_mod))
-coefplot2(eggl_age_date_tarsi_mod)
-summary(glht(eggl_age_date_tarsi_mod))
+summary(stats_eggl_age_date_tarsi$mod)
+plot(allEffects(stats_eggl_age_date_tarsi$mod))
+coefplot2(stats_eggl_age_date_tarsi$mod)
+summary(glht(stats_eggl_age_date_tarsi$mod))
 
 #### Repeatabilities of egg morphometrics (Table) ----
 ## ---- load_rpt_out --------
@@ -567,25 +573,25 @@ load("output/stats_eggw_age_date_tarsi.rds")
 load("output/stats_eggl_age_date_tarsi.rds")
 
 eggv_mod_rpt_R <- 
-  cbind(t(eggv_mod_rpt$R), eggv_mod_rpt$CI_emp) %>% 
+  cbind(t(stats_eggv_age_date_tarsi$rptR$R), stats_eggv_age_date_tarsi$rptR$CI_emp) %>% 
   mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggv_mod_rpt$R)`,
+  rename(mean_estimate = `t(stats_eggv_age_date_tarsi$rptR$R)`,
          lower95 = `2.5%`,
          upper95 = `97.5%`) %>% 
   mutate(trait = "Volume")
 
 eggw_mod_rpt_R <- 
-  cbind(t(eggw_mod_rpt$R), eggw_mod_rpt$CI_emp) %>% 
+  cbind(t(stats_eggw_age_date_tarsi$rptR$R), stats_eggw_age_date_tarsi$rptR$CI_emp) %>% 
   mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggw_mod_rpt$R)`,
+  rename(mean_estimate = `t(stats_eggw_age_date_tarsi$rptR$R)`,
          lower95 = `2.5%`,
          upper95 = `97.5%`) %>% 
   mutate(trait = "Width")
 
 eggl_mod_rpt_R <- 
-  cbind(t(eggl_mod_rpt$R), eggl_mod_rpt$CI_emp) %>% 
+  cbind(t(stats_eggl_age_date_tarsi$rptR$R), stats_eggl_age_date_tarsi$rptR$CI_emp) %>% 
   mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggl_mod_rpt$R)`,
+  rename(mean_estimate = `t(stats_eggl_age_date_tarsi$rptR$R)`,
          lower95 = `2.5%`,
          upper95 = `97.5%`) %>% 
   mutate(trait = "Length")

@@ -1,3 +1,4 @@
+#### Libraries and data ----
 source("R/project_functions.R")
 source("R/project_libraries.R")
 source("R/project_plotting.R")
@@ -214,3 +215,6 @@ save(BaSTA_checked_life_table_females_2006_2020,
 
 save(raw_life_table_females_2006_2020,
      file = "data/raw_life_table_females_2006_2020.rds")
+
+save(encounter_histories, 
+     file = "data/raw_encounter_histories_females_2006_2020.rds")

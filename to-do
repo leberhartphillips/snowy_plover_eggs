@@ -1,2 +1,7 @@
 To-do list:
-orginal BaSTA life table had 452 individuals, but after curation or CeutaCLOSED, the BaSTA life table has 450. The difference in the rings present is that "CN0116" and "CN0606" are no longer in the life table. Need to check if this is correct.
+- export two-panel age-dependent figure (laydate, egg volume)
+- export three-panel sesonal-dependent figure (polyandry, laydate distribution, egg volume) 
+- "mega" table and forest plot of all model results:
+  - Three columns: Polyandry, Egg Volume, Laydate
+  - Three chunks of rows: Fixed effect estimates (with 95% CI), Random effect estimates (with 95% CI), Repeatabilities (with 95% CI), Sample sizes
+- tidy explore scripts

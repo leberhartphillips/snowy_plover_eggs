@@ -2,7 +2,7 @@ source("R/project_functions.R")
 source("R/project_libraries.R")
 source("R/project_plotting.R")
 
-load(file = "output/multibasta_females_min_age_1_2006-2020.rds")
+load(file = "output/multibasta_output_females_min_age_1_2006-2020.rds")
 load(file = "data/raw_life_table_females_2006_2020.rds")
 
 # DIC model selection shows that the Logistic mortality model with bathtub 

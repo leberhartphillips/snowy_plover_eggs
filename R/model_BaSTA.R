@@ -8,9 +8,10 @@
 # or individuals that were born locally but were encountered in subsequent years 
 # (ie., first-year survival = 1.0)).
 
-library(BaSTA)
-library(tidyverse)
-library(snowfall)
+#### Libraries and data ----
+source("R/project_functions.R")
+source("R/project_libraries.R")
+source("R/project_plotting.R")
 
 load(file = "data/BaSTA_checked_life_table_females_2006-2020.rds")
 
@@ -24,4 +25,4 @@ multiout_females <-
              nsim = 4, parallel = TRUE, ncpus = 4, updateJumps = TRUE)
 
 save(multiout_females,
-     file = "R_objects/multibasta_females_min_age_1_2006-2020.rds")
+     file = "output/multibasta_output_females_min_age_1_2006-2020.rds")

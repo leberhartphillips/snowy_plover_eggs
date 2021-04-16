@@ -7,133 +7,7 @@
 source("R/001_libraries.R")
 source("R/002_functions.R")
 
-load("data/raw/ceuta_egg_chick_female_data.rds")
-
-#### Exploratory plots ----
-# all nests for all females
-dist_text1 <- 
-  data.frame(y = 35, 
-             x = min(ceuta_egg_chick_female_data$jul_lay_date_std_num, na.rm = TRUE), 
-             lab = "All nests for all females",
-             polyandry = factor("mono", levels = c("mono", "poly")))
-ceuta_egg_chick_female_data %>% 
-  dplyr::select(polyandry, jul_lay_date_std_num, ID) %>% 
-  distinct() %>% 
-  ggplot() + 
-  geom_boxplot(aes(x = jul_lay_date_std_num, y = 23, group = polyandry, 
-                   fill = polyandry), color = "grey50",
-               width = 5, alpha = 0.5) +
-  geom_jitter(aes(x = jul_lay_date_std_num, y = 30, group = polyandry, 
-                  fill = polyandry, color = polyandry), height = 3, alpha = 0.4) +
-  geom_density(alpha = 0.3, aes(jul_lay_date_std_num,
-                                after_stat(count),
-                                fill = polyandry,
-                                color = polyandry), adjust = 2) +
-  geom_histogram(alpha = 0.5, aes(jul_lay_date_std_num,
-                                  fill = polyandry,
-                                  color = polyandry), binwidth = 1) +
-  luke_theme +
-  facet_grid(polyandry ~ ., 
-             labeller = labeller(polyandry = polyandry.labs)) +
-  theme(axis.title.y = element_text(hjust = 0.05),
-        legend.position = "none") +
-  ylab("Number of nests") +
-  xlab("Nest initiation date (scaled by year)") +
-  scale_x_continuous(limits = c(-60, 60)) +
-  scale_y_continuous(limits = c(0, 35),
-                     breaks = c(0, 5, 10, 15, 20)) +
-  geom_text(data = dist_text1, x = dist_text1$x,
-            y = dist_text1$y, label = dist_text1$lab,
-            hjust = 0, color = "grey30", size = 4, fontface = 'italic') +
-  scale_color_manual(values = plot_palette_polyandry) +
-  scale_fill_manual(values = plot_palette_polyandry)
-
-# only females with multiple nests
-dist_text2 <- 
-  data.frame(y = 35, 
-             x = min(ceuta_egg_chick_female_data$jul_lay_date_std_num, na.rm = TRUE), 
-             lab = "Only females with multiple nests",
-             polyandry = factor("mono", levels = c("mono", "poly")))
-
-two_nesters <- 
-  ceuta_egg_chick_female_data %>% 
-  dplyr::filter(nest_order %in% c(2))
-
-ceuta_egg_chick_female_data %>%
-  # dplyr::filter(nest_order %in% c(1, 2)) %>% 
-  dplyr::filter(ring_year %in% two_nesters$ring_year) %>%
-  dplyr::select(polyandry, jul_lay_date_std_num, ID) %>% 
-  distinct() %>% 
-  ggplot() + 
-  geom_boxplot(aes(x = jul_lay_date_std_num, y = 23, group = polyandry, 
-                   fill = polyandry), color = "grey50",
-               width = 5, alpha = 0.5) +
-  geom_jitter(aes(x = jul_lay_date_std_num, y = 30, group = polyandry, 
-                  fill = polyandry, color = polyandry), height = 3, alpha = 0.4) +
-  geom_density(alpha = 0.3, aes(jul_lay_date_std_num,
-                                after_stat(count),
-                                fill = polyandry,
-                                color = polyandry), adjust = 2) +
-  geom_histogram(alpha = 0.5, aes(jul_lay_date_std_num,
-                                  fill = polyandry,
-                                  color = polyandry), binwidth = 1) +
-  luke_theme +
-  facet_grid(polyandry ~ ., 
-             labeller = labeller(polyandry = polyandry.labs)) +
-  theme(axis.title.y = element_text(hjust = 0.05),
-        legend.position = "none") +
-  ylab("Number of nests") +
-  xlab("Nest initiation date (scaled by year)") +
-  scale_x_continuous(limits = c(-60, 60)) +
-  scale_y_continuous(limits = c(0, 35),
-                     breaks = c(0, 5, 10, 15, 20)) +
-  geom_text(data = dist_text2, x = dist_text2$x,
-            y = dist_text2$y, label = dist_text2$lab,
-            hjust = 0, color = "grey30", size = 4, fontface = 'italic') +
-  scale_color_manual(values = plot_palette_polyandry) +
-  scale_fill_manual(values = plot_palette_polyandry)
-
-# Hatched first nests of females with multiple nests
-dist_text3 <- 
-  data.frame(y = 35, 
-             x = min(ceuta_egg_chick_female_data$jul_lay_date_std_num, na.rm = TRUE), 
-             lab = "Hatched first nests of females with multiple nests",
-             polyandry = factor("mono", levels = c("mono", "poly")))
-ceuta_egg_chick_female_data %>%
-  # filter(ring_year %in% second_nests$ring_year) %>% 
-  dplyr::filter(ring_year %in% two_nesters$ring_year) %>%
-  dplyr::filter(nest_order == 1) %>% 
-  dplyr::filter(fate == "Hatch") %>% 
-  dplyr::select(polyandry, jul_lay_date_std_num, ID) %>% 
-  distinct() %>% 
-  ggplot() + 
-  geom_boxplot(aes(x = jul_lay_date_std_num, y = 23, group = polyandry, 
-                   fill = polyandry), color = "grey50",
-               width = 5, alpha = 0.5) +
-  geom_jitter(aes(x = jul_lay_date_std_num, y = 30, group = polyandry, 
-                  fill = polyandry, color = polyandry), height = 3, alpha = 0.4) +
-  geom_density(alpha = 0.3, aes(jul_lay_date_std_num,
-                                after_stat(count),
-                                fill = polyandry,
-                                color = polyandry), adjust = 2) +
-  geom_histogram(alpha = 0.5, aes(jul_lay_date_std_num,
-                                  fill = polyandry,
-                                  color = polyandry), binwidth = 1) +
-  luke_theme +
-  facet_grid(polyandry ~ ., 
-             labeller = labeller(polyandry = polyandry.labs)) +
-  theme(axis.title.y = element_text(hjust = 0.05),
-        legend.position = "none") +
-  ylab("Number of nests") +
-  xlab("Nest initiation date (scaled by year)") +
-  scale_x_continuous(limits = c(-60, 60)) +
-  scale_y_continuous(limits = c(0, 35),
-                     breaks = c(0, 5, 10, 15, 20)) +
-  geom_text(data = dist_text3, x = dist_text1$x,
-            y = dist_text3$y, label = dist_text3$lab,
-            hjust = 0, color = "grey30", size = 4, fontface = 'italic') +
-  scale_color_manual(values = plot_palette_polyandry) +
-  scale_fill_manual(values = plot_palette_polyandry)
+load("data/ceuta_egg_chick_female_data.rds")
 
 #### Modeling ----
 # Modeling the relationship between mating behavior and initiation date
@@ -150,49 +24,49 @@ first_nests_data <-
          mono = ifelse(polyandry == "mono", 1, 0)) %>%
   mutate(poly_plot = ifelse(poly == 1, poly + 0.1, poly - 0.1))
 
-# # Procedure:
-# # binomial mixed effects regression of polyandry ~ lay date with mother ID and
-# # year as random effects
-# mod_poly_date <-
-#   glmer(cbind(poly, mono) ~ jul_lay_date_std_num +
-#           (1|ring) + (1|year),
-#         data = first_nests_data, family = "binomial")
-# 
-# # run tidy bootstrap to obtain model diagnostics
-# tidy_poly_date <-
-#   tidy(mod_poly_date, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-# 
-# # run rptR to obtain repeatabilities of random effects
-# rpt_poly_date <-
-#   rpt(poly ~ jul_lay_date_std_num +
-#         (1|ring) + (1|year),
-#       grname = c("ring", "Fixed"),
-#       data = first_nests_data,
-#       datatype = "Binary",
-#       nboot = 1000, npermut = 1000, ratio = TRUE,
-#       adjusted = FALSE, ncores = 4, parallel = TRUE)
-# 
-# # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
-# # weights
-# R2_poly_date <-
-#   partR2(mod_poly_date,
-#          partvars = c("jul_lay_date_std_num"),
-#          R2_type = "marginal",
-#          nboot = 1000, CI = 0.95, max_level = 1)
-# 
-# 
-# # save model, tidy, rptR, and partR2 output as a list
-# stats_poly_date <-
-#   list(mod = mod_poly_date,
-#        tidy = tidy_poly_date,
-#        rptR = rpt_poly_date,
-#        partR2 = R2_poly_date)
-# 
-# save(stats_poly_date,
-#      file = "data/out/stats_poly_date.rds")
+# Procedure:
+# binomial mixed effects regression of polyandry ~ lay date with mother ID and
+# year as random effects
+mod_poly_date <-
+  glmer(cbind(poly, mono) ~ jul_lay_date_std_num +
+          (1|ring) + (1|year),
+        data = first_nests_data, family = "binomial")
+
+# run tidy bootstrap to obtain model diagnostics
+tidy_poly_date <-
+  tidy(mod_poly_date, conf.int = TRUE, conf.method = "boot", nsim = 1000)
+
+# run rptR to obtain repeatabilities of random effects
+rpt_poly_date <-
+  rpt(poly ~ jul_lay_date_std_num +
+        (1|ring) + (1|year),
+      grname = c("ring", "Fixed"),
+      data = first_nests_data,
+      datatype = "Binary",
+      nboot = 1000, npermut = 1000, ratio = TRUE,
+      adjusted = FALSE, ncores = 4, parallel = TRUE)
+
+# run partR2 on each model to obtain marginal R2, parameter estimates, and beta
+# weights
+R2_poly_date <-
+  partR2(mod_poly_date,
+         partvars = c("jul_lay_date_std_num"),
+         R2_type = "marginal",
+         nboot = 1000, CI = 0.95, max_level = 1)
+
+
+# save model, tidy, rptR, and partR2 output as a list
+stats_poly_date <-
+  list(mod = mod_poly_date,
+       tidy = tidy_poly_date,
+       rptR = rpt_poly_date,
+       partR2 = R2_poly_date)
+
+save(stats_poly_date,
+     file = "output/stats_poly_date.rds")
 
 # load the saved results
-load("data/out/stats_poly_date.rds")
+load("output/stats_poly_date.rds")
 
 # Marginal R2
 stats_poly_date$partR2$R2
