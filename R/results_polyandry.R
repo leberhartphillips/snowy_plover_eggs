@@ -119,3 +119,146 @@ polyandry_date_dist_plot <-
   scale_fill_manual(values = plot_palette_polyandry,
                     guide = guide_legend(title.position = "top", nrow = 2),
                     labels = c("Monogamous", "Polyandrous"))
+
+#### Table of effect sizes ----
+# Retrieve sample sizes
+sample_sizes <-
+  first_nests_data %>% 
+  summarise(Year = n_distinct(year),
+            Individual = n_distinct(ring),
+            Nests = n_distinct(ID))
+
+sample_sizes <- 
+  as.data.frame(t(as.data.frame(sample_sizes))) %>%
+  rownames_to_column("term") %>% 
+  rename(estimate = V1) %>% 
+  mutate(stat = "n")
+
+
+# clean model component names
+mod_comp_names <- 
+  data.frame(comp_name = c("Intercept",
+                           "First nest lay date",
+                           "Individual",
+                           "Year",
+                           # "Residual",
+                           "Individual",
+                           "Year",
+                           "Residual",
+                           "Years",
+                           "Individuals",
+                           "Observations (i.e., Nests)"))
+
+fixefTable <- 
+  stats_poly_date$tidy %>% 
+  dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed")
+
+ranefTable <- 
+  stats_poly_date$tidy %>% 
+  dplyr::filter(effect == "ran_pars") %>% 
+  dplyr::select(group, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "rand") %>% 
+  rename(term = group) %>% 
+  mutate(estimate = estimate^2,
+         conf.high = conf.high^2,
+         conf.low = conf.low^2)
+
+R2Table <- 
+  stats_poly_date$partR2$R2 %>% 
+  # dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "partR2") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# coefRptTable <- 
+# rbind(c(mean(stats_poly_date$rptR$R_boot_org$ring),
+#         quantile(stats_poly_date$rptR$R_boot_org$ring, prob = c(0.025, 0.975))),
+#       c(mean(stats_poly_date$rptR$R_boot_org$year),
+#         quantile(stats_poly_date$rptR$R_boot_org$ring, prob = c(0.025, 0.975))))
+#   
+#     
+#   sapply(., 
+#         function(x) c(mean (x), quantile(x, prob = c(0.025, 0.975)))) %>% 
+#   t() %>% 
+#   as.data.frame() %>% 
+#   rownames_to_column("term") %>% 
+#   rename(estimate = V1,
+#          conf.low = `2.5%`,
+#          conf.high = `97.5%`) %>% 
+#   mutate(stat = "RptR")
+
+coefRptTable <- 
+  as.data.frame(do.call(cbind, stats_poly_date$rptR$R_boot_link)) %>% 
+  dplyr::select(-Fixed) %>% 
+  mutate(residual = 1 - rowSums(.)) %>% 
+  apply(., 2, 
+        function(x) c(mean (x), quantile (x, prob = c(0.025, 0.975)))) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("term") %>% 
+  rename(estimate = V1,
+         conf.low = `2.5%`,
+         conf.high = `97.5%`) %>% 
+  mutate(stat = "RptR")
+
+# Store all parameters into a single table and clean it up
+allCoefs_mod <- 
+  bind_rows(fixefTable, 
+            ranefTable, 
+            coefRptTable, 
+            sample_sizes) %>% 
+  bind_cols(.,
+            mod_comp_names) %>%
+  mutate(coefString = ifelse(!is.na(conf.low),
+                             paste0("[", 
+                                    round(conf.low, 2), ", ", 
+                                    round(conf.high, 2), "]"),
+                             NA),
+         effect = c(rep("Fixed effects \U1D6FD (cm\U00B3)", nrow(fixefTable)),
+                    rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
+                    rep("Adjusted Repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
+  dplyr::select(effect, everything())
+
+polyandry_mod_table <- 
+  allCoefs_mod %>% 
+  dplyr::select(effect, comp_name, estimate, coefString) %>% 
+  gt(rowname_col = "row",
+     groupname_col = "effect") %>% 
+  cols_label(comp_name = "",
+             estimate = "Parameter estimate",
+             coefString = "95% confidence interval") %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 1:7,
+             decimals = 2,
+             use_seps = FALSE) %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 8:10,
+             decimals = 0,
+             use_seps = FALSE) %>% 
+  fmt_missing(columns = 1:4,
+              missing_text = "") %>% 
+  cols_align(align = "left",
+             columns = vars(comp_name)) %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
+
+polyandry_mod_table %>% 
+  gtsave("polyandry_mod_table.rtf", path = "products/tables/")
+polyandry_mod_table %>% 
+  gtsave("polyandry_mod_table.png", path = "products/tables/")
+
+image_read(path = "results/tables/table_S2.png")

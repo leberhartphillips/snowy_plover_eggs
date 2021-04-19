@@ -22,10 +22,10 @@ first_nests_age_data <-
 # # Procedure:
 # # mixed effects regression of laydate ~ senescence with mother ID as random
 # # effects
-# mod_date_age_tarsi <-
-#   lmer(jul_lay_date_std_num ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
-#          (1|ring) + (1|year),
-#        data = first_nests_age_data)
+mod_date_age_tarsi <-
+  lmer(jul_lay_date_std_num ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+         (1|ring) + (1|year),
+       data = first_nests_age_data)
 # 
 # # run tidy bootstrap to obtain model diagnostics
 # tidy_date_age_tarsi <-
@@ -50,6 +50,15 @@ first_nests_age_data <-
 #                       "avg_ad_tarsi"),
 #          R2_type = "marginal",
 #          nboot = 1000, CI = 0.95, max_level = 1)
+#
+R2c_date_age_tarsi <-
+  partR2(mod_date_age_tarsi,
+         partvars = c("poly(est_age_trans, 2)",
+                      "firstage",
+                      "lastage",
+                      "avg_ad_tarsi"),
+         R2_type = "conditional",
+         nboot = 1000, CI = 0.95, max_level = 1)
 # 
 # # save model, tidy, rptR, and partR2 output as a list
 # stats_date_age_tarsi <-

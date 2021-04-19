@@ -51,6 +51,18 @@ load("data/ceuta_egg_chick_female_data.rds")
 #          CI = 0.95,
 #          max_level = 1)
 # 
+R2c_eggv_age_date_tarsi <-
+  partR2(mod_eggv_age_date_tarsi,
+         partvars = c("poly(est_age_trans, 2)",
+                      "poly(jul_lay_date_std_num, 2)",
+                      "firstage",
+                      "lastage",
+                      "avg_ad_tarsi"),
+         R2_type = "conditional",
+         nboot = 1000,
+         CI = 0.95,
+         max_level = 1)
+# 
 # # save model, tidy, rptR, and partR2 output as a list
 # stats_eggv_age_date_tarsi <-
 #   list(mod = mod_eggv_age_date_tarsi,

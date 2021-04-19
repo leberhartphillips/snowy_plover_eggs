@@ -1,4 +1,5 @@
 To-do list:
+- run conditional R2 in partR2 and add to tables
 - export two-panel age-dependent figure (laydate, egg volume)
 - export three-panel sesonal-dependent figure (polyandry, laydate distribution, egg volume) 
 - "mega" table and forest plot of all model results:
