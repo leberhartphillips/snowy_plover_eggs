@@ -4,6 +4,7 @@ source("R/project_functions.R")
 
 #### Results ----
 load("output/stats_eggv_age_date_tarsi.rds")
+load("data/ceuta_egg_chick_female_data.rds")
 
 #### Repeatabilities of egg morphometrics (Table) ----
 eggv_mod_rpt_R <- 
@@ -276,3 +277,241 @@ Age_plot <-
   plot_layout(heights = unit(c(7, 7), c('cm', 'cm')))
 
 Age_plot
+
+#### try Niels' way to calculate model stats ----
+
+# mod_eggv_age_date_tarsi <-
+#   lmer(volume_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#          poly(jul_lay_date_std_num, 2) +
+#          (1|ID) + (1|ring) + (1|year),
+#        data = ceuta_egg_chick_female_data)
+
+# mod2 <- 
+#     lmer(volume_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#            poly(jul_lay_date_std_num, 2) +
+#            (1|ID) + (1|ring) + (1|year),
+#          data = ceuta_egg_chick_female_data)
+
+# set seed to make simulation reproducable
+set.seed(14)
+
+# specify the number of simulations you would like to produce
+n_sim = 5000
+
+mod2 <- stats_eggv_age_date_tarsi$mod
+
+summary(mod2)
+
+# create a sim object containing all the components of mod2
+mod2_sim <- sim(mod2, n.sim = n_sim)
+
+# Retrieve all random effect estimates (mean, credible intervals)
+# speficy column names of the sim object as the names of the model components
+colnames(mod2_sim@fixef) <- 
+  names(fixef(mod2))
+
+# Retrieve all random effect estimates (mean, credible intervals) 
+# simultaneously
+coef_ranef_mod2 <- 
+  lapply(ranef(mod2_sim), function(x) c(mean(apply(x[, , 1], 1, var)),  
+                                        quantile(apply(x[, , 1], 1, var), 
+                                                 prob = c(0.025, 0.975))))
+
+# Transpose the random effects table
+ranefTable <- 
+  as.data.frame(t(as.data.frame(coef_ranef_mod2))) %>%
+  rownames_to_column("coefName")
+
+# Retrieve all fixed effect estimates (mean, credible intervals) 
+# simultaneously 
+coef_fixef_mod2 <- 
+  rbind(apply(mod2_sim@fixef, 2, mean), 
+        apply(mod2_sim@fixef, 2, quantile, 
+              prob = c(0.025, 0.975)))
+
+# Transpose the fixed effects table
+fixefTable <- 
+  as.data.frame(t(as.data.frame(coef_fixef_mod2))) %>%
+  rownames_to_column("coefName")
+
+# Calculate adjusted repeatabilities
+# Retrieve residual variance estimate (mean, credible intervals)
+coef_res_mod2 <- 
+  c(mean(mod2_sim@sigma^2), quantile(mod2_sim@sigma^2, c(0.025, 0.975)))
+
+# Transpose the residual effects table
+resTable <- 
+  as.data.frame(t(as.data.frame(coef_res_mod2))) %>%
+  mutate(coefName = "residual")
+
+# Calculate total phenotypic variance not explained by fixed effects
+ranefAndResidualAseggdf <- 
+  cbind(as.data.frame(lapply(ranef(mod2_sim), 
+                             function(x) apply(x[, , 1], 1, var))), 
+        residual = mod2_sim@sigma^2)
+
+ranefAndResidualAseggdf$varTotal <- 
+  rowSums(ranefAndResidualAseggdf)
+
+# Express each random effect as proportion of total (rpt)
+rpt_each <- 
+  ranefAndResidualAseggdf %>%
+  mutate_at(vars( -varTotal), funs(./varTotal)) %>% 
+  suppressWarnings()
+  
+coef_rpt_all <- 
+  apply(rpt_each, 2, 
+        function(x) c(mean (x), quantile (x, prob = c(0.025, 0.975))))
+
+coefRptTable <- 
+  as.data.frame(t(coef_rpt_all)) %>%
+  rownames_to_column("coefName") %>%
+  filter(!coefName %in% c("varTotal"))
+
+#### Table of effect sizes ----
+# Retrieve sample sizes
+sample_sizes <-
+  ceuta_egg_chick_female_data %>% 
+  summarise(Year = n_distinct(year),
+            Individual = n_distinct(ring),
+            Nests = n_distinct(ID),
+            Observations = nrow(.))
+
+sample_sizes <- 
+  as.data.frame(t(as.data.frame(sample_sizes))) %>%
+  rownames_to_column("term") %>% 
+  rename(estimate = V1) %>% 
+  mutate(stat = "n")
+
+
+# clean model component names
+mod_comp_names <- 
+  data.frame(comp_name = c("Intercept",
+                           "Linear age",
+                           "Quadratic age",
+                           "First age",
+                           "Last age",
+                           "Tarsus",
+                           "Linear lay date",
+                           "Quadratic lay date",
+                           "Total Marginal \U1D479\U00B2",
+                           "Senescence",
+                           "Seasonality",
+                           "First age",
+                           "Last age",
+                           "Tarsus",
+                           "Nest / Individual",
+                           "Individual",
+                           "Year",
+                           "Residual",
+                           "Nest / Individual",
+                           "Individual",
+                           "Year",
+                           "Residual",
+                           "Years",
+                           "Individuals",
+                           "Nests",
+                           "Observations (i.e., Eggs)"))
+
+fixefTable <- 
+  stats_eggv_age_date_tarsi$tidy %>% 
+  dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed")
+
+R2Table <- 
+  stats_eggv_age_date_tarsi$partR2$R2 %>% 
+  # dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "partR2") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+ranefTable <- 
+  stats_eggv_age_date_tarsi$tidy %>% 
+  dplyr::filter(effect == "ran_pars") %>% 
+  dplyr::select(group, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "rand") %>% 
+  rename(term = group) %>% 
+  mutate(estimate = estimate^2,
+         conf.high = conf.high^2,
+         conf.low = conf.low^2)
+
+coefRptTable <- 
+  stats_eggv_age_date_tarsi$rptR$R_boot %>% 
+  dplyr::select(-Fixed) %>% 
+  mutate(residual = 1 - rowSums(.)) %>% 
+  apply(., 2, 
+        function(x) c(mean (x), quantile (x, prob = c(0.025, 0.975)))) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("term") %>% 
+  rename(estimate = V1,
+         conf.low = `2.5%`,
+         conf.high = `97.5%`) %>% 
+  mutate(stat = "RptR")
+  
+# Store all parameters into a single table and clean it up
+allCoefs_mod <- 
+  bind_rows(fixefTable,
+            R2Table,
+            ranefTable, 
+            coefRptTable, 
+            sample_sizes) %>% 
+  bind_cols(.,
+            mod_comp_names) %>%
+  mutate(coefString = ifelse(!is.na(conf.low),
+                             paste0("[", 
+                                    round(conf.low, 2), ", ", 
+                                    round(conf.high, 2), "]"),
+                             NA),
+         effect = c(rep("Fixed effects \U1D6FD (cm\U00B3)", nrow(fixefTable)),
+                    rep("Partitioned Marginal \U1D479\U00B2", nrow(R2Table)),
+                    rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
+                    rep("Adjusted Repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
+  dplyr::select(effect, everything())
+
+# re-organize model components for table
+allCoefs_mod <-
+  allCoefs_mod[c(1, 6, 2:5, 7:9, 14, 10, 12:13, 11, 15:26), ]
+
+eggv_mod_table <- 
+  allCoefs_mod %>% 
+  dplyr::select(effect, comp_name, estimate, coefString) %>% 
+  gt(rowname_col = "row",
+     groupname_col = "effect") %>% 
+  cols_label(comp_name = "",
+             estimate = "Parameter estimate",
+             coefString = "95% confidence interval") %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 1:22,
+             decimals = 2,
+             use_seps = FALSE) %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 23:26,
+             decimals = 0,
+             use_seps = FALSE) %>% 
+  fmt_missing(columns = 1:4,
+              missing_text = "") %>% 
+  cols_align(align = "left",
+             columns = vars(comp_name)) %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
+
+eggv_mod_table %>% 
+  gtsave("eggv_mod_table.rtf", path = "products/tables/")
+eggv_mod_table %>% 
+  gtsave("eggv_mod_table.png", path = "products/tables/")
+
+image_read(path = "results/tables/table_S2.png")
