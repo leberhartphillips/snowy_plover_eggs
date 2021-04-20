@@ -27,16 +27,16 @@ first_nests_data <-
 # Procedure:
 # binomial mixed effects regression of polyandry ~ lay date with mother ID and
 # year as random effects
-mod_poly_date <-
-  glmer(cbind(poly, mono) ~ jul_lay_date_std_num +
-          (1|ring) + (1|year),
-        data = first_nests_data, family = "binomial")
-
-# run tidy bootstrap to obtain model diagnostics
-tidy_poly_date <-
-  tidy(mod_poly_date, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-
-# run rptR to obtain repeatabilities of random effects
+# mod_poly_date <-
+#   glmer(cbind(poly, mono) ~ jul_lay_date_std_num +
+#           (1|ring) + (1|year),
+#         data = first_nests_data, family = "binomial")
+# 
+# # run tidy bootstrap to obtain model diagnostics
+# tidy_poly_date <-
+#   tidy(mod_poly_date, conf.int = TRUE, conf.method = "boot", nsim = 1000)
+# 
+# # run rptR to obtain repeatabilities of random effects
 rpt_poly_date <-
   rpt(poly ~ jul_lay_date_std_num +
         (1|ring) + (1|year),
@@ -44,26 +44,32 @@ rpt_poly_date <-
       data = first_nests_data,
       datatype = "Binary",
       nboot = 1000, npermut = 1000, ratio = TRUE,
-      adjusted = FALSE, ncores = 4, parallel = TRUE)
-
-# run partR2 on each model to obtain marginal R2, parameter estimates, and beta
-# weights
-R2_poly_date <-
-  partR2(mod_poly_date,
-         partvars = c("jul_lay_date_std_num"),
-         R2_type = "marginal",
-         nboot = 1000, CI = 0.95, max_level = 1)
-
-
-# save model, tidy, rptR, and partR2 output as a list
-stats_poly_date <-
-  list(mod = mod_poly_date,
-       tidy = tidy_poly_date,
-       rptR = rpt_poly_date,
-       partR2 = R2_poly_date)
-
-save(stats_poly_date,
-     file = "output/stats_poly_date.rds")
+      adjusted = TRUE, ncores = 4, parallel = TRUE)
+# 
+# # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
+# # weights
+# R2m_poly_date <-
+#   partR2(mod_poly_date,
+#          partvars = c("jul_lay_date_std_num"),
+#          R2_type = "marginal",
+#          nboot = 1000, CI = 0.95, max_level = 1)
+# 
+# R2c_poly_date <-
+#   partR2(mod_poly_date,
+#          partvars = c("jul_lay_date_std_num"),
+#          R2_type = "conditional",
+#          nboot = 1000, CI = 0.95, max_level = 1)
+# 
+# # save model, tidy, rptR, and partR2 output as a list
+# stats_poly_date <-
+#   list(mod = mod_poly_date,
+#        tidy = tidy_poly_date,
+#        rptR = rpt_poly_date,
+#        partR2c = R2m_poly_date,
+#        partR2c = R2c_poly_date)
+# 
+# save(stats_poly_date,
+#      file = "output/stats_poly_date.rds")
 
 # load the saved results
 load("output/stats_poly_date.rds")

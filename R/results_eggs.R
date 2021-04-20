@@ -400,6 +400,7 @@ mod_comp_names <-
                            "First age",
                            "Last age",
                            "Tarsus",
+                           "Total Conditional \U1D479\U00B2",
                            "Nest / Individual",
                            "Individual",
                            "Year",
@@ -421,7 +422,8 @@ fixefTable <-
   mutate(stat = "fixed")
 
 R2Table <- 
-  stats_eggv_age_date_tarsi$partR2$R2 %>% 
+  bind_rows(stats_eggv_age_date_tarsi$partR2m$R2,
+            stats_eggv_age_date_tarsi$partR2c$R2[1,]) %>% 
   # dplyr::filter(effect == "fixed") %>% 
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
@@ -469,15 +471,15 @@ allCoefs_mod <-
                                     round(conf.high, 2), "]"),
                              NA),
          effect = c(rep("Fixed effects \U1D6FD (cm\U00B3)", nrow(fixefTable)),
-                    rep("Partitioned Marginal \U1D479\U00B2", nrow(R2Table)),
+                    rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
-                    rep("Adjusted Repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Repeatability \U1D479", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 
 # re-organize model components for table
 allCoefs_mod <-
-  allCoefs_mod[c(1, 6, 2:5, 7:9, 14, 10, 12:13, 11, 15:26), ]
+  allCoefs_mod[c(1, 6, 2:5, 7:9, 15, 14, 10, 12:13, 11, 16:27), ]
 
 eggv_mod_table <- 
   allCoefs_mod %>% 
@@ -488,11 +490,11 @@ eggv_mod_table <-
              estimate = "Parameter estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
-             rows = 1:22,
+             rows = 1:23,
              decimals = 2,
              use_seps = FALSE) %>% 
   fmt_number(columns = vars(estimate),
-             rows = 23:26,
+             rows = 24:26,
              decimals = 0,
              use_seps = FALSE) %>% 
   fmt_missing(columns = 1:4,
@@ -508,6 +510,8 @@ eggv_mod_table <-
               column_labels.font.size = 14,
               row_group.font.size = 12,
               table.width = pct(60))
+
+eggv_mod_table
 
 eggv_mod_table %>% 
   gtsave("eggv_mod_table.rtf", path = "products/tables/")

@@ -22,27 +22,27 @@ first_nests_age_data <-
 # # Procedure:
 # # mixed effects regression of laydate ~ senescence with mother ID as random
 # # effects
-mod_date_age_tarsi <-
-  lmer(jul_lay_date_std_num ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
-         (1|ring) + (1|year),
-       data = first_nests_age_data)
+# mod_date_age_tarsi <-
+#   lmer(jul_lay_date_std_num ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#          (1|ring) + (1|year),
+#        data = first_nests_age_data)
 # 
 # # run tidy bootstrap to obtain model diagnostics
 # tidy_date_age_tarsi <-
 #   tidy(mod_date_age_tarsi, conf.int = TRUE, conf.method = "boot", nsim = 1000)
 # 
 # # run rptR to obtain repeatabilities of random effects
-# rpt_date_age_tarsi <-
-#   rpt(jul_lay_date_std_num ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
-#         (1|ring) + (1|year),
-#       grname = c("ring", "year", "Fixed"),
-#       data = first_nests_age_data,
-#       datatype = "Gaussian",
-#       nboot = 1000, npermut = 1000, ratio = TRUE,
-#       adjusted = FALSE, ncores = 4, parallel = TRUE)
+rpt_date_age_tarsi <-
+  rpt(jul_lay_date_std_num ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+        (1|ring) + (1|year),
+      grname = c("ring", "year", "Fixed"),
+      data = first_nests_age_data,
+      datatype = "Gaussian",
+      nboot = 1000, npermut = 1000, ratio = TRUE,
+      adjusted = TRUE, ncores = 4, parallel = TRUE)
 # 
 # # run partR2 to obtain marginal R2, parameter estimates, and beta weights
-# R2_date_age_tarsi <-
+# R2m_date_age_tarsi <-
 #   partR2(mod_date_age_tarsi,
 #          partvars = c("poly(est_age_trans, 2)",
 #                       "firstage",
@@ -51,22 +51,31 @@ mod_date_age_tarsi <-
 #          R2_type = "marginal",
 #          nboot = 1000, CI = 0.95, max_level = 1)
 #
-R2c_date_age_tarsi <-
-  partR2(mod_date_age_tarsi,
-         partvars = c("poly(est_age_trans, 2)",
-                      "firstage",
-                      "lastage",
-                      "avg_ad_tarsi"),
-         R2_type = "conditional",
-         nboot = 1000, CI = 0.95, max_level = 1)
+# R2c_date_age_tarsi <-
+#   partR2(mod_date_age_tarsi,
+#          partvars = c("poly(est_age_trans, 2)",
+#                       "firstage",
+#                       "lastage",
+#                       "avg_ad_tarsi"),
+#          R2_type = "conditional",
+#          nboot = 1000, CI = 0.95, max_level = 1)
 # 
 # # save model, tidy, rptR, and partR2 output as a list
 # stats_date_age_tarsi <-
 #   list(mod = mod_date_age_tarsi,
 #        tidy = tidy_date_age_tarsi,
 #        rptR = rpt_date_age_tarsi,
-#        partR2 = R2_date_age_tarsi)
+#        partR2m = R2m_date_age_tarsi,
+#        partR2c = R2c_date_age_tarsi)
 # 
+# stats_date_age_tarsi <-
+#   list(mod = mod_date_age_tarsi,
+#        tidy = tidy_date_age_tarsi,
+#        rptR = stats_date_age_tarsi$rptR,
+#        partR2m = R2m_date_age_tarsi,
+#        partR2c = stats_date_age_tarsi$partR2c)
+# 
+#  
 # save(stats_date_age_tarsi,
 #      file = "output/stats_date_age_tarsi.rds")
 

@@ -216,25 +216,23 @@ mod_comp_names <-
                            "First age",
                            "Last age",
                            "Tarsus",
-                           "Linear lay date",
-                           "Quadratic lay date",
                            "Total Marginal \U1D479\U00B2",
                            "Senescence",
-                           "Seasonality",
                            "First age",
                            "Last age",
                            "Tarsus",
-                           "Nest / Individual",
+                           "Total Conditional \U1D479\U00B2",
                            "Individual",
                            "Year",
                            "Residual",
-                           "Nest / Individual",
                            "Individual",
                            "Year",
                            "Residual",
                            "Years",
                            "Individuals",
                            "Observations (i.e., Nests)"))
+
+stats_date_age_tarsi$mod
 
 fixefTable <- 
   stats_date_age_tarsi$tidy %>% 
@@ -244,8 +242,8 @@ fixefTable <-
   mutate(stat = "fixed")
 
 R2Table <- 
-  stats_date_age_tarsi$partR2$R2 %>% 
-  # dplyr::filter(effect == "fixed") %>% 
+  bind_rows(stats_date_age_tarsi$partR2m$R2,
+            stats_date_age_tarsi$partR2c$R2[1,]) %>% 
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "partR2") %>% 
@@ -291,16 +289,16 @@ allCoefs_mod <-
                                     round(conf.low, 2), ", ", 
                                     round(conf.high, 2), "]"),
                              NA),
-         effect = c(rep("Fixed effects \U1D6FD (cm\U00B3)", nrow(fixefTable)),
-                    rep("Partitioned Marginal \U1D479\U00B2", nrow(R2Table)),
+         effect = c(rep("Fixed effects \U1D6FD (days in season)", nrow(fixefTable)),
+                    rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
-                    rep("Adjusted Repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Repeatability \U1D479", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 
 # re-organize model components for table
-# allCoefs_mod <-
-#   allCoefs_mod[c(1, 6, 2:5, 7:9, 14, 10, 12:13, 11, 15:26), ]
+allCoefs_mod <-
+  allCoefs_mod[c(1, 6, 2:5, 7, 12, 11, 8:10, 13:21), ]
 
 laydate_mod_table <- 
   allCoefs_mod %>% 
@@ -311,11 +309,11 @@ laydate_mod_table <-
              estimate = "Parameter estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
-             rows = 1:22,
+             rows = 1:18,
              decimals = 2,
              use_seps = FALSE) %>% 
   fmt_number(columns = vars(estimate),
-             rows = 23:26,
+             rows = 19:21,
              decimals = 0,
              use_seps = FALSE) %>% 
   fmt_missing(columns = 1:4,
@@ -331,6 +329,8 @@ laydate_mod_table <-
               column_labels.font.size = 14,
               row_group.font.size = 12,
               table.width = pct(60))
+
+laydate_mod_table
 
 laydate_mod_table %>% 
   gtsave("laydate_mod_table.rtf", path = "products/tables/")
