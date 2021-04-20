@@ -292,7 +292,7 @@ allCoefs_mod <-
          effect = c(rep("Fixed effects \U1D6FD (days in season)", nrow(fixefTable)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
-                    rep("Repeatability \U1D479", nrow(coefRptTable)),
+                    rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 

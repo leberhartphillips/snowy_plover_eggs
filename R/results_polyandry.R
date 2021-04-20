@@ -144,13 +144,13 @@ mod_comp_names <-
                            "Total Conditional \U1D479\U00B2",
                            "Individual",
                            "Year",
-                           # "Residual",
                            "Individual",
                            "Year",
-                           # "Residual",
                            "Years",
                            "Individuals",
                            "Observations (i.e., Nests)"))
+
+load("output/stats_poly_date.rds")
 
 fixefTable <- 
   stats_poly_date$tidy %>% 
@@ -180,23 +180,6 @@ R2Table <-
   rename(conf.low = CI_lower,
          conf.high = CI_upper)
 
-# coefRptTable <- 
-# rbind(c(mean(stats_poly_date$rptR$R_boot_org$ring),
-#         quantile(stats_poly_date$rptR$R_boot_org$ring, prob = c(0.025, 0.975))),
-#       c(mean(stats_poly_date$rptR$R_boot_org$year),
-#         quantile(stats_poly_date$rptR$R_boot_org$ring, prob = c(0.025, 0.975))))
-#   
-#     
-#   sapply(., 
-#         function(x) c(mean (x), quantile(x, prob = c(0.025, 0.975)))) %>% 
-#   t() %>% 
-#   as.data.frame() %>% 
-#   rownames_to_column("term") %>% 
-#   rename(estimate = V1,
-#          conf.low = `2.5%`,
-#          conf.high = `97.5%`) %>% 
-#   mutate(stat = "RptR")
-
 coefRptTable <- 
   stats_poly_date$rptR$R["R_org", ] %>% 
   dplyr::select(-Fixed) %>%
@@ -208,20 +191,6 @@ coefRptTable <-
          conf.low = `2.5%`,
          conf.high = `97.5%`) %>% 
   mutate(stat = "RptR")
-
-# coefRptTable <- 
-#   as.data.frame(do.call(cbind, stats_poly_date$rptR$R_boot_link)) %>% 
-#   dplyr::select(-Fixed) %>%
-#   # mutate(residual = 1 - rowSums(.)) %>% 
-#   apply(., 2, 
-#         function(x) c(mean (x), quantile (x, prob = c(0.025, 0.975)))) %>% 
-#   t() %>% 
-#   as.data.frame() %>% 
-#   rownames_to_column("term") %>% 
-#   rename(estimate = V1,
-#          conf.low = `2.5%`,
-#          conf.high = `97.5%`) %>% 
-#   mutate(stat = "RptR")
 
 # Store all parameters into a single table and clean it up
 allCoefs_mod <- 
@@ -240,7 +209,7 @@ allCoefs_mod <-
          effect = c(rep("Fixed effects \U1D6FD (polyandry probability)", nrow(fixefTable)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
-                    rep("Repeatability \U1D479", nrow(coefRptTable)),
+                    rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 

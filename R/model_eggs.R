@@ -28,15 +28,15 @@ load("data/ceuta_egg_chick_female_data.rds")
 # 
 # # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
 # # weights
-rpt_eggv_age_date_tarsi <-
-  rpt(volume_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
-        poly(jul_lay_date_std_num, 2) +
-        (1|ID) + (1|ring) + (1|year),
-      grname = c("ID", "ring", "year", "Fixed"),
-      data = ceuta_egg_chick_female_data,
-      datatype = "Gaussian",
-      nboot = 1000, npermut = 1000, ratio = TRUE,
-      adjusted = TRUE, ncores = 4, parallel = TRUE)
+# rpt_eggv_age_date_tarsi <-
+#   rpt(volume_cm ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+#         poly(jul_lay_date_std_num, 2) +
+#         (1|ID) + (1|ring) + (1|year),
+#       grname = c("ID", "ring", "year", "Fixed"),
+#       data = ceuta_egg_chick_female_data,
+#       datatype = "Gaussian",
+#       nboot = 1000, npermut = 1000, ratio = TRUE,
+#       adjusted = TRUE, ncores = 4, parallel = TRUE)
 # 
 # # run rptR to obtain repeatabilities of random effects
 # R2m_eggv_age_date_tarsi <-
@@ -70,7 +70,6 @@ rpt_eggv_age_date_tarsi <-
 #        rptR = rpt_eggv_age_date_tarsi,
 #        partR2m = R2m_eggv_age_date_tarsi,
 #        partR2c = R2c_eggv_age_date_tarsi)
-
 # 
 # save(stats_eggv_age_date_tarsi,
 #      file = "output/stats_eggv_age_date_tarsi.rds")

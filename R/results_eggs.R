@@ -1,6 +1,7 @@
 #### Libraries and data ----
 source("R/project_libraries.R")
 source("R/project_functions.R")
+source("R/project_plotting.R")
 
 #### Results ----
 load("output/stats_eggv_age_date_tarsi.rds")
@@ -473,7 +474,7 @@ allCoefs_mod <-
          effect = c(rep("Fixed effects \U1D6FD (cm\U00B3)", nrow(fixefTable)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
-                    rep("Repeatability \U1D479", nrow(coefRptTable)),
+                    rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 
@@ -519,3 +520,157 @@ eggv_mod_table %>%
   gtsave("eggv_mod_table.png", path = "products/tables/")
 
 image_read(path = "results/tables/table_S2.png")
+
+col_all <- "#2E3440"
+
+eggv_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Quadratic lay date", "Linear lay date", 
+                                 "Last age", "First age", 
+                                 "Quadratic age", "Linear age",
+                                 "Tarsus")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                     alpha = 1, color = col_all, 
+                     size = 0.5,
+                 height = 0) +
+    geom_point(aes(y = comp_name, x = estimate),
+               size = 3, shape = 21, 
+               fill = "#ECEFF4", col = col_all, 
+               alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Fixed effects") +
+  xlab(expression(italic(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))))
+
+eggv_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Seasonality",
+                                 "Last age",
+                                 "First age",
+                                 "Senescence",
+                                 "Tarsus",
+                                 "Total Conditional \U1D479\U00B2",
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  scale_y_discrete(labels = c("Seasonality" = expression("Seasonality"),
+                              "Last age" = expression("Last age"),
+                              "First age" = expression("First age"),
+                              "Senescence" = expression("Senescence"),
+                              "Tarsus" = expression("Tarsus"),
+                              "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Partitioned marginal ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ", %)" %+-% "95% CI", sep = ""))))
+
+eggv_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual",
+                                 "Nest / Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Phenotypic variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+  
+eggv_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Repeat")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual",
+                                 "Nest / Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Adjusted\nrepeatability") +
+  xlab(expression(italic(paste("Variance explained (R, %)" %+-% "95% CI", sep = ""))))
+
+eggv_mod_forest_plot_combo <-
+  (eggv_mod_forest_plot_fixef / eggv_mod_forest_plot_partR2 / 
+     eggv_mod_forest_plot_randef / eggv_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A') + 
+  plot_layout(heights = unit(c(4.5, 4, 2.5, 2.5), c('cm', 'cm', 'cm', 'cm')))
+
+ggsave(plot = eggv_mod_forest_plot_combo,
+       filename = "products/figures/Fig_2.jpg",
+       width = 4.5,
+       height = 8.5, units = "in")
+
+eggv_mod_R2_plot <- 
+  eggv_mod_R2[["R2"]] %>% 
+  mutate(term = ifelse(term == "poly(est_age_trans, 2)", "Senescence", 
+                       ifelse(term == "poly(jul_std_date, 2)", "Seasonality",
+                              ifelse(term == "firstage", "First-age breeding",
+                                     ifelse(term == "lastage", "Last-age breeding", 
+                                            ifelse(combs == "avg_ad_tarsi", "Body size", "Model")))))) %>% 
+  mutate(term = factor(term, levels = rev(c("Model", "Senescence", "First-age breeding", "Last-age breeding", "Seasonality", "Body size")))) %>% 
+  ggplot(aes_string(x = "estimate", y = "term", 
+                    xmax = "CI_upper", xmin = "CI_lower"), 
+         data = .) + 
+  geom_vline(xintercept = 0, color = col_all, 
+             linetype = "dashed", size = 0.5) + 
+  theme_classic(base_line_size = 0.5, base_size = 12) + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line.y = element_blank(), 
+        axis.ticks.y = element_blank(), 
+        axis.title.y = element_text(color = col_all, size = 11, face = "italic"),
+        axis.text = element_text(color = col_all), 
+        axis.title.x = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey70", size = 0.25),
+        plot.title = element_text(color = col_all, size = 11, hjust = 0.5, face = "italic")) + 
+  xlab(expression(paste("R", ''^{2}, sep = ""))) +
+  ylab("Volume model") +
+  ggtitle(expression(paste(italic("Partitioned R"), ''^{2}, sep = ""))) +
+  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
+  geom_point(size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
+  scale_x_continuous(limits = c(0, 0.11))

@@ -37,14 +37,14 @@ first_nests_data <-
 #   tidy(mod_poly_date, conf.int = TRUE, conf.method = "boot", nsim = 1000)
 # 
 # # run rptR to obtain repeatabilities of random effects
-rpt_poly_date <-
-  rpt(poly ~ jul_lay_date_std_num +
-        (1|ring) + (1|year),
-      grname = c("ring", "year", "Fixed"),
-      data = first_nests_data,
-      datatype = "Binary",
-      nboot = 1000, npermut = 1000, ratio = TRUE,
-      adjusted = TRUE, ncores = 4, parallel = TRUE)
+# rpt_poly_date <-
+#   rpt(poly ~ jul_lay_date_std_num +
+#         (1|ring) + (1|year),
+#       grname = c("ring", "year", "Fixed"),
+#       data = first_nests_data,
+#       datatype = "Binary",
+#       nboot = 1000, npermut = 1000, ratio = TRUE,
+#       adjusted = TRUE, ncores = 4, parallel = TRUE)
 # 
 # # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
 # # weights
