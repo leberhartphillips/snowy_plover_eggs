@@ -27,10 +27,10 @@ first_nests_data <-
 # Procedure:
 # binomial mixed effects regression of polyandry ~ lay date with mother ID and
 # year as random effects
-# mod_poly_date <-
-#   glmer(cbind(poly, mono) ~ jul_lay_date_std_num +
-#           (1|ring) + (1|year),
-#         data = first_nests_data, family = "binomial")
+mod_poly_date <-
+  glmer(cbind(poly, mono) ~ jul_lay_date_std_num +
+          (1|ring) + (1|year),
+        data = first_nests_data, family = "binomial")
 # 
 # # run tidy bootstrap to obtain model diagnostics
 # tidy_poly_date <-
@@ -52,20 +52,21 @@ first_nests_data <-
 #   partR2(mod_poly_date,
 #          partvars = c("jul_lay_date_std_num"),
 #          R2_type = "marginal",
-#          nboot = 1000, CI = 0.95, max_level = 1)
+#          nboot = 1000, CI = 0.95)
 # 
 # R2c_poly_date <-
 #   partR2(mod_poly_date,
 #          partvars = c("jul_lay_date_std_num"),
 #          R2_type = "conditional",
-#          nboot = 1000, CI = 0.95, max_level = 1)
+#          nboot = 1000, CI = 0.95)
+# 
 # 
 # # save model, tidy, rptR, and partR2 output as a list
 # stats_poly_date <-
 #   list(mod = mod_poly_date,
 #        tidy = tidy_poly_date,
 #        rptR = rpt_poly_date,
-#        partR2c = R2m_poly_date,
+#        partR2m = R2m_poly_date,
 #        partR2c = R2c_poly_date)
 # 
 # save(stats_poly_date,

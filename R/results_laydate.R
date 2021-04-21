@@ -166,33 +166,6 @@ date_age_forest_plot <-
   plot_annotation(tag_levels = "A")
 date_age_forest_plot
 
-#### Plot of trend ----
-# extract fitted values
-date_age_mod_fits <- 
-  as.data.frame(effect(term = "poly(est_age, 2)", mod = stats_date_age_tarsi$mod, 
-                       xlevels = list(est_age = seq(min(first_nests_age_data$est_age, na.rm = TRUE), 
-                                                    max(first_nests_age_data$est_age, na.rm = TRUE), 1))))
-
-# plot predicted trend and raw data
-date_age_trend_plot <- 
-  ggplot() +
-  luke_theme +
-  theme(panel.border = element_blank(),
-        axis.text.x = element_blank(),
-        axis.title.x = element_blank()) +
-  geom_jitter(data = first_nests_age_data, 
-              alpha = 0.4, width = 0.3,
-              aes(x = est_age, y = jul_lay_date_std_num),
-              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
-  geom_line(data = date_age_mod_fits, aes(x = est_age, y = fit),
-            lwd = 0.5) +
-  geom_ribbon(data = date_age_mod_fits, 
-              aes(x = est_age, ymax = upper, ymin = lower),
-              lwd = 1, alpha = 0.25, fill = "grey20") +
-  ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
-  xlab("Estimated age (years)") +
-  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13))
-
 #### Table of effect sizes ----
 # Retrieve sample sizes
 sample_sizes <-
@@ -289,7 +262,7 @@ allCoefs_mod <-
                                     round(conf.low, 2), ", ", 
                                     round(conf.high, 2), "]"),
                              NA),
-         effect = c(rep("Fixed effects \U1D6FD (days in season)", nrow(fixefTable)),
+         effect = c(rep("Fixed effects \U1D6FD", nrow(fixefTable)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
                     rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
@@ -305,7 +278,7 @@ laydate_mod_table <-
   dplyr::select(effect, comp_name, estimate, coefString) %>% 
   gt(rowname_col = "row",
      groupname_col = "effect") %>% 
-  cols_label(comp_name = "",
+  cols_label(comp_name = html("<i>Lay date of first nest</i>"),
              estimate = "Parameter estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
@@ -334,7 +307,128 @@ laydate_mod_table
 
 laydate_mod_table %>% 
   gtsave("laydate_mod_table.rtf", path = "products/tables/")
+
 laydate_mod_table %>% 
   gtsave("laydate_mod_table.png", path = "products/tables/")
 
-image_read(path = "results/tables/table_S2.png")
+#### Forest plot of results ----
+col_all <- "#2E3440"
+
+laydate_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 # "Quadratic lay date", "Linear lay date", 
+                                 "Last age", "First age", 
+                                 "Quadratic age", "Linear age",
+                                 "Tarsus")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Fixed effects") +
+  xlab(expression(italic(paste("Estimate (", beta,")" %+-% "95% CI", sep = ""))))
+
+laydate_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 # "Seasonality",
+                                 "Last age",
+                                 "First age",
+                                 "Senescence",
+                                 "Tarsus",
+                                 "Total Conditional \U1D479\U00B2",
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  scale_y_discrete(labels = c(#"Seasonality" = expression("Seasonality"),
+                              "Last age" = expression("Last age"),
+                              "First age" = expression("First age"),
+                              "Senescence" = expression("Senescence"),
+                              "Tarsus" = expression("Tarsus"),
+                              "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+laydate_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+laydate_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "repeat")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Adjusted\nrepeatability") +
+  xlab(expression(italic(paste("Repeatability (R)" %+-% "95% CI", sep = ""))))
+
+laydate_mod_forest_plot_combo <-
+  (laydate_mod_forest_plot_fixef / laydate_mod_forest_plot_partR2 / 
+     laydate_mod_forest_plot_randef / laydate_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A', title = 'Laydate model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_layout(heights = unit(c(4, 4, 2.5, 2.5), c('cm', 'cm', 'cm', 'cm')))
+
+ggsave(plot = laydate_mod_forest_plot_combo,
+       filename = "products/figures/laydate_mod_forest_plot.svg",
+       width = 4.5,
+       height = 8.4, units = "in")

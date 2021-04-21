@@ -140,7 +140,6 @@ mod_comp_names <-
   data.frame(comp_name = c("Intercept",
                            "First nest lay date",
                            "Total Marginal \U1D479\U00B2",
-                           "First nest lay date",
                            "Total Conditional \U1D479\U00B2",
                            "Individual",
                            "Year",
@@ -172,7 +171,7 @@ ranefTable <-
          conf.low = conf.low^2)
 
 R2Table <- 
-  bind_rows(stats_poly_date$partR2m$R2,
+  bind_rows(stats_poly_date$partR2m$R2[1,],
             stats_poly_date$partR2c$R2[1,]) %>%   
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
@@ -206,31 +205,27 @@ allCoefs_mod <-
                                     round(conf.low, 2), ", ", 
                                     round(conf.high, 2), "]"),
                              NA),
-         effect = c(rep("Fixed effects \U1D6FD (polyandry probability)", nrow(fixefTable)),
+         effect = c(rep("Fixed effects \U1D6FD (Inverse-logit)", nrow(fixefTable)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
                     rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 
-# re-organize model components for table
-allCoefs_mod <-
-  allCoefs_mod[c(1:3, 5, 4, 6:12), ]
-
 polyandry_mod_table <- 
   allCoefs_mod %>% 
   dplyr::select(effect, comp_name, estimate, coefString) %>% 
   gt(rowname_col = "row",
      groupname_col = "effect") %>% 
-  cols_label(comp_name = "",
+  cols_label(comp_name = html("<i>Polyandry probability</i>"),
              estimate = "Parameter estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
-             rows = 1:9,
+             rows = 1:8,
              decimals = 2,
              use_seps = FALSE) %>% 
   fmt_number(columns = vars(estimate),
-             rows = 10:12,
+             rows = 10:11,
              decimals = 0,
              use_seps = FALSE) %>% 
   fmt_missing(columns = 1:4,
@@ -251,7 +246,111 @@ polyandry_mod_table
 
 polyandry_mod_table %>% 
   gtsave("polyandry_mod_table.rtf", path = "products/tables/")
-polyandry_mod_table %>% 
-  gtsave("polyandry_mod_table.png", path = "products/tables/")
 
-image_read(path = "results/tables/table_S2.png")
+polyandry_mod_table %>% 
+  gtsave("polyandry_mod_table.pdf", path = "products/tables/")
+
+#### Forest plot of results ----
+col_all <- "#2E3440"
+
+poly_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Fixed\neffects") +
+  xlab(expression(italic(paste("Estimate (", beta,")" %+-% "95% CI", sep = ""))))
+
+poly_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Total Conditional \U1D479\U00B2",
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  scale_y_discrete(labels = c("Total Marginal \U1D479\U00B2" = expression(paste("Marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+poly_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+poly_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "repeat")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Adjusted\nrepeatability") +
+  xlab(expression(italic(paste("Repeatability (R)" %+-% "95% CI", sep = ""))))
+
+poly_mod_forest_plot_combo <-
+  (poly_mod_forest_plot_fixef / poly_mod_forest_plot_partR2 / 
+     poly_mod_forest_plot_randef / poly_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A', title = 'Polyandry model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_layout(heights = unit(c(0.75, 0.75, 1.5, 1.5), c('cm', 'cm', 'cm', 'cm')))
+
+ggsave(plot = poly_mod_forest_plot_combo,
+       filename = "products/figures/poly_mod_forest_plot.svg",
+       width = 4.5,
+       height = 5.2, units = "in")

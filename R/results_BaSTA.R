@@ -7,7 +7,7 @@ load(file = "data/raw_life_table_females_2006_2020.rds")
 
 # DIC model selection shows that the Logistic mortality model with bathtub 
 # shape fits our data the best
-table_S1 <- 
+BaSTA_DIC_table <- 
   multiout_females$DICs %>% 
   as.data.frame() %>% 
   mutate(model = ifelse(model == "LO", "Logistic",
@@ -34,18 +34,21 @@ table_S1 <-
   fmt_missing(columns = 3,
               missing_text = "")
 
-table_S1
+BaSTA_DIC_table
 
 # save as rtf for manuscript
-table_S1 %>% 
-  gtsave("table_S1.rtf", path = "products/tables/", expand = 1)
+BaSTA_DIC_table %>% 
+  gtsave("BaSTA_DIC_table.rtf", path = "products/tables/", expand = 1)
+
+BaSTA_DIC_table %>% 
+  gtsave("BaSTA_DIC_table.png", path = "products/tables/", expand = 0.5)
 
 # Extract top model
 plover_survival_model <- 
   multiout_females$runs[[1]]
 
 # Check the diagnostics to assess the simulation performance
-Fig_S1a <- 
+BaSTA_autocorr_plot <- 
   plover_survival_model$coefficients %>% 
   as.data.frame() %>% 
   dplyr::select(SerAutocor) %>% 
@@ -60,7 +63,7 @@ Fig_S1a <-
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank())
 
-Fig_S1b <- 
+BaSTA_chain_converg_plot <- 
   plover_survival_model$convergence %>% 
   as.data.frame() %>% 
   dplyr::select(Rhat) %>% 
@@ -76,25 +79,24 @@ Fig_S1b <-
 
 # Serial autcorrelation: values should hover around zero...good!
 # Convergence: values should hover around one...good!
-Fig_S1 <-
-  Fig_S1a + Fig_S1b + 
+BaSTA_model_diag_plot <-
+  BaSTA_autocorr_plot + BaSTA_chain_converg_plot + 
   plot_layout(heights = c(0.45, 0.55)) +
   plot_annotation(tag_levels = "a")
 
-Fig_S1
+BaSTA_model_diag_plot
 
-ggsave(plot = Fig_S1,
-       filename = "products/figures/Fig_S1ab.pdf",
-       width = 4,
+ggsave(plot = BaSTA_model_diag_plot,
+       filename = "products/figures/BaSTA_model_diag_plot.svg",
+       width = 4.5,
        height = 7, 
-       units = "in",
-       device = cairo_pdf)
+       units = "in")
 
 # Trace plot: should look like a hairy catepillar instead of a snake...good!
 plot(plover_survival_model)
 
-Fig_S1c <-
-  pdf("products/figures/Fig_S1c.pdf",
+BaSTA_trace_plot <-
+  pdf("products/figures/BaSTA_trace_plot.pdf",
       width = 6,
       height = 8)
 plot(plover_survival_model)
@@ -195,19 +197,18 @@ recruit_ages_freq_plot <-
 max_dims <- get_max_dim(recruit_ages_freq_plot, female_survival_plot, female_mortality_plot)
 set_dim(recruit_ages_freq_plot, max_dims)
 
-Fig_1 <- 
+BaSTA_curve_plot <- 
   recruit_ages_freq_plot / female_mortality_plot +
   plot_layout(heights = c(0.4, 0.6)) +
   plot_annotation(tag_levels = "a")
 
-Fig_1
+BaSTA_curve_plot
 
-ggsave(plot=Fig_1,
-       filename = "products/figures/Fig_1.pdf",
-       width = 5,
-       height = 4, 
-       units = "in",
-       device = cairo_pdf)
+ggsave(plot = BaSTA_curve_plot,
+       filename = "products/figures/BaSTA_curve_plot.svg",
+       width = 4.5,
+       height = 5, 
+       units = "in")
 
 # Wrangle the estimated birth year and age-at-death for each individual given 
 # the BaSTA output

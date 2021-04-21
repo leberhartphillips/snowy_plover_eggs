@@ -34,7 +34,7 @@ egg_widths_plot <-
   coord_flip()
 
 ggsave(plot = egg_widths_plot,
-       filename = "products/figures/egg_widths_plot.png",
+       filename = "products/figures/egg_widths_plot.svg",
        width = 11,
        height = 8, units = "cm")
 
@@ -66,7 +66,7 @@ egg_lengths_plot <-
                   breaks = c(0, 50, 100, 150, 200))
 
 ggsave(plot = egg_lengths_plot,
-       filename = "products/figures/egg_lengths_plot.png",
+       filename = "products/figures/egg_lengths_plot.svg",
        width = 11,
        height = 9, units = "cm")
 
@@ -451,7 +451,7 @@ chickw_eggv_plot <-
   xlab(expression(paste("Avg. egg volume (cm", ''^{3}, ")", sep = ""))) 
 
 ggsave(plot = chickw_eggv_plot,
-       filename = "products/figures/chickw_eggv_plot.png",
+       filename = "products/figures/chickw_eggv_plot.svg",
        width = 5.29*2,
        height = 5.29*2, units = "cm")
 
