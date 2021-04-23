@@ -5,6 +5,9 @@ source("R/project_plotting.R")
 
 #### Results ----
 load("output/stats_eggv_age_date_tarsi.rds")
+load("output/stats_eggv_age_date_tarsi_.rds")
+load("output/stats_eggv_age_date_tarsi_I.rds")
+
 load("data/ceuta_egg_chick_female_data.rds")
 
 #### Repeatabilities of egg morphometrics (Table) ----
@@ -299,7 +302,7 @@ sample_sizes <-
 
 # clean model component names
 mod_comp_names <- 
-  data.frame(comp_name = c("Intercept",
+  data.frame(comp_name = c(#"Intercept",
                            "Linear age",
                            "Quadratic age",
                            "First age",
@@ -333,6 +336,14 @@ fixefTable <-
   dplyr::select(term, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed")
+
+fixef_bw_Table <- 
+  stats_eggv_age_date_tarsi$partR2m$BW %>% 
+  # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed_bw") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
 
 R2Table <- 
   bind_rows(stats_eggv_age_date_tarsi$partR2m$R2,
@@ -371,7 +382,7 @@ coefRptTable <-
   
 # Store all parameters into a single table and clean it up
 allCoefs_mod <- 
-  bind_rows(fixefTable,
+  bind_rows(fixef_bw_Table,
             R2Table,
             ranefTable, 
             coefRptTable, 
@@ -383,7 +394,7 @@ allCoefs_mod <-
                                     round(conf.low, 2), ", ", 
                                     round(conf.high, 2), "]"),
                              NA),
-         effect = c(rep("Fixed effects \U1D6FD", nrow(fixefTable)),
+         effect = c(rep("Fixed effects \U1D6FD", nrow(fixef_bw_Table)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
                     rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
@@ -399,15 +410,15 @@ eggv_mod_table <-
   dplyr::select(effect, comp_name, estimate, coefString) %>% 
   gt(rowname_col = "row",
      groupname_col = "effect") %>% 
-  cols_label(comp_name = html("<i>Egg volume (cm\U00B3)</i>"),
+  cols_label(comp_name = html("<i>Egg volume</i>"),
              estimate = "Parameter estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
-             rows = 1:23,
+             rows = 1:22,
              decimals = 2,
              use_seps = FALSE) %>% 
   fmt_number(columns = vars(estimate),
-             rows = 24:26,
+             rows = 23:26,
              decimals = 0,
              use_seps = FALSE) %>% 
   fmt_missing(columns = 1:4,

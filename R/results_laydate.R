@@ -3,7 +3,7 @@ source("R/project_libraries.R")
 source("R/project_functions.R")
 
 #### Results ----
-load("output/stats_date_age_tarsi.rds")
+load("output/stats_date_age_tarsi_.rds")
 load("data/ceuta_egg_chick_female_data.rds")
 
 #### Data wrangle ----
