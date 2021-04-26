@@ -400,7 +400,7 @@ load("output/stats_chickw_eggv.rds")
 stats_chickw_eggv$partR2$R2
 
 # Parameter estimates
-stats_chickw_eggv$partR2$Ests
+stats_chickw_eggv$partR2$BW
 
 # Repeatabilities
 stats_chickw_eggv$rptR

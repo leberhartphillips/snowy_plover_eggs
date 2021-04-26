@@ -18,6 +18,10 @@ first_nests_age_data <-
   distinct() %>% 
   dplyr::filter(!is.na(est_age_trans))
 
+first_nests_age_data %>% 
+  summarise(n_ind = n_distinct(ring),
+            n_nests = n_distinct(ID))
+
 #### Modeling ----
 # Procedure:
 # mixed effects regression of laydate ~ senescence with mother ID as random

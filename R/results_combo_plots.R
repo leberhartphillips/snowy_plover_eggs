@@ -131,6 +131,16 @@ eggv_mod_date_fits <-
   as.data.frame(effect("poly(jul_lay_date_std_num, 2)", stats_eggv_age_date_tarsi$mod, 
                        xlevels = list(jul_lay_date_std_num = seq(min(ceuta_egg_chick_female_data$jul_lay_date_std_num), 
                                                                  max(ceuta_egg_chick_female_data$jul_lay_date_std_num), 1))))
+# summary of fitted trend
+eggv_mod_date_fits %>% 
+  summarise(min_eggv_fit = min(fit),
+            max_eggv_fit = max(fit),
+            min_eggv_date = jul_lay_date_std_num[which.min(fit)],
+            max_eggv_date = jul_lay_date_std_num[which.max(fit)],
+            min_eggv_lower = lower[which.min(fit)],
+            min_eggv_upper = upper[which.min(fit)],
+            max_eggv_lower = lower[which.max(fit)],
+            max_eggv_upper = upper[which.max(fit)])
 
 # plot the quadratic trend, pre- and post-peak trend, and raw data
 eggv_date_mod_plot <-
@@ -210,7 +220,7 @@ polyandry_date_mod_plot <-
            label = "Lay dates for first nests of the season",
            color = "black", size = 3, fontface = 'italic', hjust = 0)
 
-# plot the posterior age at peak distribution
+# plot the laydate distribution
 polyandry_date_dist_plot <-
   eggs_50 %>% 
   dplyr::select(ID, polyandry, jul_std_date) %>% 
@@ -282,6 +292,17 @@ eggv_mod_age_fits <-
   as.data.frame(effect(term = "poly(est_age_trans, 2)", mod = stats_eggv_age_date_tarsi$mod, 
                        xlevels = list(est_age_trans = seq(min(ceuta_egg_chick_female_data$est_age_trans, na.rm = TRUE), 
                                                           max(ceuta_egg_chick_female_data$est_age_trans, na.rm = TRUE), 1))))
+
+# summary of fitted trend
+eggv_mod_age_fits %>% 
+  summarise(min_eggv_fit = min(fit),
+            max_eggv_fit = max(fit),
+            min_eggv_date = est_age_trans[which.min(fit)],
+            max_eggv_date = est_age_trans[which.max(fit)],
+            min_eggv_lower = lower[which.min(fit)],
+            min_eggv_upper = upper[which.min(fit)],
+            max_eggv_lower = lower[which.max(fit)],
+            max_eggv_upper = upper[which.max(fit)])
 
 # plot fitted values and raw data
 eggv_age_trend_plot <- 

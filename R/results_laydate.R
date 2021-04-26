@@ -183,7 +183,7 @@ sample_sizes <-
 
 # clean model component names
 mod_comp_names <- 
-  data.frame(comp_name = c("Intercept",
+  data.frame(comp_name = c(#"Intercept",
                            "Linear age",
                            "Quadratic age",
                            "First age",
@@ -213,6 +213,14 @@ fixefTable <-
   dplyr::select(term, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed")
+
+fixef_bw_Table <- 
+  stats_date_age_tarsi$partR2m$BW %>% 
+  # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed_bw") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
 
 R2Table <- 
   bind_rows(stats_date_age_tarsi$partR2m$R2,
@@ -250,7 +258,7 @@ coefRptTable <-
 
 # Store all parameters into a single table and clean it up
 allCoefs_mod <- 
-  bind_rows(fixefTable,
+  bind_rows(fixef_bw_Table,
             R2Table,
             ranefTable, 
             coefRptTable, 
@@ -262,16 +270,16 @@ allCoefs_mod <-
                                     round(conf.low, 2), ", ", 
                                     round(conf.high, 2), "]"),
                              NA),
-         effect = c(rep("Fixed effects \U1D6FD", nrow(fixefTable)),
+         effect = c(rep("Fixed effects \U1D6FD (standardized)", nrow(fixef_bw_Table)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
-                    rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
+                    rep("Adjusted repeatability \U1D45F", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 
 # re-organize model components for table
 allCoefs_mod <-
-  allCoefs_mod[c(1, 6, 2:5, 7, 12, 11, 8:10, 13:21), ]
+  allCoefs_mod[c(5, 1:4, 6, 11, 10, 7:9, 12:20), ]
 
 laydate_mod_table <- 
   allCoefs_mod %>% 
@@ -279,14 +287,14 @@ laydate_mod_table <-
   gt(rowname_col = "row",
      groupname_col = "effect") %>% 
   cols_label(comp_name = html("<i>Lay date of first nest</i>"),
-             estimate = "Parameter estimate",
+             estimate = "Mean estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
-             rows = 1:18,
+             rows = 1:17,
              decimals = 2,
              use_seps = FALSE) %>% 
   fmt_number(columns = vars(estimate),
-             rows = 19:21,
+             rows = 18:20,
              decimals = 0,
              use_seps = FALSE) %>% 
   fmt_missing(columns = 1:4,
@@ -306,10 +314,10 @@ laydate_mod_table <-
 laydate_mod_table
 
 laydate_mod_table %>% 
-  gtsave("laydate_mod_table.rtf", path = "products/tables/")
+  gtsave("laydate_mod_table.rtf", path = "products/tables/rtf/")
 
 laydate_mod_table %>% 
-  gtsave("laydate_mod_table.png", path = "products/tables/")
+  gtsave("laydate_mod_table.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
 col_all <- "#2E3440"
@@ -319,7 +327,6 @@ laydate_mod_forest_plot_fixef <-
   filter(str_detect(effect, "Fixed") & 
            term != "(Intercept)") %>%
   mutate(comp_name = fct_relevel(comp_name,
-                                 # "Quadratic lay date", "Linear lay date", 
                                  "Last age", "First age", 
                                  "Quadratic age", "Linear age",
                                  "Tarsus")) %>%
@@ -338,7 +345,7 @@ laydate_mod_forest_plot_fixef <-
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
   ylab("Fixed effects") +
-  xlab(expression(italic(paste("Estimate (", beta,")" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
 
 laydate_mod_forest_plot_partR2 <-
   allCoefs_mod %>%
@@ -419,8 +426,8 @@ laydate_mod_forest_plot_rptR <-
              alpha = 1, stroke = 0.5) +
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
-  ylab("Adjusted\nrepeatability") +
-  xlab(expression(italic(paste("Repeatability (R)" %+-% "95% CI", sep = ""))))
+  ylab("Intra-class\ncorrelation") +
+  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
 
 laydate_mod_forest_plot_combo <-
   (laydate_mod_forest_plot_fixef / laydate_mod_forest_plot_partR2 / 
@@ -428,7 +435,14 @@ laydate_mod_forest_plot_combo <-
   plot_annotation(tag_levels = 'A', title = 'Laydate model', theme = theme(plot.title = element_text(face = 'italic'))) +
   plot_layout(heights = unit(c(4, 4, 2.5, 2.5), c('cm', 'cm', 'cm', 'cm')))
 
+laydate_mod_forest_plot_combo
+
 ggsave(plot = laydate_mod_forest_plot_combo,
-       filename = "products/figures/laydate_mod_forest_plot.svg",
+       filename = "products/figures/svg/laydate_mod_forest_plot.svg",
+       width = 4.5,
+       height = 8.4, units = "in")
+
+ggsave(plot = laydate_mod_forest_plot_combo,
+       filename = "products/figures/jpg/laydate_mod_forest_plot.jpg",
        width = 4.5,
        height = 8.4, units = "in")

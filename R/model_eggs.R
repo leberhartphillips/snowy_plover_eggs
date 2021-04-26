@@ -22,12 +22,6 @@ mod_eggv_age_date_tarsi <-
          (1|ID) + (1|ring) + (1|year),
        data = ceuta_egg_chick_female_data)
 
-mod_eggv_age_date_tarsi_scale <-
-  lmer(scale(volume_cm) ~ scale(est_age_trans) + scale(I(est_age_trans^2)) + scale(firstage) + scale(lastage) + scale(avg_ad_tarsi) +
-         scale(jul_lay_date_std_num) + scale(I(jul_lay_date_std_num^2)) +
-         (1|ID) + (1|ring) + (1|year),
-       data = ceuta_egg_chick_female_data)
-
 # run tidy bootstrap to obtain model diagnostics
 tidy_eggv_age_date_tarsi <-
   tidy(mod_eggv_age_date_tarsi, conf.int = TRUE, conf.method = "boot", nsim = 1000)
@@ -76,7 +70,7 @@ R2c_eggv_age_date_tarsi <-
          R2_type = "conditional",
          nboot = 1000,
          CI = 0.95,
-         max_level = 1)
+         max_level = 1)We 
 
 # save model, tidy, rptR, and partR2 output as a list
 stats_eggv_age_date_tarsi <-

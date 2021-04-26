@@ -6,6 +6,7 @@ source("R/project_plotting.R")
 load("data/ceuta_egg_chick_female_data.rds")
 load("data/raw_encounter_histories_females_2006_2020.rds")
 load("output/BaSTA_age_estimates_2006-2020.rds")
+load("data/BaSTA_checked_life_table_females_2006-2020.rds")
 
 # extract the first and last observations of each individual
 ceuta_egg_chick_female_data_3_year <-  
@@ -198,3 +199,353 @@ ggsave(plot = plot_of_sample_population,
        filename = "products/figures/sample_distribution_plot.jpg",
        width = 7,
        height = 10, units = "in")
+
+## Sample check
+# Here we double check the sample to make sure that each individual and nest meets our criteria
+# tally number of nests with 1, 2, or 3 eggs (should have maximum of 3)
+ceuta_egg_chick_female_data %>% 
+  mutate(ID = as.factor(ID)) %>% 
+  group_by(ID) %>% 
+  summarise(n_eggs = n()) %>% 
+  mutate(n_eggs = as.factor(n_eggs)) %>% 
+  group_by(n_eggs) %>% 
+  tally() %>% 
+  mutate(prop = as.numeric(as.character(n))/sum(n)) %>% 
+  collect() %>%
+  kable(col.names = c("Clutch size",
+                      "Frequency of nests",
+                      "Proportion of nests")) %>%
+  kable_styling() %>%
+  scroll_box(width = "80%")
+
+# total sample sizes of dataset
+ceuta_egg_chick_female_data %>% 
+  summarise(Years = n_distinct(year),  # N = 14 years
+            Individuals = n_distinct(ring),    # N = 430 females
+            Nests = n_distinct(ID),    # N = 850 nests
+            Eggs = nrow(.)) %>%  # N = 2451 eggs
+  t(.) %>% 
+  as.data.frame() %>% 
+  rename(n = V1) %>% 
+  collect() %>%
+  kable(col.names = c("Sample size")) %>%
+  kable_styling() %>%
+  scroll_box(width = "50%")
+
+# summarize egg morphometric data
+ceuta_egg_chick_female_data %>% 
+  summarise(avg_egg_length = mean(length_cm, na.rm = TRUE),
+            sd_egg_length = sd(length_cm, na.rm = TRUE),
+            avg_egg_width = mean(width_cm, na.rm = TRUE),
+            sd_egg_width = sd(width_cm, na.rm = TRUE),
+            avg_egg_volume = mean(volume_cm, na.rm = TRUE),
+            sd_egg_volume = sd(volume_cm, na.rm = TRUE)) %>% 
+  as.data.frame(.) %>%
+  t() %>% 
+  as.data.frame(.) %>%
+  rownames_to_column("Statistic / Trait") %>% 
+  rename(estimate = V1) %>% 
+  collect() %>%
+  kable() %>%
+  kable_styling() %>%
+  scroll_box(width = "80%")
+
+# tally first age distribution of unknown and known-aged individuals
+ceuta_egg_chick_female_data %>% 
+  group_by(age_first_cap, firstage) %>% 
+  summarise(n_ind = n_distinct(ring)) %>% 
+  group_by(age_first_cap) %>% 
+  mutate(prop = n_ind/sum(n_ind),
+         firstage = firstage + 1) %>% 
+  collect() %>%
+  kable(col.names = c("Age first encountered",
+                      "First breeding age",
+                      "Frequency of individuals",
+                      "Proportion of age group")) %>%
+  kable_styling() %>%
+  scroll_box(width = "100%")
+
+ceuta_egg_chick_female_data %>% 
+  group_by(age_first_cap) %>% 
+  summarise(n = n_distinct(ring))
+
+# summarize age obs per individaul
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(n_ages = n_distinct(est_age)) %>% 
+  ungroup() %>% 
+  summarise(mean_age_obs = mean(n_ages, na.rm = TRUE),
+            sd_age_obs = sd(n_ages, na.rm = TRUE),
+            median_age_obs = median(n_ages, na.rm = TRUE),
+            min_age_obs = min(n_ages, na.rm = TRUE),
+            max_age_obs = max(n_ages, na.rm = TRUE))
+
+# summarize tenure and age span
+encounter_histories %>% 
+  dplyr::filter(ring %in% ceuta_egg_chick_female_data$ring) %>% 
+  left_join(., dplyr::select(BaSTA_ages, ring, est_b), by = "ring") %>%
+  mutate(est_age = as.numeric(year) - as.numeric(est_b)) %>% 
+  group_by(ring) %>% 
+  summarise(min_age = min(est_age),
+            max_age = max(est_age),
+            obs_span = max(est_age) - min(est_age)) %>% 
+  as.data.frame() %>% 
+  left_join(., dplyr::select(ceuta_egg_chick_female_data, ring, age_first_cap)) %>% 
+  distinct() %>% 
+  ungroup() %>% 
+  summarise(mean_tenure = mean(obs_span, na.rm = TRUE),
+            sd_tenure = sd(obs_span, na.rm = TRUE),
+            mean_age_span = mean(max_age, na.rm = TRUE),
+            sd_age_span = sd(max_age, na.rm = TRUE),
+            median_age_span = median(max_age, na.rm = TRUE),
+            min_age_span = min(max_age, na.rm = TRUE),
+            max_age_span = max(max_age, na.rm = TRUE))
+
+# yearly nesting interval
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(obs_period = max(est_age) - min(est_age) + 1,
+            n_years = n_distinct(year)) %>% 
+  mutate(obs_interval = obs_period/n_years) %>% 
+  ungroup() %>% 
+  summarise(avg_interval = mean(obs_interval),
+            sd_interval = sd(obs_interval),
+            med_interval = median(obs_interval)) %>% 
+  collect() %>%
+  kable(col.names = c("Average interval",
+                      "SD interval",
+                      "Median interval")) %>%
+  kable_styling() %>%
+  scroll_box(width = "80%")
+
+# capture-mark-recapture summary
+BaSTA_checked_life_table_females_2006_2020$newData %>% 
+  mutate(first_age = ifelse(birth == 0, "A", "J")) %>% 
+  group_by(first_age) %>% 
+  summarise(n_ind = n_distinct(idnames))
+
+# detection summary
+BaSTA_checked_life_table_females_2006_2020$newData %>% 
+  rowwise(idnames) %>% 
+  mutate(total_detections = sum(c_across(X2006:X2020))) %>% 
+  ungroup() %>% 
+  summarise(sum(total_detections))
+
+BaSTA_checked_life_table_females_2006_2020$newData %>% 
+  rowwise(idnames) %>% 
+  mutate(total_detections = sum(c_across(X2006:X2020))) %>% 
+  ungroup() %>% 
+  summarise(mean_detections = mean(total_detections),
+            sd_detections = sd(total_detections),
+            median_detections = median(total_detections))
+
+# tally number of individuals with 3, 4, etc. years of observations (should have minimum of 3)
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(n_years = n_distinct(year)) %>% 
+  mutate(n_years = as.factor(n_years)) %>% 
+  group_by(n_years) %>% 
+  tally() %>% 
+  collect() %>%
+  kable(col.names = c("Number of years",
+                      "Frequency of individuals")) %>%
+  kable_styling() %>%
+  scroll_box(width = "50%")
+
+(34+9+7+4+1+1)/(34+9+7+4+1+1+83+286)
+
+83/(34+9+7+4+1+1+83+286)
+
+286/(34+9+7+4+1+1+83+286)
+
+ceuta_egg_chick_female_data %>% 
+  group_by(age_first_cap) %>% 
+  summarise(n_inds = n_distinct(ring)) %>% 
+  mutate(prop = n_inds/sum(n_inds))
+  mutate(n_years = as.factor(n_years)) %>% 
+  group_by(n_years) %>% 
+  tally() %>% 
+  collect() %>%
+  kable(col.names = c("Number of years",
+                      "Frequency of individuals")) %>%
+  kable_styling() %>%
+  scroll_box(width = "50%")
+  
+# sample size summary of chick ~ egg model
+eggs_and_chicks_nest_summary <- 
+  ceuta_egg_chick_female_data %>% 
+  group_by(ID, ring, year, jul_lay_date_std_num, 
+           avg_chick_tarsus, sd_chick_tarsus, avg_chick_bill, 
+           sd_chick_bill, avg_chick_weight, sd_chick_weight, avg_chick_BMI, 
+           sd_chick_BMI) %>% 
+  summarise(avg_egg_length = mean(length_cm, na.rm = TRUE),
+            sd_egg_length = sd(length_cm, na.rm = TRUE),
+            avg_egg_width = mean(width_cm, na.rm = TRUE),
+            sd_egg_width = sd(width_cm, na.rm = TRUE),
+            avg_egg_volume = mean(volume_cm, na.rm = TRUE),
+            sd_egg_volume = sd(volume_cm, na.rm = TRUE),
+  ) %>% 
+  rename(mother_ring = ring)
+
+eggs_and_chicks_nest_summary %>% 
+  dplyr::filter(!is.na(avg_chick_weight)) %>% 
+  ungroup() %>% 
+  summarise(n_nests = n_distinct(ID),
+            n_females = n_distinct(mother_ring))
+
+ceuta_egg_chick_female_data %>% 
+  summarise(mean_avg_ad_tarsi = mean(avg_ad_tarsi, na.rm = TRUE),
+            sd_avg_ad_tarsi = sd(avg_ad_tarsi, na.rm = TRUE),
+            mean_sd_ad_tarsi = mean(sd_ad_tarsi, na.rm = TRUE),
+            sd_sd_ad_tarsi = sd(sd_ad_tarsi, na.rm = TRUE))
+
+# summary of seasonal nesting trends
+ceuta_egg_chick_female_data %>% 
+  summarise(mean_n_nests = mean(n_nests, na.rm = TRUE),
+            sd_n_nests = sd(n_nests, na.rm = TRUE),
+            median_n_nests = median(n_nests, na.rm = TRUE),
+            max_n_nests = max(n_nests, na.rm = TRUE),
+            min_n_nests = min(n_nests, na.rm = TRUE))
+
+ceuta_egg_chick_female_data %>% 
+  group_by(polyandry) %>% 
+  summarise(mean_n_nests = mean(n_nests, na.rm = TRUE),
+            sd_n_nests = sd(n_nests, na.rm = TRUE),
+            median_n_nests = median(n_nests, na.rm = TRUE),
+            max_n_nests = max(n_nests, na.rm = TRUE),
+            min_n_nests = min(n_nests, na.rm = TRUE))
+
+# number of nests: polyandrous v monogamous
+ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, year, n_nests, polyandry) %>% 
+  distinct() %>% 
+  Rmisc::summarySEwithin(.,
+                         measurevar = "n_nests",
+                         withinvars = "polyandry",
+                         idvar = "year",
+                         conf.interval = 0.95) %>% 
+  mutate(lcl = n_nests - ci,
+         ucl = n_nests + ci) %>% 
+  ggplot(.) +
+  geom_bar(aes(x = polyandry, y = n_nests, fill = polyandry),
+           colour = "grey40", stat = "identity", alpha = 0.4,
+           width = 0.5) +
+  geom_errorbar(width = 0.1, aes(x = polyandry, y = n_nests, 
+                                 ymin = lcl, ymax = ucl)) +
+  ylab("Number of nests per female per year (mean ± 95% CI)") +
+  xlab("Mating tactics of a given female in a given year") +
+  scale_x_discrete(labels = c("mono" = "Monogamous",
+                              "poly" = "Polyandrous")) +
+  scale_fill_manual(values = c("black", "#f03b20")) +
+  luke_theme +
+  theme(legend.position = "none")
+
+# number of polyandrous females
+ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, year, n_nests, polyandry) %>% 
+  distinct() %>% 
+  group_by(ring, polyandry) %>% 
+  summarise(n_poly = n_distinct(year)) %>% 
+  ungroup() %>% 
+  group_by(polyandry) %>% 
+  tally()
+
+ceuta_egg_chick_female_data %>% 
+  summarise(n_distinct(ring))
+
+76/425
+
+# number of multinest females
+ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, year, n_nests, polyandry) %>% 
+  distinct() %>% 
+  mutate(multinest = ifelse(n_nests > 1, "multi", "single")) %>% 
+  group_by(ring, multinest) %>% 
+  summarise(n_multinest = n_distinct(year)) %>% 
+  arrange(desc(ring)) %>% 
+  ungroup() %>% 
+  group_by(multinest) %>% 
+  tally()
+
+127/425
+
+ceuta_egg_chick_female_data %>% 
+  summarise(n_distinct(ring))
+
+76/425
+
+# tally number of individuals with a total of x nests in the sample (should have minimum of 3)
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(n_measures = n_distinct(ID)) %>% 
+  mutate(n_measures = as.factor(n_measures)) %>% 
+  group_by(n_measures) %>% 
+  tally() %>% 
+  collect() %>%
+  kable(col.names = c("Number of nests",
+                      "Frequency of individuals")) %>%
+  kable_styling() %>%
+  scroll_box(width = "50%")
+
+# tally egg observations over age groups
+ceuta_egg_chick_female_data %>% 
+  group_by(est_age) %>% 
+  summarise(n_eggs = n(),
+            n_nests = n_distinct(ID),
+            n_individuals = n_distinct(ring)) %>% 
+  as.data.frame() %>% 
+  ungroup() %>% 
+  mutate(est_age = as.numeric(est_age) + 1) %>% 
+  collect() %>%
+  kable(col.names = c("Age",
+                      "Observations (i.e., Eggs)",
+                      "Nests",
+                      "Individuals")) %>%
+  kable_styling() %>%
+  scroll_box(width = "70%")
+
+# age distribution
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(max_age = max(est_age) + 1,
+            min_age = min(est_age) + 1,
+            avg_age = mean(est_age + 1)) %>% 
+  mutate(age_span = max_age - min_age) %>% 
+  ungroup() %>% 
+  summarise(max_age = round(max(max_age)),
+            min_age = min(min_age),
+            grand_avg_max_age = mean(max_age),
+            grand_avg_min_age = mean(min_age),
+            grand_avg_avg_age = mean(avg_age),
+            grand_median_age_span = median(age_span + 1),
+            grand_avg_age_span = mean(age_span + 1),
+            max_age_span = max(age_span) + 1,
+            min_age_span = min(age_span) + 1,
+            sd_age_span = sd(age_span)) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  ungroup() %>% 
+  rename(value = V1) %>%
+  collect() %>%
+  kable() %>% 
+  kable_styling() %>%
+  scroll_box(width = "70%")
+
+# tally egg observations over age groups
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(n_years = n_distinct(year)) %>% 
+  ungroup() %>% 
+  summarise(avg_years_per_individual = mean(n_years),
+            median_years_per_individual = median(n_years),
+            max_years_per_individual = max(n_years),
+            min_years_per_individual = min(n_years),
+            sd_years_per_individual = sd(n_years)) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  ungroup() %>% 
+  collect() %>%
+  rename(value = V1) %>%
+  kable() %>% 
+  kable_styling() %>%
+  scroll_box(width = "70%")

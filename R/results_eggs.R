@@ -4,9 +4,9 @@ source("R/project_functions.R")
 source("R/project_plotting.R")
 
 #### Results ----
-load("output/stats_eggv_age_date_tarsi.rds")
+# load("output/stats_eggv_age_date_tarsi.rds")
 load("output/stats_eggv_age_date_tarsi_.rds")
-load("output/stats_eggv_age_date_tarsi_I.rds")
+# load("output/stats_eggv_age_date_tarsi_I.rds")
 
 load("data/ceuta_egg_chick_female_data.rds")
 
@@ -394,16 +394,16 @@ allCoefs_mod <-
                                     round(conf.low, 2), ", ", 
                                     round(conf.high, 2), "]"),
                              NA),
-         effect = c(rep("Fixed effects \U1D6FD", nrow(fixef_bw_Table)),
+         effect = c(rep("Fixed effects \U1D6FD (standardized)", nrow(fixef_bw_Table)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
-                    rep("Adjusted repeatability \U1D479", nrow(coefRptTable)),
+                    rep("Adjusted repeatability \U1D45F", nrow(coefRptTable)),
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 
 # re-organize model components for table
 allCoefs_mod <-
-  allCoefs_mod[c(1, 6, 2:5, 7:9, 15, 14, 10, 12:13, 11, 16:27), ]
+  allCoefs_mod[c(5, 1:4, 6:8, 14, 13, 9, 11:12, 10, 15:26), ]
 
 eggv_mod_table <- 
   allCoefs_mod %>% 
@@ -411,7 +411,7 @@ eggv_mod_table <-
   gt(rowname_col = "row",
      groupname_col = "effect") %>% 
   cols_label(comp_name = html("<i>Egg volume</i>"),
-             estimate = "Parameter estimate",
+             estimate = "Mean estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
              rows = 1:22,
@@ -437,11 +437,11 @@ eggv_mod_table <-
 
 eggv_mod_table
 
-eggv_mod_table %>% 
-  gtsave("eggv_mod_table.rtf", path = "products/tables/")
+eggv_mod_table %>%
+  gtsave("eggv_mod_table.rtf", path = "products/tables/rtf/")
 
-eggv_mod_table %>% 
-  gtsave("eggv_mod_table.png", path = "products/tables/")
+eggv_mod_table %>%
+  gtsave("eggv_mod_table.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
 col_all <- "#2E3440"
@@ -470,7 +470,7 @@ eggv_mod_forest_plot_fixef <-
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
   ylab("Fixed effects") +
-  xlab(expression(italic(paste("Estimate (", beta,")" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
 
 eggv_mod_forest_plot_partR2 <-
   allCoefs_mod %>%
@@ -553,8 +553,8 @@ eggv_mod_forest_plot_rptR <-
              alpha = 1, stroke = 0.5) +
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
-  ylab("Adjusted\nrepeatability") +
-  xlab(expression(italic(paste("Repeatability (R)" %+-% "95% CI", sep = ""))))
+  ylab("Intra-class\ncorrelation") +
+  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
 
 eggv_mod_forest_plot_combo <-
   (eggv_mod_forest_plot_fixef / eggv_mod_forest_plot_partR2 / 
@@ -562,7 +562,14 @@ eggv_mod_forest_plot_combo <-
   plot_annotation(tag_levels = 'A', title = 'Egg volume model', theme = theme(plot.title = element_text(face = 'italic'))) +
   plot_layout(heights = unit(c(4.5, 4, 2.5, 2.5), c('cm', 'cm', 'cm', 'cm')))
 
+eggv_mod_forest_plot_combo
+
 ggsave(plot = eggv_mod_forest_plot_combo,
-       filename = "products/figures/eggv_mod_forest_plot.svg",
+       filename = "products/figures/jpg/eggv_mod_forest_plot.jpg",
+       width = 4.5,
+       height = 8.75, units = "in")
+
+ggsave(plot = eggv_mod_forest_plot_combo,
+       filename = "products/figures/svg/eggv_mod_forest_plot.svg",
        width = 4.5,
        height = 8.75, units = "in")

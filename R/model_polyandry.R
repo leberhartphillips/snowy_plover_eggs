@@ -17,12 +17,24 @@ load("data/ceuta_egg_chick_female_data.rds")
 first_nests_data <-
   ceuta_egg_chick_female_data %>%
   dplyr::filter(nest_order == 1) %>%
-  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring, avg_ad_tarsi) %>%
+  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring, avg_ad_tarsi, 
+                n_nests) %>%
   distinct() %>%
   mutate(polyandry = as.factor(polyandry)) %>%
   mutate(poly = ifelse(polyandry == "poly", 1, 0),
          mono = ifelse(polyandry == "mono", 1, 0)) %>%
   mutate(poly_plot = ifelse(poly == 1, poly + 0.1, poly - 0.1))
+
+# sample size summary
+first_nests_data %>% 
+  summarise(n_inds = n_distinct(ring))
+
+first_nests_data %>% 
+  mutate(multinest = ifelse(n_nests > 1, "multi", "single")) %>% 
+  group_by(polyandry, multinest) %>% 
+  summarise(n_cases = n()) %>% 
+  group_by(polyandry) %>% 
+  mutate(prop_cases = n_cases/sum(n_cases))
 
 # Procedure:
 # binomial mixed effects regression of polyandry ~ lay date with mother ID and

@@ -1,7 +1,6 @@
 To-do list:
-- export two-panel age-dependent figure (laydate, egg volume)
-- export three-panel sesonal-dependent figure (polyandry, laydate distribution, egg volume) 
-- "mega" table and forest plot of all model results:
-  - Three columns: Polyandry, Egg Volume, Laydate
-  - Three chunks of rows: Fixed effect estimates (with 95% CI), Random effect estimates (with 95% CI), Repeatabilities (with 95% CI), Sample sizes
 - tidy explore scripts
+- BaSTA uncertainty stats and figure
+- write discussion
+
+Intersting package: "parameters"
