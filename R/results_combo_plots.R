@@ -4,8 +4,8 @@ source("R/project_functions.R")
 source("R/project_plotting.R")
 
 #### Results ----
-load("output/stats_eggv_age_date_tarsi.rds")
-load("output/stats_date_age_tarsi.rds")
+load("output/stats_eggv_age_date_tarsi_.rds")
+load("output/stats_date_age_tarsi_.rds")
 load("output/stats_poly_date.rds")
 
 #### Data ----
@@ -21,6 +21,15 @@ first_nests_data <-
   mutate(poly = ifelse(polyandry == "poly", 1, 0),
          mono = ifelse(polyandry == "mono", 1, 0)) %>%
   mutate(poly_plot = ifelse(poly == 1, poly + 0.1, poly - 0.1))
+
+# subset to nest level and first nest attempts of the season for each female
+first_nests_age_data <- 
+  ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, ID, jul_lay_date_std_num, est_age_trans, year,
+                firstage, lastage, nest_order, n_years_obs, avg_ad_tarsi) %>% 
+  dplyr::filter(nest_order == 1) %>% 
+  distinct() %>% 
+  dplyr::filter(!is.na(est_age_trans))
 
 #### Plotting of Figure ----
 # extract fitted values
@@ -289,7 +298,7 @@ ggsave(plot = Season_plot,
 #### Trend plot of egg volume over age ----
 # extract fitted values
 eggv_mod_age_fits <- 
-  as.data.frame(effect(term = "poly(est_age_trans, 2)", mod = stats_eggv_age_date_tarsi$mod, 
+  as.data.frame(effect(term = "poly(est_age_trans, 2)", mod = stats_eggv_age_date_tarsi$mod_poly, 
                        xlevels = list(est_age_trans = seq(min(ceuta_egg_chick_female_data$est_age_trans, na.rm = TRUE), 
                                                           max(ceuta_egg_chick_female_data$est_age_trans, na.rm = TRUE), 1))))
 
@@ -320,12 +329,15 @@ eggv_age_trend_plot <-
               lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
   xlab("Estimated age (years)") +
-  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13))
+  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13)) +
+  annotate(geom = "text", y = 9, x = 1,
+           label = "All eggs",
+           color = "black", size = 3, fontface = 'italic', hjust = 0)
 
 #### Plot of trend ----
 # extract fitted values
 date_age_mod_fits <- 
-  as.data.frame(effect(term = "poly(est_age_trans, 2)", mod = stats_date_age_tarsi$mod, 
+  as.data.frame(effect(term = "poly(est_age_trans, 2)", mod = stats_date_age_tarsi$mod_poly, 
                        xlevels = list(est_age_trans = seq(min(first_nests_age_data$est_age_trans, na.rm = TRUE), 
                                                           max(first_nests_age_data$est_age_trans, na.rm = TRUE), 1))))
 
@@ -347,7 +359,10 @@ date_age_trend_plot <-
               lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
   xlab("Estimated age (years)") +
-  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13))
+  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13)) +
+  annotate(geom = "text", y = 50, x = 1,
+           label = "First nests of the season",
+           color = "black", size = 3, fontface = 'italic', hjust = 0)
 
 #### Combo plot of age dynamics ----
 # run the "model_laydate script to get the laydate plot
@@ -360,6 +375,95 @@ Age_plot <-
 Age_plot
 
 ggsave(plot = Age_plot,
-       filename = "products/figures/Age_plot.svg",
+       filename = "products/figures/svg/Age_plot.svg",
        width = 4.5,
        height = 6.75, units = "in")
+
+ggsave(plot = Age_plot,
+       filename = "products/figures/jpg/Age_plot.jpg",
+       width = 4.5,
+       height = 6.75, units = "in")
+
+#### Trend plot of egg volume over tarsus ----
+# extract fitted values
+eggv_mod_tarsus_fits <- 
+  as.data.frame(effect(term = "avg_ad_tarsi", mod = stats_eggv_age_date_tarsi$mod_I, 
+                       xlevels = list(avg_ad_tarsi = seq(min(ceuta_egg_chick_female_data$avg_ad_tarsi, na.rm = TRUE), 
+                                                        max(ceuta_egg_chick_female_data$avg_ad_tarsi, na.rm = TRUE), 0.5))))
+
+# summary of fitted trend
+eggv_mod_tarsus_fits %>% 
+  summarise(min_eggv_fit = min(fit),
+            max_eggv_fit = max(fit),
+            min_eggv_tarsus = avg_ad_tarsi[which.min(fit)],
+            max_eggv_tarsus = avg_ad_tarsi[which.max(fit)],
+            min_eggv_lower = lower[which.min(fit)],
+            min_eggv_upper = upper[which.min(fit)],
+            max_eggv_lower = lower[which.max(fit)],
+            max_eggv_upper = upper[which.max(fit)])
+
+# plot fitted values and raw data
+eggv_tarsus_trend_plot <- 
+  ggplot() +
+  luke_theme +
+  theme(panel.border = element_blank()) +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = avg_ad_tarsi, y = volume_cm),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_line(data = eggv_mod_tarsus_fits, aes(x = avg_ad_tarsi, y = fit),
+            lwd = 0.5) +
+  geom_ribbon(data = eggv_mod_tarsus_fits, 
+              aes(x = avg_ad_tarsi, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
+  xlab("Mother tarsus length (mm)") #+
+  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13))
+
+#### Plot of trend ----
+# extract fitted values
+date_tarsus_mod_fits <- 
+  as.data.frame(effect(term = "avg_ad_tarsi", mod = stats_date_age_tarsi$mod_I, 
+                       xlevels = list(avg_ad_tarsi = seq(min(first_nests_age_data$avg_ad_tarsi, na.rm = TRUE), 
+                                                          max(first_nests_age_data$avg_ad_tarsi, na.rm = TRUE), 0.5))))
+
+# plot predicted trend and raw data
+date_tarsus_trend_plot <- 
+  ggplot() +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank()) +
+  geom_jitter(data = first_nests_age_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = avg_ad_tarsi, y = jul_lay_date_std_num),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_line(data = date_tarsus_mod_fits, aes(x = avg_ad_tarsi, y = fit),
+            lwd = 0.5) +
+  geom_ribbon(data = date_tarsus_mod_fits, 
+              aes(x = avg_ad_tarsi, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
+  xlab("Estimated age (years)")# +
+  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13))
+
+#### Combo plot of age dynamics ----
+# run the "model_laydate script to get the laydate plot
+# source("R/revision/model_laydate.R")
+Tarsus_plot <-
+  (date_tarsus_trend_plot / eggv_tarsus_trend_plot) + 
+  plot_annotation(tag_levels = 'A') + 
+  plot_layout(heights = unit(c(7, 7), c('cm', 'cm')))
+
+Tarsus_plot
+
+ggsave(plot = Tarsus_plot,
+       filename = "products/figures/svg/Tarsus_plot.svg",
+       width = 4.5,
+       height = 6.75, units = "in")
+
+ggsave(plot = Tarsus_plot,
+       filename = "products/figures/jpg/Tarsus_plot.jpg",
+       width = 4.5,
+       height = 6.75, units = "in")
+

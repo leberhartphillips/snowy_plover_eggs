@@ -17,10 +17,10 @@ first_nests_age_data <-
   dplyr::filter(!is.na(est_age_trans))
 
 #### Quick model diagnostics ----
-plot(allEffects(mod_date_age_tarsi))
-coefplot2(mod_date_age_tarsi)
-summary(glht(mod_date_age_tarsi))
-summary(mod_date_age_tarsi)
+plot(allEffects(stats_date_age_tarsi$mod_poly))
+coefplot2(stats_date_age_tarsi$mod_poly)
+summary(glht(stats_date_age_tarsi$mod_poly))
+summary(stats_date_age_tarsi$mod_poly)
 
 #### Repeatabilities ----
 date_age_mod_rpt_R <- 
@@ -186,14 +186,14 @@ mod_comp_names <-
   data.frame(comp_name = c(#"Intercept",
                            "Linear age",
                            "Quadratic age",
-                           "First age",
-                           "Last age",
-                           "Tarsus",
+                           "First breeding age",
+                           "Last breeding age",
+                           "Mother tarsus",
                            "Total Marginal \U1D479\U00B2",
                            "Senescence",
-                           "First age",
-                           "Last age",
-                           "Tarsus",
+                           "First breeding age",
+                           "Last breeding age",
+                           "Mother tarsus",
                            "Total Conditional \U1D479\U00B2",
                            "Individual",
                            "Year",
@@ -327,9 +327,9 @@ laydate_mod_forest_plot_fixef <-
   filter(str_detect(effect, "Fixed") & 
            term != "(Intercept)") %>%
   mutate(comp_name = fct_relevel(comp_name,
-                                 "Last age", "First age", 
+                                 "Last breeding age", "First breeding age", 
                                  "Quadratic age", "Linear age",
-                                 "Tarsus")) %>%
+                                 "Mother tarsus")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
   geom_errorbarh(aes(xmin = conf.low,
@@ -352,10 +352,10 @@ laydate_mod_forest_plot_partR2 <-
   filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
   mutate(comp_name = fct_relevel(comp_name,
                                  # "Seasonality",
-                                 "Last age",
-                                 "First age",
+                                 "Last breeding age",
+                                 "First breeding age",
                                  "Senescence",
-                                 "Tarsus",
+                                 "Mother tarsus",
                                  "Total Conditional \U1D479\U00B2",
                                  "Total Marginal \U1D479\U00B2")) %>%
   ggplot() +
@@ -373,10 +373,10 @@ laydate_mod_forest_plot_partR2 <-
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
   scale_y_discrete(labels = c(#"Seasonality" = expression("Seasonality"),
-                              "Last age" = expression("Last age"),
-                              "First age" = expression("First age"),
+                              "Last breeding age" = expression("Last breeding age"),
+                              "First breeding age" = expression("First breeding age"),
                               "Senescence" = expression("Senescence"),
-                              "Tarsus" = expression("Tarsus"),
+                              "Mother tarsus" = expression("Mother tarsus"),
                               "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
   ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
   xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))

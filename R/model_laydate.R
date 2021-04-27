@@ -46,10 +46,14 @@ rpt_date_age_tarsi <-
       adjusted = TRUE, ncores = 4, parallel = TRUE)
 
 # run partR2 to obtain marginal R2, parameter estimates, and beta weights
+mod_date_age_tarsi_ <-
+  lmer(jul_lay_date_std_num ~ poly(est_age_trans, 2) + firstage + lastage + avg_ad_tarsi +
+         (1|ring) + (1|year),
+       data = first_nests_age_data)
+
 R2m_date_age_tarsi <-
-  partR2(mod_date_age_tarsi,
-         partvars = c("est_age_trans",
-                      "I(est_age_trans^2)",
+  partR2(mod_date_age_tarsi_,
+         partvars = c("poly(est_age_trans, 2)",
                       "firstage",
                       "lastage",
                       "avg_ad_tarsi"),
@@ -57,9 +61,8 @@ R2m_date_age_tarsi <-
          nboot = 1000, CI = 0.95, max_level = 1)
 
 R2c_date_age_tarsi <-
-  partR2(mod_date_age_tarsi,
-         partvars = c("est_age_trans",
-                      "I(est_age_trans^2)",
+  partR2(mod_date_age_tarsi_,
+         partvars = c("poly(est_age_trans, 2)",
                       "firstage",
                       "lastage",
                       "avg_ad_tarsi"),
@@ -68,7 +71,8 @@ R2c_date_age_tarsi <-
 
 # save model, tidy, rptR, and partR2 output as a list
 stats_date_age_tarsi <-
-  list(mod = mod_date_age_tarsi,
+  list(mod_I = mod_date_age_tarsi,
+       mod_poly = mod_date_age_tarsi_,
        tidy = tidy_date_age_tarsi,
        rptR = rpt_date_age_tarsi,
        partR2m = R2m_date_age_tarsi,

@@ -4,8 +4,8 @@
 # Product: stats and figure of the polyandry ~ lay date model
 
 #### Libraries and data ----
-source("R/001_libraries.R")
-source("R/002_functions.R")
+source("R/project_functions.R")
+source("R/project_libraries.R")
 
 load("data/ceuta_egg_chick_female_data.rds")
 
@@ -17,7 +17,7 @@ load("data/ceuta_egg_chick_female_data.rds")
 first_nests_data <-
   ceuta_egg_chick_female_data %>%
   dplyr::filter(nest_order == 1) %>%
-  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring, avg_ad_tarsi, 
+  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring, avg_ad_tarsi, est_age_trans, firstage, lastage, 
                 n_nests) %>%
   distinct() %>%
   mutate(polyandry = as.factor(polyandry)) %>%
@@ -40,46 +40,54 @@ first_nests_data %>%
 # binomial mixed effects regression of polyandry ~ lay date with mother ID and
 # year as random effects
 mod_poly_date <-
-  glmer(cbind(poly, mono) ~ jul_lay_date_std_num +
+  glmer(cbind(poly, mono) ~ scale(jul_lay_date_std_num) + scale(est_age_trans) + scale(firstage) + scale(lastage) + scale(avg_ad_tarsi) +
           (1|ring) + (1|year),
         data = first_nests_data, family = "binomial")
-# 
-# # run tidy bootstrap to obtain model diagnostics
-# tidy_poly_date <-
-#   tidy(mod_poly_date, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-# 
-# # run rptR to obtain repeatabilities of random effects
-# rpt_poly_date <-
-#   rpt(poly ~ jul_lay_date_std_num +
-#         (1|ring) + (1|year),
-#       grname = c("ring", "year", "Fixed"),
-#       data = first_nests_data,
-#       datatype = "Binary",
-#       nboot = 1000, npermut = 1000, ratio = TRUE,
-#       adjusted = TRUE, ncores = 4, parallel = TRUE)
-# 
-# # run partR2 on each model to obtain marginal R2, parameter estimates, and beta
-# # weights
-# R2m_poly_date <-
-#   partR2(mod_poly_date,
-#          partvars = c("jul_lay_date_std_num"),
-#          R2_type = "marginal",
-#          nboot = 1000, CI = 0.95)
-# 
-# R2c_poly_date <-
-#   partR2(mod_poly_date,
-#          partvars = c("jul_lay_date_std_num"),
-#          R2_type = "conditional",
-#          nboot = 1000, CI = 0.95)
-# 
-# 
-# # save model, tidy, rptR, and partR2 output as a list
-# stats_poly_date <-
-#   list(mod = mod_poly_date,
-#        tidy = tidy_poly_date,
-#        rptR = rpt_poly_date,
-#        partR2m = R2m_poly_date,
-#        partR2c = R2c_poly_date)
+
+# run tidy bootstrap to obtain model diagnostics
+tidy_poly_date <-
+  tidy(mod_poly_date, conf.int = TRUE, conf.method = "boot", nsim = 1000)
+
+# run rptR to obtain repeatabilities of random effects
+rpt_poly_date <-
+  rpt(poly ~ scale(jul_lay_date_std_num) + scale(est_age_trans) + scale(firstage) + scale(lastage) + scale(avg_ad_tarsi) +
+        (1|ring) + (1|year),
+      grname = c("ring", "year", "Fixed"),
+      data = first_nests_data,
+      datatype = "Binary",
+      nboot = 1000, npermut = 1000, ratio = TRUE,
+      adjusted = TRUE, ncores = 4, parallel = TRUE)
+
+# run partR2 on each model to obtain marginal R2, parameter estimates, and beta
+# weights
+R2m_poly_date <-
+  partR2(mod_poly_date,
+         partvars = c("scale(est_age_trans)",
+                      "scale(firstage)",
+                      "scale(lastage)",
+                      "scale(avg_ad_tarsi)",
+                      "scale(jul_lay_date_std_num)"),
+         R2_type = "marginal",
+         nboot = 1000, CI = 0.95)
+
+R2c_poly_date <-
+  partR2(mod_poly_date,
+         partvars = c("est_age_trans",
+                      "firstage",
+                      "lastage",
+                      "avg_ad_tarsi",
+                      ""),
+         R2_type = "conditional",
+         nboot = 1000, CI = 0.95)
+
+
+# save model, tidy, rptR, and partR2 output as a list
+stats_poly_date <-
+  list(mod = mod_poly_date,
+       tidy = tidy_poly_date,
+       rptR = rpt_poly_date,
+       partR2m = R2m_poly_date,
+       partR2c = R2c_poly_date)
 # 
 # save(stats_poly_date,
 #      file = "output/stats_poly_date.rds")
@@ -99,10 +107,10 @@ bind_cols(as.data.frame(t(stats_poly_date$rptR$R)),
   dplyr::select(-2)
 
 # model summary a diagnostics
-summary(stats_poly_date$mod)
-plot(allEffects(stats_poly_date$mod))
-coefplot2(stats_poly_date$mod)
-summary(glht(stats_poly_date$mod))
+summary(mod_poly_date)
+plot(allEffects(mod_poly_date))
+coefplot2(mod_poly_date)
+summary(glht(mod_poly_date))
 
 #### Plotting of Figure ----
 # extract fitted values

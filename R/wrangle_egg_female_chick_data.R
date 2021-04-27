@@ -9,9 +9,9 @@ load("output/BaSTA_age_estimates_2006-2020.rds")
 #### extract females and their nests ####
 nest_caps_F <-
   
-  # extract snowy plover captures
+  # extract snowy plover captures of adult females
   dbReadTable(CeutaCLOSED,"Captures") %>% 
-  dplyr::filter(species == "SNPL") %>% 
+  dplyr::filter(species == "SNPL" & sex == "F" & age == "A") %>% 
   
   # summarise body morphometric data with the earliest capture of each nest
   group_by(ID, ring, code, sex, age) %>% 
@@ -39,9 +39,6 @@ nest_caps_F <-
   # for training purposes in the field
   dplyr::filter(ID != "2020_C_4" | observer != "DVR") %>% 
   dplyr::filter(ID != "2020_D_201" | observer != "MC") %>%
-  
-  # subset to female adults
-  dplyr::filter(sex == "F" & age == "A") %>% 
   
   # remove duplicated rows
   distinct() %>% 
@@ -293,6 +290,13 @@ nest_caps_F %>%
   dplyr::filter(code == male) %>%
   dplyr::select(year, ID, male, female, ring, code) %>%  
   distinct
+
+# check tarsus measurements
+nest_caps_F %>% 
+  # dplyr::filter(sd_ad_tarsi > 1) %>% 
+  dplyr::select(ring, avg_ad_tarsi, n_ad_tarsi, sd_ad_tarsi) %>% 
+  distinct() %>% 
+  arrange(desc(sd_ad_tarsi))
 
 # extract polyandry and multiclutching information
 nest_caps_F <-
