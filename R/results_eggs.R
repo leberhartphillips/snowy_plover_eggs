@@ -138,7 +138,7 @@ eggv_mod_table <-
   dplyr::select(effect, comp_name, estimate, coefString) %>% 
   gt(rowname_col = "row",
      groupname_col = "effect") %>% 
-  cols_label(comp_name = html("<i>Egg volume model</i>"),
+  cols_label(comp_name = html("<i>Egg volume</i>"),
              estimate = "Mean estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),

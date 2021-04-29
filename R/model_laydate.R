@@ -14,10 +14,9 @@ first_nests_age_data <-
   ceuta_egg_chick_female_data %>% 
   dplyr::select(ring, ID, first_laydate, est_age_t_deviation, year,
                 first_age_t, last_age_t, n_years_obs, avg_ad_tarsi,
-                age_first_cap) %>% 
-  # dplyr::filter(nest_order == 1) %>% 
+                age_first_cap, nest_order) %>% 
   distinct() %>% 
-  dplyr::filter(!is.na(est_age_t_deviation)) %>% 
+  dplyr::filter(!is.na(est_age_t_deviation) & nest_order == 1) %>% 
   mutate(age_first_cap_dummy = ifelse(age_first_cap == "J", 1, 0))
 
 first_nests_age_data %>% 
@@ -52,7 +51,7 @@ rpt_mod_laydate <-
 # run partR2 to obtain marginal R2, parameter estimates, and beta weights
 mod_laydate_poly <-
   lmer(first_laydate ~ poly(est_age_t_deviation, 2) + 
-         first_age_t + last_age_t + avg_ad_tarsi + age_first_cap_dummy +
+         first_age_t + last_age_t + avg_ad_tarsi + age_first_cap +
          (1|ring) + (1|year),
        data = filter(first_nests_age_data, year != "2006"))
 
@@ -62,7 +61,7 @@ R2m_mod_laydate <-
                       "first_age_t",
                       "last_age_t",
                       "avg_ad_tarsi",
-                      "age_first_cap_dummy"),
+                      "age_first_cap"),
          R2_type = "marginal",
          nboot = 1000, CI = 0.95, max_level = 1)
 
@@ -72,7 +71,7 @@ R2c_mod_laydate <-
                       "first_age_t",
                       "last_age_t",
                       "avg_ad_tarsi",
-                      "age_first_cap_dummy"),
+                      "age_first_cap"),
          R2_type = "conditional",
          nboot = 1000, CI = 0.95, max_level = 1)
 
@@ -84,9 +83,9 @@ stats_laydate_mod <-
        rptR = rpt_mod_laydate,
        partR2m = R2m_mod_laydate,
        partR2c = R2c_mod_laydate)
-# 
-# save(stats_laydate_mod,
-#      file = "output/stats_laydate_mod.rds")
+
+save(stats_laydate_mod,
+     file = "output/stats_laydate_mod.rds")
 
 load(file = "output/stats_laydate_mod.rds")
 

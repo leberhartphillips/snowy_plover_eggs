@@ -16,6 +16,7 @@ load("data/ceuta_egg_chick_female_data.rds")
 # wrangle data to include only first nests
 first_nests_data <-
   ceuta_egg_chick_female_data %>%
+  dplyr::filter(nest_order == 1) %>% 
   dplyr::select(polyandry, year, ring, first_laydate, n_nests, ID) %>%
   distinct() %>%
   mutate(polyandry = as.factor(polyandry)) %>%
@@ -25,7 +26,8 @@ first_nests_data <-
 
 # sample size summary
 first_nests_data %>% 
-  summarise(n_inds = n_distinct(ring))
+  summarise(n_inds = n_distinct(ring),
+            n_nests = n_distinct(ID))
 
 first_nests_data %>% 
   mutate(multinest = ifelse(n_nests > 1, "multi", "single")) %>% 
@@ -77,12 +79,12 @@ R2c_polyandry <-
 stats_polyandry_mod <-
   list(mod = mod_polyandry,
        tidy = tidy_polyandry,
-       rptR = rpt_polyandry,
+       rptR = stats_poly_date$rptR,
        partR2m = R2m_polyandry,
        partR2c = R2c_polyandry)
 
-# save(stats_polyandry_mod,
-#      file = "output/stats_polyandry_mod.rds")
+save(stats_polyandry_mod,
+     file = "output/stats_polyandry_mod.rds")
 
 # load the saved results
 load("output/stats_polyandry_mod.rds")

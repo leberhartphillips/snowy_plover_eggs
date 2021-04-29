@@ -10,6 +10,7 @@ load("data/ceuta_egg_chick_female_data.rds")
 # wrangle data to include only first nests
 first_nests_data <-
   ceuta_egg_chick_female_data %>%
+  dplyr::filter(nest_order == 1) %>% 
   dplyr::select(polyandry, year, ring, first_laydate, n_nests, ID) %>%
   distinct() %>%
   mutate(polyandry = as.factor(polyandry)) %>%
@@ -228,7 +229,6 @@ poly_mod_forest_plot_partR2 <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
   mutate(comp_name = fct_relevel(comp_name,
-                                 "Total Conditional \U1D479\U00B2",
                                  "Total Marginal \U1D479\U00B2")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +

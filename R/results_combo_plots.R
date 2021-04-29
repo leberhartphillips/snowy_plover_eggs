@@ -14,6 +14,7 @@ load("data/ceuta_egg_chick_female_data.rds")
 # wrangle data to include only first nests
 first_nests_data <-
   ceuta_egg_chick_female_data %>%
+  dplyr::filter(nest_order == 1) %>% 
   dplyr::select(polyandry, year, ring, first_laydate, n_nests, ID) %>%
   distinct() %>%
   mutate(polyandry = as.factor(polyandry)) %>%
@@ -26,9 +27,9 @@ first_nests_age_data <-
   ceuta_egg_chick_female_data %>% 
   dplyr::select(ring, ID, first_laydate, est_age_t_deviation, year,
                 first_age_t, last_age_t, n_years_obs, avg_ad_tarsi,
-                age_first_cap) %>% 
+                age_first_cap, nest_order) %>% 
   distinct() %>% 
-  dplyr::filter(!is.na(est_age_t_deviation)) %>% 
+  dplyr::filter(!is.na(est_age_t_deviation) & nest_order == 1) %>% 
   mutate(age_first_cap_dummy = ifelse(age_first_cap == "J", 1, 0))
 
 #### Plotting of Figure ----
