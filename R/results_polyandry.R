@@ -1,127 +1,23 @@
 #### Libraries and data ----
-source("R/001_libraries.R")
-source("R/002_functions.R")
+source("R/project_libraries.R")
+source("R/project_functions.R")
+source("R/project_plotting.R")
 
 # load the saved results
-load("output/stats_poly_date.rds")
+load("output/stats_polyandry_mod.rds")
 load("data/ceuta_egg_chick_female_data.rds")
 
 # wrangle data to include only first nests
 first_nests_data <-
   ceuta_egg_chick_female_data %>%
-  dplyr::filter(nest_order == 1) %>%
-  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring, avg_ad_tarsi) %>%
+  dplyr::select(polyandry, year, ring, first_laydate, n_nests, ID) %>%
   distinct() %>%
   mutate(polyandry = as.factor(polyandry)) %>%
   mutate(poly = ifelse(polyandry == "poly", 1, 0),
          mono = ifelse(polyandry == "mono", 1, 0)) %>%
   mutate(poly_plot = ifelse(poly == 1, poly + 0.1, poly - 0.1))
 
-#### Plotting of Figure ----
-# extract fitted values
-poly_mod_fits <- function(offs) {
-  model <- lme4::glmer(cbind(poly, mono) ~ 
-                         I(jul_lay_date_std_num - offs) + (1| ring) + (1 | year), 
-                       data = first_nests_data, family = binomial)
-  
-  ests <- summary(model)$coefficients[1,1:2]
-  
-  # backlink the coefficients to the probability scale
-  return(c(offs, ests, invlogit(ests[1] + c(-1, 0, 1) * 1.96 * ests[2])))
-}
-
-# specify the offs (i.e., vector of numbers from min to max dates stepped by 1)
-offs_jul_lay_date_std2 <- 
-  seq(min(first_nests_data$jul_lay_date_std_num, na.rm = TRUE), 
-      max(first_nests_data$jul_lay_date_std_num, na.rm = TRUE), 1)
-
-# apply the offs vector to the function (retuning a matrix)
-poly_fits <- sapply(offs_jul_lay_date_std2, poly_mod_fits)
-
-# transpose the matrix
-poly_fits <- t(poly_fits)
-
-# convert the matrix to a data.frame
-poly_fits <- data.frame(poly_fits)
-
-# define the column names
-colnames(poly_fits) <- 
-  c("jul_lay_date_std_num", "Estimate", "Std. Error", "Upper", "Mean", "Lower")
-
-polyandry_date_mod_plot <- 
-  ggplot2::ggplot() + 
-  geom_boxplot(data = first_nests_data, 
-               aes(x = jul_lay_date_std_num, y = poly_plot, 
-                   group = polyandry, fill = polyandry), 
-               color = "grey50",
-               width = 0.05, alpha = 0.5,
-               position = position_dodge(width = 0)) +
-  geom_jitter(data = first_nests_data, 
-              aes(x = jul_lay_date_std_num, y = poly, 
-                  group = polyandry, 
-                  fill = polyandry, color = polyandry), 
-              height = 0.02, alpha = 0.4, shape = 19) +
-  geom_ribbon(data = poly_fits, 
-              aes(x = jul_lay_date_std_num, y = Mean, ymin = Lower, ymax = Upper), 
-              fill = "grey50", alpha = 0.25) +
-  geom_line(data = poly_fits, 
-            aes(x = jul_lay_date_std_num, y = Mean), lwd = 0.5, colour = "grey20") +
-  luke_theme +
-  theme(legend.position = c(0.5, -0.04),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 10),
-        panel.border = element_blank(),
-        axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        panel.grid.major.x = element_line(colour = "grey70", size=0.25),
-        axis.ticks.x = element_blank(),
-        legend.background = element_blank()) +
-  scale_y_continuous(limits = c(-0.15, 1.2),
-                     breaks = c(0, 0.25, 0.5, 0.75, 1)) +
-  scale_x_continuous(limits = c(-60, 60)) +
-  ylab("Probabilty of polyandry ± 95% CI") +
-  scale_color_manual(values = rev(plot_palette_polyandry),
-                     guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
-                     labels = c("Monogamous", "Polyandrous")) +
-  scale_fill_manual(values = rev(plot_palette_polyandry),
-                    guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
-                    labels = c("Monogamous", "Polyandrous")) +
-  annotate(geom = "text", y = 1.2, x = -58,
-           label = "Lay dates for first nests of the season",
-           color = "black", size = 3, fontface = 'italic', hjust = 0)
-
-# plot the posterior age at peak distribution
-polyandry_date_dist_plot <-
-  ceuta_egg_chick_female_data %>% 
-  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring) %>%
-  distinct() %>%
-  mutate(polyandry = as.factor(polyandry)) %>%
-  dplyr::filter(jul_lay_date_std_num > -50) %>%
-  mutate(jul_lay_date_std_num = as.numeric(jul_lay_date_std_num)) %>% 
-  ggplot(data = ., aes(x = jul_lay_date_std_num, y = 1, group = polyandry)) + 
-  geom_violin(data = . %>% dplyr::filter(polyandry == "mono"), 
-              alpha = 0.5, fill = plot_palette_polyandry[2], color = "grey50",
-              trim = FALSE) +
-  geom_violin(data = . %>% dplyr::filter(polyandry == "poly"), 
-              alpha = 0.5, fill = plot_palette_polyandry[1], color = "grey50",
-              trim = FALSE) +
-  theme_void() +
-  theme(legend.position = c(0.85, 0.2),
-        legend.title = element_blank(),
-        legend.direction = "horizontal",
-        legend.key.size = unit(0.5,"cm"),
-        panel.grid.major.x = element_line(colour = "grey70", size = 0.25)) +
-  scale_x_continuous(limits = c(-60, 60)) +
-  scale_y_continuous(limits = c(0.4, 1.8)) +
-  annotate(geom = "text", y = 1.7, x = -58,
-           label = "Lay date distributions for all nests",
-           color = "black", size = 3, fontface = 'italic', hjust = 0) +
-  scale_fill_manual(values = plot_palette_polyandry,
-                    guide = guide_legend(title.position = "top", nrow = 2),
-                    labels = c("Monogamous", "Polyandrous"))
-
 #### Find peaks for bimodal laydate distribution ---- 
-library(flexmix)
 set.seed(42)
 
 m1 <- FLXMRglm(family = "gaussian")
@@ -140,9 +36,7 @@ poly_peak1 <- parameters(polyd_fit, component=1)[[1]]
 poly_peak2 <- parameters(polyd_fit, component=2)[[1]]
 
 plot(polyd)
-abline(v=30, col='blue')
 abline(v=poly_peak1[[1]], lty=2, col='blue')
-abline(v=-30, col='red')
 abline(v=poly_peak2[[1]], lty=2, col='red')
 
 mono_data <- 
@@ -158,9 +52,7 @@ mono_peak1 <- parameters(monod_fit, component=1)[[1]]
 mono_peak2 <- parameters(monod_fit, component=2)[[1]]
 
 plot(monod)
-abline(v=30, col='blue')
 abline(v=mono_peak1[[1]], lty=2, col='blue')
-abline(v=-30, col='red')
 abline(v=mono_peak2[[1]], lty=2, col='red')
 
 poly_peak2[[1]] - mono_peak1[[1]]
@@ -183,8 +75,7 @@ sample_sizes <-
 
 # clean model component names
 mod_comp_names <- 
-  data.frame(comp_name = c(#"Intercept",
-                           "First nest lay date",
+  data.frame(comp_name = c("First nest lay date",
                            "Total Marginal \U1D479\U00B2",
                            "Total Conditional \U1D479\U00B2",
                            "Individual",
@@ -195,26 +86,27 @@ mod_comp_names <-
                            "Individuals",
                            "Observations (i.e., Nests)"))
 
-load("output/stats_poly_date.rds")
-
+# Fixed effect sizes (non-standardized)
 fixefTable <- 
-  stats_poly_date$tidy %>% 
+  stats_polyandry_mod$tidy %>% 
   dplyr::filter(effect == "fixed") %>% 
   dplyr::select(term, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed") %>% 
   mutate_at(c("estimate", "conf.low", "conf.high"), invlogit)
 
+# Fixed effect sizes (standardized)
 fixef_bw_Table <- 
-  stats_poly_date$partR2m$BW %>% 
+  stats_polyandry_mod$partR2m$BW %>% 
   # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed_bw") %>% 
   rename(conf.low = CI_lower,
          conf.high = CI_upper)
 
+# Semi-partial R2 estimates
 ranefTable <- 
-  stats_poly_date$tidy %>% 
+  stats_polyandry_mod$tidy %>% 
   dplyr::filter(effect == "ran_pars") %>% 
   dplyr::select(group, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -224,21 +116,23 @@ ranefTable <-
          conf.high = conf.high^2,
          conf.low = conf.low^2)
 
+# Random effects variances
 R2Table <- 
-  bind_rows(stats_poly_date$partR2m$R2[1,],
-            stats_poly_date$partR2c$R2[1,]) %>%   
+  bind_rows(stats_polyandry_mod$partR2m$R2[1,],
+            stats_polyandry_mod$partR2c$R2[1,]) %>%   
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "partR2") %>% 
   rename(conf.low = CI_lower,
          conf.high = CI_upper)
 
+# Adjusted repeatabilities
 coefRptTable <- 
-  stats_poly_date$rptR$R["R_org", ] %>% 
+  stats_polyandry_mod$rptR$R["R_org", ] %>% 
   dplyr::select(-Fixed) %>%
   t() %>% 
   as.data.frame() %>% 
-  bind_cols(stats_poly_date$rptR$CI_emp$CI_org[c("ring", "year"),]) %>% 
+  bind_cols(stats_polyandry_mod$rptR$CI_emp$CI_org[c("ring", "year"),]) %>% 
   rownames_to_column("term") %>% 
   rename(estimate = R_org,
          conf.low = `2.5%`,
@@ -266,6 +160,7 @@ allCoefs_mod <-
                     rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
   dplyr::select(effect, everything())
 
+# draw gt table
 polyandry_mod_table <- 
   allCoefs_mod %>% 
   dplyr::select(effect, comp_name, estimate, coefString) %>% 
@@ -298,6 +193,7 @@ polyandry_mod_table <-
 
 polyandry_mod_table
 
+# export table to disk
 polyandry_mod_table %>% 
   gtsave("polyandry_mod_table.rtf", path = "products/tables/rtf/")
 
@@ -305,8 +201,7 @@ polyandry_mod_table %>%
   gtsave("polyandry_mod_table.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
-col_all <- "#2E3440"
-
+# Standardized fixed effects
 poly_mod_forest_plot_fixef <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Fixed") & 
@@ -328,6 +223,7 @@ poly_mod_forest_plot_fixef <-
   ylab("Fixed\neffects") +
   xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
 
+# Semi-partial R2 estimates
 poly_mod_forest_plot_partR2 <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
@@ -352,6 +248,7 @@ poly_mod_forest_plot_partR2 <-
   ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
   xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
 
+# Random effect variances
 poly_mod_forest_plot_randef <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Random")) %>%
@@ -375,6 +272,7 @@ poly_mod_forest_plot_randef <-
   ylab("Random\neffects") +
   xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
 
+# Adjusted repeatabilities
 poly_mod_forest_plot_rptR <-
   allCoefs_mod %>%
   filter(str_detect(effect, "repeat")) %>%
@@ -398,20 +296,27 @@ poly_mod_forest_plot_rptR <-
   ylab("Intra-class\ncorrelation") +
   xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
 
+# Patchwork plot
 poly_mod_forest_plot_combo <-
   (poly_mod_forest_plot_fixef / poly_mod_forest_plot_partR2 / 
-     poly_mod_forest_plot_randef / poly_mod_forest_plot_rptR) + 
+     # poly_mod_forest_plot_randef / 
+     poly_mod_forest_plot_rptR) + 
   plot_annotation(tag_levels = 'A', title = 'Polyandry model', theme = theme(plot.title = element_text(face = 'italic'))) +
-  plot_layout(heights = unit(c(0.75, 0.75, 1.5, 1.5), c('cm', 'cm', 'cm', 'cm')))
+  plot_layout(heights = unit(c(0.75, 0.75, 
+                               # 1.5, 
+                               1.5), c('cm', 'cm', 
+                                       # 'cm', 
+                                       'cm')))
 
 poly_mod_forest_plot_combo
 
+# export plot to disk
 ggsave(plot = poly_mod_forest_plot_combo,
        filename = "products/figures/svg/poly_mod_forest_plot.svg",
-       width = 4.5,
-       height = 5.2, units = "in")
+       width = 5,
+       height = 9, units = "in")
 
 ggsave(plot = poly_mod_forest_plot_combo,
        filename = "products/figures/jpg/poly_mod_forest_plot.jpg",
-       width = 4.5,
-       height = 5.2, units = "in")
+       width = 5,
+       height = 9, units = "in")

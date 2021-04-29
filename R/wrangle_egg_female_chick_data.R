@@ -325,29 +325,29 @@ age_summary <-
                     est_age_lower, est_age_upper) %>%
       distinct() %>% 
       group_by(ring) %>% 
-      summarise(firstage = min(est_age) - 1,
-                conservative_firstage = min(conservative_age),
-                firstage_lower = min(est_age_lower),
-                firstage_upper = min(est_age_upper),
-                lastage = max(est_age) - 1,
-                conservative_lastage = max(conservative_age),
-                lastage_lower = max(est_age_lower),
-                lastage_upper = max(est_age_upper))
+      summarise(first_age_t = min(est_age) - 1,
+                conservative_first_age = min(conservative_age),
+                first_age_lower = min(est_age_lower),
+                first_age_upper = min(est_age_upper),
+                last_age_t = max(est_age) - 1,
+                conservative_last_age = max(conservative_age),
+                last_age_lower = max(est_age_lower),
+                last_age_upper = max(est_age_upper))
     
     # merge with dataframe
     df2 <- 
       left_join(df, ring_Age, by = "ring") %>% 
-      mutate(est_age_trans = est_age - 1,
-             
+      mutate(est_age_t = est_age - 1,
              conservative_age = ifelse(age_first_cap == "J", 
                                        conservative_age - 1, 
                                        conservative_age),
-             conservative_firstage = ifelse(age_first_cap == "J", 
-                                            conservative_firstage - 1, 
-                                            conservative_firstage),
-             conservative_lastage = ifelse(age_first_cap == "J", 
-                                           conservative_lastage - 1, 
-                                           conservative_lastage))
+             conservative_first_age_t = ifelse(age_first_cap == "J", 
+                                               conservative_first_age - 1, 
+                                               conservative_first_age),
+             conservative_last_age_t = ifelse(age_first_cap == "J", 
+                                              conservative_last_age - 1, 
+                                              conservative_last_age)) %>% 
+      mutate(est_age_t_deviation = est_age_t - first_age_t)
     
     
     return(df2)
@@ -377,7 +377,7 @@ eggs_2006_2020 <-
 
 eggs_2006_2020 <- 
   eggs_2006_2020 %>% 
-  dplyr::select(ID, jul_lay_date, year) %>% 
+  dplyr::select(ID, jul_lay_date, year, ring_year) %>% 
   distinct() %>% 
   mutate(
     # scale the julian lay date by year
@@ -385,205 +385,14 @@ eggs_2006_2020 <-
   
   # make the scaled date variable numeric class
   mutate(jul_lay_date_std_num = as.numeric(jul_lay_date_std)) %>% 
+  group_by(ring_year) %>% 
+  arrange(ring_year, jul_lay_date) %>% 
+  mutate(laydate_deviation = jul_lay_date_std_num - jul_lay_date_std_num[which.min(jul_lay_date_std_num)],
+         first_laydate = jul_lay_date_std_num[which.min(jul_lay_date_std_num)],
+         last_laydate = jul_lay_date_std_num[which.max(jul_lay_date_std_num)]) %>% 
   left_join(eggs_2006_2020, ., 
-            by = c("ID", "jul_lay_date", "year")) %>% 
+            by = c("ID", "jul_lay_date", "year", "ring_year")) %>% 
   distinct()
-
-# check if there are some laydate outliers
-lay_dates <- 
-  eggs_2006_2020 %>% 
-  dplyr::select(ID, jul_lay_date_std_num) %>% 
-  distinct()
-boxplot.stats(lay_dates$jul_lay_date_std_num)
-  
-# check for nests with more than 4 eggs
-eggs_2006_2020 %>% 
-  group_by(ID) %>%
-  dplyr::summarize(n_eggs = n()) %>%
-  arrange(desc(n_eggs))
-
-# check for nests with more than 1 female
-eggs_2006_2020 %>% 
-  group_by(ID) %>%
-  summarise(n_rings = n_distinct(ring)) %>%
-  arrange(desc(n_rings))
-
-# check for nests with more than 1 egg1, egg2, or egg3
-eggs_2006_2020 %>% 
-  group_by(ID, egg) %>%
-  summarise(n_obs = n()) %>%
-  arrange(desc(n_obs))
-
-# check for nests with more than 1 lay date
-eggs_2006_2020 %>% 
-  group_by(ID) %>%
-  summarise(n_dates = n_distinct(jul_lay_date)) %>%
-  arrange(desc(n_dates))
-
-#### 2020_D_1 with two females ----
-dplyr::filter(nest_caps_F, ID == "2020_D_1") %>% 
-  dplyr::select(ID, ring, code, sex, ad_cap_date, lay_date, male)
-
-# 2020_D_1 nest in birdref
-dbReadTable(CeutaCLOSED,"BirdRef") %>%
-  dplyr::filter(ID == "2020_D_1")
-
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(ring == "CA3318")
-
-# 2020_D_1 nest in nests
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2020_D_1")
-
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2020_H_8")
-
-# CN0063 female in Captures
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(ring %in% c("CN0063", "CN0606"))
-
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(code %in% c("BX.RM|WX.LX"))
-
-#### Remove CN0116 ----
-# two females with the same nest ID (CN0116 and CN0118)
-dplyr::filter(nest_caps_F, ID == "2018_C_1") %>% 
-  dplyr::select(ID, ring, code, sex, ad_cap_date, lay_date, male)
-
-# CN0118 female in birdref
-dbReadTable(CeutaCLOSED,"BirdRef") %>%
-  dplyr::filter(ID == "2018_C_1")
-
-# MX.RW|LX.RX female in Nests
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2018_C_1")
-
-# CN0118 is MX.RW|LX.RX but there is a mistake in 2018 (two rows one for CN0118 and one for CN0116) NEED TO FIX IN DATABASE
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(code == "MX.RW|LX.RX" & year == 2018)
-
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(ring == "CN0116" & ID == "2018_C_1")
-
-######### Remove CN0424
-# two females with the same nest ID (CN0215 and CN0424)
-dplyr::filter(nest_caps_F, ID == "2018_E_301") %>% 
-  dplyr::select(ID, ring, code, sex, ad_cap_date, lay_date, male)
-
-dplyr::filter(nest_caps_F, ring %in% c("CN0215", "CN0424")) %>% 
-  dplyr::select(ID, ring, code, sex, ad_cap_date, lay_date, male) %>% 
-  arrange(ID) %>% 
-  distinct
-
-# CN0215 female in birdref and CN0424 assigned as a male
-dbReadTable(CeutaCLOSED,"BirdRef") %>%
-  dplyr::filter(ID == "2018_E_301")
-
-# MX.RW|LX.RX female in Nests
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2018_E_301")
-
-# CN0118 is MX.RW|LX.RX but there is a mistake in 2018 (two rows one for CN0118 and one for CN0116) NEED TO FIX IN DATABASE
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(code %in% c("LX.RM|BX.RX", "WX.RM|LX.YX"))
-
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(ring == "CN0424")
-
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(ring == "CN0215")
-
-########## Remove 2020_C_4 measured by Diego
-# two females with the same nest ID (CN0215 and CN0424)
-dplyr::filter(nest_caps_F, ID == "2020_C_4") 
-dplyr::select(ID, ring, lay_date, no_chicks, length, width, egg)
-
-# CN0215 female in birdref and CN0424 assigned as a male
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2020_C_4") %>% 
-  plover_date_convert(input = "Rdate")
-
-# MX.RW|LX.RX female in Nests
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(ID == "2020_C_4") %>% 
-  plover_date_convert(input = "Rdate")
-
-#### Check the super early lay date of 2020_D_101 (looks fine)
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2020_D_101") %>% 
-  plover_date_convert(input = "Rdate")
-
-########## 
-# two females with the same nest ID (CN0215 and CN0424)
-nest_caps_F %>%
-  dplyr::filter(ID == "2020_D_104")
-
-# CN0215 female in birdref and CN0424 assigned as a male
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2020_D_104") %>% 
-  plover_date_convert(input = "Rdate")
-
-# MX.RW|LX.RX female in Nests
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(ID == "2020_D_104") %>% 
-  plover_date_convert(input = "Rdate")
-
-# MX.RW|LX.RX female in Nests
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(code %in% c("OX.RM|RX.RX", "MX.RY|OX.BX") & year == "2020" & species == "SNPL") %>% 
-  plover_date_convert(input = "Rdate")
-
-########## 
-# two females with the same nest ID (CN0215 and CN0424)
-nest_caps_F %>%
-  dplyr::filter(ID == "2020_D_12")
-
-eggdf %>%
-  dplyr::filter(ID == "2020_D_12" & length %in% c(31.5, 31.4)) %>% 
-  dplyr::filter(ID == "2020_D_12")
-
-########## 
-# two females with the same nest ID (CN0215 and CN0424)
-nest_caps_F %>%
-  dplyr::filter(ID == "2020_D_201")
-
-# CN0215 female in birdref and CN0424 assigned as a male
-dbReadTable(CeutaCLOSED,"Nests") %>%
-  dplyr::filter(ID == "2020_D_201") %>% 
-  plover_date_convert(input = "Rdate")
-
-dbReadTable(CeutaCLOSED,"Captures") %>%
-  dplyr::filter(code %in% c("OX.RM|GX.GX", "WX.RM|GX.YX") & year == "2020" & species == "SNPL") %>% 
-  plover_date_convert(input = "Rdate")
-
-eggdf_2006_2020_cleaned %>% 
-  dplyr::filter(ring %in% c("CN0155", "CN0379", "CN0478"))
-
-dbReadTable(CeutaCLOSED,"Captures") %>% 
-  dplyr::filter(ring %in% c("CN0155", "CN0379", "CN0478") & year == "2019")
-
-eggdf_2006_2020 %>% 
-  dplyr::select(ring, ID, est_age) %>% 
-  distinct()
-
-boxplot(y = eggs_2006_2020$volume, x = eggs_2006_2020$year, boxwex = 0.1)
-boxplot.stats(eggs_2006_2020$volume)$out
-
-eggs_2006_2020 %>% 
-  group_by(year) %>%
-  dplyr::filter(!volume %in% boxplot.stats(volume)$out) %>%
-  ggplot(., aes(year, volume)) +
-  geom_boxplot()
-
-eggs_2006_2020 %>% 
-  ggplot(., aes(year, volume)) +
-  geom_jitter()
-
-eggs_2006_2020 %>% 
-  # group_by(year) %>%
-  # dplyr::filter(!eggv %in% boxplot.stats(eggv)$out) %>%
-  ggplot(., aes(year, volume)) +
-  geom_boxplot()
 
 #### Chick data wrangle ----
 # Extract chick measurements from the capture data
@@ -689,5 +498,5 @@ chick_size_summary <-
 ceuta_egg_chick_female_data <- 
   left_join(eggs_2006_2020, chick_size_summary, by = "ID")
 
-save(ceuta_egg_chick_female_data,
-     file = "data/ceuta_egg_chick_female_data.rds")
+# save(ceuta_egg_chick_female_data,
+#      file = "data/ceuta_egg_chick_female_data.rds")

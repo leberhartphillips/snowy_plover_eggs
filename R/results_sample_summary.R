@@ -200,9 +200,24 @@ ggsave(plot = plot_of_sample_population,
        width = 7,
        height = 10, units = "in")
 
-## Sample check
-# Here we double check the sample to make sure that each individual and nest meets our criteria
-# tally number of nests with 1, 2, or 3 eggs (should have maximum of 3)
+#### Sample size summaries ----
+# reports values listed in the first paragraph of discussion
+
+# number of observations in egg model
+ceuta_egg_chick_female_data %>% 
+  summarise(Years = n_distinct(year),  # N = 14 years
+            Individuals = n_distinct(ring),    # N = 430 females
+            Nests = n_distinct(ID),    # N = 850 nests
+            Eggs = nrow(.)) %>%  # N = 2451 eggs
+  t(.) %>% 
+  as.data.frame() %>% 
+  rename(n = V1) %>% 
+  collect() %>%
+  kable(col.names = c("Sample size")) %>%
+  kable_styling() %>%
+  scroll_box(width = "50%")
+
+# number of 3, 2, or 1 egg nests
 ceuta_egg_chick_female_data %>% 
   mutate(ID = as.factor(ID)) %>% 
   group_by(ID) %>% 
@@ -217,20 +232,6 @@ ceuta_egg_chick_female_data %>%
                       "Proportion of nests")) %>%
   kable_styling() %>%
   scroll_box(width = "80%")
-
-# total sample sizes of dataset
-ceuta_egg_chick_female_data %>% 
-  summarise(Years = n_distinct(year),  # N = 14 years
-            Individuals = n_distinct(ring),    # N = 430 females
-            Nests = n_distinct(ID),    # N = 850 nests
-            Eggs = nrow(.)) %>%  # N = 2451 eggs
-  t(.) %>% 
-  as.data.frame() %>% 
-  rename(n = V1) %>% 
-  collect() %>%
-  kable(col.names = c("Sample size")) %>%
-  kable_styling() %>%
-  scroll_box(width = "50%")
 
 # summarize egg morphometric data
 ceuta_egg_chick_female_data %>% 
@@ -250,13 +251,18 @@ ceuta_egg_chick_female_data %>%
   kable_styling() %>%
   scroll_box(width = "80%")
 
+# effect size of chick weight ~ egg volume model
+load("output/stats_chickw_eggv.rds")
+stats_chickw_eggv$tidy
+stats_chickw_eggv$partR2
+
 # tally first age distribution of unknown and known-aged individuals
 ceuta_egg_chick_female_data %>% 
-  group_by(age_first_cap, firstage) %>% 
+  group_by(age_first_cap, first_age_t) %>% 
   summarise(n_ind = n_distinct(ring)) %>% 
   group_by(age_first_cap) %>% 
   mutate(prop = n_ind/sum(n_ind),
-         firstage = firstage + 1) %>% 
+         first_age_t = first_age_t + 1) %>% 
   collect() %>%
   kable(col.names = c("Age first encountered",
                       "First breeding age",

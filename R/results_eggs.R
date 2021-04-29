@@ -3,291 +3,15 @@ source("R/project_libraries.R")
 source("R/project_functions.R")
 source("R/project_plotting.R")
 
-#### Results ----
-# load("output/stats_eggv_age_date_tarsi.rds")
-load("output/stats_eggv_age_date_tarsi_.rds")
-# load("output/stats_eggv_age_date_tarsi_I.rds")
-
+#### Results and data----
+load("output/stats_eggv_mod.rds")
 load("data/ceuta_egg_chick_female_data.rds")
 
-#### Repeatabilities of egg morphometrics (Table) ----
-eggv_mod_rpt_R <- 
-  cbind(t(eggv_mod_rpt$R), eggv_mod_rpt$CI_emp) %>% 
-  mutate(group = row.names(.)) %>% 
-  rename(mean_estimate = `t(eggv_mod_rpt$R)`,
-         lower95 = `2.5%`,
-         upper95 = `97.5%`) %>% 
-  mutate(trait = "Volume")
-
-egg_shape_rpt_R <- 
-  bind_rows(eggv_mod_rpt_R, eggw_mod_rpt_R, eggl_mod_rpt_R)
-
-egg_shape_rpt_R %>% 
-  dplyr::filter(group != "Fixed") %>% 
-  mutate(group = ifelse(group == "ring", "Individual", 
-                        ifelse(group == "ID", "Nest",
-                               ifelse(group == "year", "Year", "marginal R@2~")))) %>% 
-  mutate(confid_int = ifelse(!is.na(lower95),
-                             paste0("[", 
-                                    round(lower95, 3), ", ", 
-                                    round(upper95, 3), "]"),
-                             NA),
-         mean = round(mean_estimate, 3)) %>% 
-  dplyr::select(trait, group, mean, confid_int) %>% 
-  gt(rowname_col = "row",
-     groupname_col = "trait") %>% 
-  cols_label(group = "Random effect",
-             mean = "Adjusted repeatability",
-             confid_int = "95% confidence interval") %>% 
-  tab_options(row_group.font.weight = "bold",
-              row_group.background.color = brewer.pal(9,"Greys")[3],
-              table.font.size = 12,
-              data_row.padding = 3,
-              row_group.padding = 4,
-              summary_row.padding = 2,
-              column_labels.font.size = 14,
-              row_group.font.size = 12,
-              table.width = pct(80)) %>% 
-  text_transform(
-    locations = cells_body(),
-    fn = function(x) {
-      str_replace_all(x,
-                      pattern = "@",
-                      replacement = "<sup>") %>% 
-        str_replace_all("~",
-                        "</sup>") }
-  )
-
-#### Forest Plots of Marginal R2 egg volume model ####
-eggv_mod_out = eggv_mod_R2[["R2"]]
-col_all <- "#2E3440"
-
-eggv_mod_out[eggv_mod_out$term == "Full", 1] <- "Model"
-names(eggv_mod_out) <- c("combs", "pe", "CI_lower", "CI_upper", "ndf")
-eggv_mod_out <- 
-  eggv_mod_out %>% 
-  mutate(combs = ifelse(combs == "poly(est_age_trans, 2)", "Quadratic age", 
-                        ifelse(combs == "poly(jul_std_date, 2)", "Quadratic lay date",
-                               ifelse(combs == "firstage", "First age breeding",
-                                      ifelse(combs == "lastage", "Last age breeding", 
-                                             ifelse(combs == "avg_ad_tarsi", "Body size", "Model"))))))
-eggv_mod_out$combs <- factor(eggv_mod_out$combs, levels = rev(eggv_mod_out$combs))
-
-eggv_mod_R2_plot <- 
-  eggv_mod_R2[["R2"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age_trans, 2)", "Senescence", 
-                       ifelse(term == "poly(jul_std_date, 2)", "Seasonality",
-                              ifelse(term == "firstage", "First-age breeding",
-                                     ifelse(term == "lastage", "Last-age breeding", 
-                                            ifelse(combs == "avg_ad_tarsi", "Body size", "Model")))))) %>% 
-  mutate(term = factor(term, levels = rev(c("Model", "Senescence", "First-age breeding", "Last-age breeding", "Seasonality", "Body size")))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_text(color = col_all, size = 11, face = "italic"),
-        axis.text = element_text(color = col_all), 
-        axis.title.x = element_blank(),
-        panel.grid.major.x = element_line(colour = "grey70", size = 0.25),
-        plot.title = element_text(color = col_all, size = 11, hjust = 0.5, face = "italic")) + 
-  xlab(expression(paste("R", ''^{2}, sep = ""))) +
-  ylab("Volume model") +
-  ggtitle(expression(paste(italic("Partitioned R"), ''^{2}, sep = ""))) +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
-  scale_x_continuous(limits = c(0, 0.11))
-
-#### Forest Plot of egg volume model estimates ####
-eggv_mod_out_ests = eggv_mod_R2[["Ests"]]
-col_all <- "#2E3440"
-
-eggv_mod_out_ests[eggv_mod_out_ests$term == "Full", 1] <- "Model"
-names(eggv_mod_out_ests) <- c("combs", "pe", "CI_lower", "CI_upper")
-eggv_mod_out_ests <- 
-  eggv_mod_out_ests %>% 
-  mutate(combs = ifelse(combs == "poly(est_age_trans, 2)1", "Linear age", 
-                        ifelse(combs == "poly(est_age_trans, 2)2", "Quadratic age", 
-                               ifelse(combs == "poly(jul_std_date, 2)1", "Linear lay date",
-                                      ifelse(combs == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                             ifelse(combs == "firstage", "First-age breeding",
-                                                    ifelse(combs == "lastage", "Last-age breeding", 
-                                                           ifelse(combs == "avg_ad_tarsi", "Tarsus length", "Model"))))))))
-eggv_mod_out_ests$combs <- factor(eggv_mod_out_ests$combs, levels = rev(eggv_mod_out_ests$combs))
-
-eggv_mod_ests_plot <- 
-  eggv_mod_R2[["Ests"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age_trans, 2)1", "Linear age", 
-                       ifelse(term == "poly(est_age_trans, 2)2", "Quadratic age", 
-                              ifelse(term == "poly(jul_std_date, 2)1", "Linear lay date",
-                                     ifelse(term == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                            ifelse(term == "firstage", "First-age breeding",
-                                                   ifelse(combs == "lastage", "Last-age breeding", 
-                                                          ifelse(combs == "avg_ad_tarsi", "Tarsus length", "Model")))))))) %>% 
-  mutate(term = factor(term, levels = rev(term))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.text = element_text(color = col_all), 
-        axis.title.x = element_text(margin = margin(t = 8), color = col_all, size = 11),
-        plot.title = element_text(color = col_all, size = 11, hjust = 0.5, face = "italic")) + 
-  xlab(expression(paste("Volume (mm", ''^{3},")", sep = ""))) +
-  ggtitle("Model estimates") +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5)
-
-#### Forest Plot of egg volume beta weights (standardized estimates) ####
-eggv_mod_out_BW = eggv_mod_R2[["BW"]]
-col_all <- "#2E3440"
-
-eggv_mod_out_BW[eggv_mod_out_BW$term == "Full", 1] <- "Model"
-names(eggv_mod_out_BW) <- c("combs", "pe", "CI_lower", "CI_upper")
-eggv_mod_out_BW <- 
-  eggv_mod_out_BW %>% 
-  mutate(combs = ifelse(combs == "poly(est_age_trans, 2)1", "Linear age", 
-                        ifelse(combs == "poly(est_age_trans, 2)2", "Quadratic age", 
-                               ifelse(combs == "poly(jul_std_date, 2)1", "Linear lay date",
-                                      ifelse(combs == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                             ifelse(combs == "firstage", "First-age breeding",
-                                                    ifelse(combs == "lastage", "Last-age breeding", 
-                                                           ifelse(combs == "avg_ad_tarsi", "Tarsus length", "Model"))))))))
-eggv_mod_out_BW$combs <- factor(eggv_mod_out_BW$combs, levels = rev(eggv_mod_out_BW$combs))
-
-eggv_mod_BW_plot <- 
-  eggv_mod_R2[["BW"]] %>% 
-  mutate(term = ifelse(term == "poly(est_age_trans, 2)1", "Linear age", 
-                       ifelse(term == "poly(est_age_trans, 2)2", "Quadratic age", 
-                              ifelse(term == "poly(jul_std_date, 2)1", "Linear lay date",
-                                     ifelse(term == "poly(jul_std_date, 2)2", "Quadratic lay date",
-                                            ifelse(term == "firstage", "First-age breeding",
-                                                   ifelse(term == "lastage", "Last-age breeding", 
-                                                          ifelse(combs == "avg_ad_tarsi", "Tarsus length", "Model")))))))) %>% 
-  mutate(term = factor(term, levels = rev(term))) %>% 
-  ggplot(aes_string(x = "estimate", y = "term", 
-                    xmax = "CI_upper", xmin = "CI_lower"), 
-         data = .) + 
-  geom_vline(xintercept = 0, color = col_all, 
-             linetype = "dashed", size = 0.5) + 
-  theme_classic(base_line_size = 0.5, base_size = 12) + 
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line.y = element_blank(), 
-        axis.ticks.y = element_blank(), 
-        axis.title.y = element_blank(), 
-        axis.text.x = element_text(color = col_all), 
-        axis.text.y = element_blank(), 
-        axis.title.x = element_blank(),
-        panel.grid.major.x = element_line(colour = "grey70", size = 0.25),
-        plot.title = element_text(color = col_all, size = 11, hjust = 0.5, face = "italic")) + 
-  xlab("Standardized\nvolume") +
-  ggtitle("Standardized\nestimates") +
-  geom_errorbarh(alpha = 1, color = col_all, height = 0, size = 0.5) +
-  geom_point(size = 3, shape = 21, 
-             fill = "#ECEFF4", col = col_all, alpha = 1, stroke = 0.5) +
-  scale_x_continuous(limits = c(-0.17, 0.22))
-
-#### Full forest plot of model results ---- 
-egg_volume_forest_plot <- 
-  (eggv_mod_R2_plot + eggv_mod_ests_plot + eggv_mod_BW_plot) +
-  plot_annotation(tag_levels = "A")
-egg_volume_forest_plot
-
-#### Dingemanse et al. (2020) method to calculate model statistics ----
-# set seed to make simulation reproducible
-set.seed(14)
-
-# specify the number of simulations you would like to produce
-n_sim = 5000
-
-mod2 <- stats_eggv_age_date_tarsi$mod
-
-summary(mod2)
-
-# create a sim object containing all the components of mod2
-mod2_sim <- sim(mod2, n.sim = n_sim)
-
-# Retrieve all random effect estimates (mean, credible intervals)
-# speficy column names of the sim object as the names of the model components
-colnames(mod2_sim@fixef) <- 
-  names(fixef(mod2))
-
-# Retrieve all random effect estimates (mean, credible intervals) 
-# simultaneously
-coef_ranef_mod2 <- 
-  lapply(ranef(mod2_sim), function(x) c(mean(apply(x[, , 1], 1, var)),  
-                                        quantile(apply(x[, , 1], 1, var), 
-                                                 prob = c(0.025, 0.975))))
-
-# Transpose the random effects table
-ranefTable <- 
-  as.data.frame(t(as.data.frame(coef_ranef_mod2))) %>%
-  rownames_to_column("coefName")
-
-# Retrieve all fixed effect estimates (mean, credible intervals) 
-# simultaneously 
-coef_fixef_mod2 <- 
-  rbind(apply(mod2_sim@fixef, 2, mean), 
-        apply(mod2_sim@fixef, 2, quantile, 
-              prob = c(0.025, 0.975)))
-
-# Transpose the fixed effects table
-fixefTable <- 
-  as.data.frame(t(as.data.frame(coef_fixef_mod2))) %>%
-  rownames_to_column("coefName")
-
-# Calculate adjusted repeatabilities
-# Retrieve residual variance estimate (mean, credible intervals)
-coef_res_mod2 <- 
-  c(mean(mod2_sim@sigma^2), quantile(mod2_sim@sigma^2, c(0.025, 0.975)))
-
-# Transpose the residual effects table
-resTable <- 
-  as.data.frame(t(as.data.frame(coef_res_mod2))) %>%
-  mutate(coefName = "residual")
-
-# Calculate total phenotypic variance not explained by fixed effects
-ranefAndResidualAseggdf <- 
-  cbind(as.data.frame(lapply(ranef(mod2_sim), 
-                             function(x) apply(x[, , 1], 1, var))), 
-        residual = mod2_sim@sigma^2)
-
-ranefAndResidualAseggdf$varTotal <- 
-  rowSums(ranefAndResidualAseggdf)
-
-# Express each random effect as proportion of total (rpt)
-rpt_each <- 
-  ranefAndResidualAseggdf %>%
-  mutate_at(vars( -varTotal), funs(./varTotal)) %>% 
-  suppressWarnings()
-  
-coef_rpt_all <- 
-  apply(rpt_each, 2, 
-        function(x) c(mean (x), quantile (x, prob = c(0.025, 0.975))))
-
-coefRptTable <- 
-  as.data.frame(t(coef_rpt_all)) %>%
-  rownames_to_column("coefName") %>%
-  filter(!coefName %in% c("varTotal"))
-
-#### Table of effect sizes ----
+#### Table of effect sizes (van de Pol method) ----
 # Retrieve sample sizes
 sample_sizes <-
   ceuta_egg_chick_female_data %>% 
+  ungroup() %>% 
   summarise(Year = n_distinct(year),
             Individual = n_distinct(ring),
             Nests = n_distinct(ID),
@@ -299,23 +23,23 @@ sample_sizes <-
   rename(estimate = V1) %>% 
   mutate(stat = "n")
 
-
 # clean model component names
 mod_comp_names <- 
-  data.frame(comp_name = c(#"Intercept",
-                           "Linear age",
-                           "Quadratic age",
-                           "First breeding age",
-                           "Last breeding age",
-                           "Mother tarsus",
-                           "Linear lay date",
-                           "Quadratic lay date",
+  data.frame(comp_name = c("Within ind. linear age",
+                           "Within ind. quadratic age",
+                           "Between ind. first breeding age",
+                           "Between ind. last breeding age",
+                           "Mother tarsus length",
+                           "Within ind. lay date",
+                           "Between ind. linear lay date",
+                           "Between ind. quadratic lay date",
                            "Total Marginal \U1D479\U00B2",
                            "Senescence",
-                           "Seasonality",
-                           "First breeding age",
-                           "Last breeding age",
-                           "Mother tarsus",
+                           "Selective appearance",
+                           "Selective disappearance", 
+                           "Between ind. seasonality",
+                           "Within ind. seasonality",
+                           "Mother tarsus length",
                            "Total Conditional \U1D479\U00B2",
                            "Nest / Individual",
                            "Individual",
@@ -330,33 +54,35 @@ mod_comp_names <-
                            "Nests",
                            "Observations (i.e., Eggs)"))
 
+# Fixed effect sizes (non-standardized)
 fixefTable <- 
-  stats_eggv_age_date_tarsi$tidy %>% 
+  stats_eggv_van_de_pol$tidy %>% 
   dplyr::filter(effect == "fixed") %>% 
   dplyr::select(term, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed")
 
+# Fixed effect sizes (standardized)
 fixef_bw_Table <- 
-  stats_eggv_age_date_tarsi$partR2m$BW %>% 
-  # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  stats_eggv_van_de_pol$partR2m$BW %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed_bw") %>% 
   rename(conf.low = CI_lower,
          conf.high = CI_upper)
 
+# Semi-partial R2 estimates
 R2Table <- 
-  bind_rows(stats_eggv_age_date_tarsi$partR2m$R2,
-            stats_eggv_age_date_tarsi$partR2c$R2[1,]) %>% 
-  # dplyr::filter(effect == "fixed") %>% 
+  bind_rows(stats_eggv_van_de_pol$partR2m$R2,
+            stats_eggv_van_de_pol$partR2c$R2[1,]) %>% 
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "partR2") %>% 
   rename(conf.low = CI_lower,
          conf.high = CI_upper)
 
+# Random effects variances
 ranefTable <- 
-  stats_eggv_age_date_tarsi$tidy %>% 
+  stats_eggv_van_de_pol$tidy %>% 
   dplyr::filter(effect == "ran_pars") %>% 
   dplyr::select(group, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -366,8 +92,9 @@ ranefTable <-
          conf.high = conf.high^2,
          conf.low = conf.low^2)
 
+# Adjusted repeatabilities
 coefRptTable <- 
-  stats_eggv_age_date_tarsi$rptR$R_boot %>% 
+  stats_eggv_van_de_pol$rptR$R_boot %>% 
   dplyr::select(-Fixed) %>% 
   mutate(residual = 1 - rowSums(.)) %>% 
   apply(., 2, 
@@ -379,7 +106,7 @@ coefRptTable <-
          conf.low = `2.5%`,
          conf.high = `97.5%`) %>% 
   mutate(stat = "RptR")
-  
+
 # Store all parameters into a single table and clean it up
 allCoefs_mod <- 
   bind_rows(fixef_bw_Table,
@@ -403,22 +130,23 @@ allCoefs_mod <-
 
 # re-organize model components for table
 allCoefs_mod <-
-  allCoefs_mod[c(5, 1:4, 6:8, 14, 13, 9, 11:12, 10, 15:26), ]
+  allCoefs_mod[c(5, 1:4, 6:9, 16, 15, 10:14, 17:28), ]
 
+# draw gt table
 eggv_mod_table <- 
   allCoefs_mod %>% 
   dplyr::select(effect, comp_name, estimate, coefString) %>% 
   gt(rowname_col = "row",
      groupname_col = "effect") %>% 
-  cols_label(comp_name = html("<i>Egg volume</i>"),
+  cols_label(comp_name = html("<i>Egg volume model</i>"),
              estimate = "Mean estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
-             rows = 1:22,
+             rows = 1:24,
              decimals = 2,
              use_seps = FALSE) %>% 
   fmt_number(columns = vars(estimate),
-             rows = 23:26,
+             rows = 25:28,
              decimals = 0,
              use_seps = FALSE) %>% 
   fmt_missing(columns = 1:4,
@@ -437,6 +165,7 @@ eggv_mod_table <-
 
 eggv_mod_table
 
+# export table to disk
 eggv_mod_table %>%
   gtsave("eggv_mod_table.rtf", path = "products/tables/rtf/")
 
@@ -444,44 +173,46 @@ eggv_mod_table %>%
   gtsave("eggv_mod_table.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
-col_all <- "#2E3440"
-
+# Standardized fixed effects
 eggv_mod_forest_plot_fixef <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Fixed") & 
            term != "(Intercept)") %>%
   mutate(comp_name = fct_relevel(comp_name,
-                                 "Quadratic lay date", "Linear lay date", 
-                                 "Last breeding age", "First breeding age", 
-                                 "Quadratic age", "Linear age",
-                                 "Mother tarsus")) %>%
+                                 "Between ind. quadratic lay date", 
+                                 "Between ind. linear lay date", 
+                                 "Within ind. lay date",
+                                 "Between ind. last breeding age", "Between ind. first breeding age", 
+                                 "Within ind. quadratic age", "Within ind. linear age",
+                                 "Mother tarsus length")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
   geom_errorbarh(aes(xmin = conf.low,
                      xmax = conf.high,
                      y = comp_name),
-                     alpha = 1, color = col_all, 
-                     size = 0.5,
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
                  height = 0) +
-    geom_point(aes(y = comp_name, x = estimate),
-               size = 3, shape = 21, 
-               fill = "#ECEFF4", col = col_all, 
-               alpha = 1, stroke = 0.5) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
   ylab("Fixed effects") +
   xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
 
+# Semi-partial R2 estimates
 eggv_mod_forest_plot_partR2 <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
   mutate(comp_name = fct_relevel(comp_name,
-                                 "Seasonality",
-                                 "Last breeding age",
-                                 "First breeding age",
+                                 "Between ind. seasonality",
+                                 "Within ind. seasonality",
+                                 "Selective disappearance",
+                                 "Selective appearance",
                                  "Senescence",
-                                 "Mother tarsus",
-                                 "Total Conditional \U1D479\U00B2",
+                                 "Mother tarsus length",
                                  "Total Marginal \U1D479\U00B2")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
@@ -497,15 +228,17 @@ eggv_mod_forest_plot_partR2 <-
              alpha = 1, stroke = 0.5) +
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
-  scale_y_discrete(labels = c("Seasonality" = expression("Seasonality"),
-                              "Last breeding age" = expression("Last breeding age"),
-                              "First breeding age" = expression("First breeding age"),
+  scale_y_discrete(labels = c("Between ind. seasonality" = expression("Between ind. seasonality"),
+                              "Within ind. seasonality" = expression("Within ind. seasonality"),
+                              "Selective disappearance" = expression("Selective disappearance"),
+                              "Selective appearance" = expression("Selective appearance"),
                               "Senescence" = expression("Senescence"),
-                              "Mother tarsus" = expression("Mother tarsus"),
+                              "Mother tarsus length" = expression("Mother tarsus length"),
                               "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
   ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
   xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
 
+# Random effect variances
 eggv_mod_forest_plot_randef <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Random")) %>%
@@ -530,7 +263,8 @@ eggv_mod_forest_plot_randef <-
   theme(axis.title.x = element_text(size = 10)) +
   ylab("Random\neffects") +
   xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
-  
+
+# Adjusted repeatabilities
 eggv_mod_forest_plot_rptR <-
   allCoefs_mod %>%
   filter(str_detect(effect, "repeat")) %>%
@@ -556,20 +290,27 @@ eggv_mod_forest_plot_rptR <-
   ylab("Intra-class\ncorrelation") +
   xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
 
+# Patchwork plot
 eggv_mod_forest_plot_combo <-
   (eggv_mod_forest_plot_fixef / eggv_mod_forest_plot_partR2 / 
-     eggv_mod_forest_plot_randef / eggv_mod_forest_plot_rptR) + 
+     # eggv_mod_forest_plot_randef / 
+     eggv_mod_forest_plot_rptR) + 
   plot_annotation(tag_levels = 'A', title = 'Egg volume model', theme = theme(plot.title = element_text(face = 'italic'))) +
-  plot_layout(heights = unit(c(4.5, 4, 2.5, 2.5), c('cm', 'cm', 'cm', 'cm')))
+  plot_layout(heights = unit(c(4.5, 4, 
+                               # 2.5, 
+                               2.5), c('cm', 'cm', 
+                                       # 'cm', 
+                                       'cm')))
 
 eggv_mod_forest_plot_combo
 
+# export plot to disk
 ggsave(plot = eggv_mod_forest_plot_combo,
-       filename = "products/figures/jpg/eggv_mod_forest_plot.jpg",
-       width = 4.5,
-       height = 8.75, units = "in")
+       filename = "products/figures/jpg/eggv_mod_forest.jpg",
+       width = 5,
+       height = 9, units = "in")
 
 ggsave(plot = eggv_mod_forest_plot_combo,
-       filename = "products/figures/svg/eggv_mod_forest_plot.svg",
-       width = 4.5,
-       height = 8.75, units = "in")
+       filename = "products/figures/svg/eggv_mod_forest.svg",
+       width = 5,
+       height = 9, units = "in")

@@ -45,3 +45,6 @@ egg_image_grob <- rasterGrob(egg_image, interpolate = TRUE, height = 0.6)
 # some nice color palettes
 show_col(wsj_pal(palette = "rgby")(6))
 ggthemes_data$wsj
+
+# color of mean estimate point in forest plots
+col_all <- "#2E3440"
