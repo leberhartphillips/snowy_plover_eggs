@@ -1,5 +1,5 @@
-# Snowy Plover Egg-Size Variation Study
-## Age- and season-dependant correlates with egg size and breeding phenology of female snowy plovers *Charadrius nivosus*
+# Snowy Plover Egg-Size Study
+## Age- and season-dependant variation in egg size and breeding phenology of female snowy plovers *Charadrius nivosus*
 ### April 30, 2021
 #### Luke J. Eberhart-Hertel
 
