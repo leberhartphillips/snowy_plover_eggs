@@ -79,7 +79,7 @@ R2c_polyandry <-
 stats_polyandry_mod <-
   list(mod = mod_polyandry,
        tidy = tidy_polyandry,
-       rptR = stats_poly_date$rptR,
+       rptR = rpt_polyandry,
        partR2m = R2m_polyandry,
        partR2c = R2c_polyandry)
 

@@ -147,19 +147,19 @@ Imm_plot <-
   # geom_point(data = dplyr::filter(matings_without_egg_obs_plot, age_first_cap == "A"),
   #            aes(x = est_age, y = ring_ordered), size = 2, shape = 4) +
   scale_x_continuous(limits = c(0, 24),
-                     breaks = c(0:24)) +
+                     breaks = seq(0, 24, by = 2)) +
   ylab("First captured as adults") +
   xlab("Age ± 95% CI") +
   luke_theme +
-  theme(legend.position = c(0.78, 0.8),
+  theme(legend.position = c(0.75, 0.8),
         legend.title = element_text(size = 9),
         legend.text = element_text(size = 9)) +
   scale_size_manual(values = point_size) +
   scale_fill_manual(values = point_colors) +
-  labs(size = "Number of clutches observed",
-       fill = "Number of mates observed") +
+  labs(size = "Number of\nclutches observed",
+       fill = "Number of\nmates observed") +
   annotate(geom = "text", y = 28, x = 16,
-           label = "For visual purposes, only individuals\nwith more than 2 years of\nobservations are shown",
+           label = "For visual purposes,\nonly individuals\nwith more than 2 years of\nobservations are shown",
            color = "black", size = 3, fontface = 'italic', hjust = 0)
 
 # create the recruit plot
@@ -175,8 +175,8 @@ Rec_plot <-
   
   # geom_point(data = dplyr::filter(matings_without_egg_obs_plot, age_first_cap == "J"),
   #            aes(x = est_age, y = ring_ordered), size = 2, shape = 4) +
-  scale_x_continuous(limits = c(0, 23),
-                     breaks = c(0:23)) +
+  scale_x_continuous(limits = c(0, 24),
+                     breaks = seq(0, 24, by = 2)) +
   ylab("Locally recruited") +
   xlab("Age") +
   luke_theme +
@@ -196,8 +196,8 @@ plot_of_sample_population <-
 plot_of_sample_population
 
 ggsave(plot = plot_of_sample_population,
-       filename = "products/figures/sample_distribution_plot.jpg",
-       width = 7,
+       filename = "products/figures/jpg/sample_distribution_plot.jpg",
+       width = 6,
        height = 10, units = "in")
 
 #### Sample size summaries ----

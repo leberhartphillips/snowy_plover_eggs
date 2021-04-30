@@ -39,13 +39,13 @@ mod_comp_names <-
                            "Between ind. first breeding age",
                            "Between ind. last breeding age",
                            "Mother tarsus length",
-                           "Recruit status",
+                           "Local recruit",
                            "Total Marginal \U1D479\U00B2",
                            "Senescence",
                            "Selective appearance",
                            "Selective disappearance",
                            "Mother tarsus length",
-                           "Recruit status",
+                           "Local recruit",
                            "Total Conditional \U1D479\U00B2",
                            "Individual",
                            "Year",
@@ -203,7 +203,7 @@ laydate_mod_forest_plot_fixef <-
   mutate(comp_name = fct_relevel(comp_name,
                                  "Between ind. last breeding age", "Between ind. first breeding age", 
                                  "Within ind. quadratic age", "Within ind. linear age",
-                                 "Mother tarsus length", "Recruit status")) %>%
+                                 "Mother tarsus length", "Local recruit")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
   geom_errorbarh(aes(xmin = conf.low,
@@ -230,7 +230,7 @@ laydate_mod_forest_plot_partR2 <-
                                  "Selective disappearance",
                                  "Selective appearance",
                                  "Senescence",
-                                 "Mother tarsus length", "Recruit status",
+                                 "Mother tarsus length", "Local recruit",
                                  "Total Marginal \U1D479\U00B2")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +

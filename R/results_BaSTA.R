@@ -82,12 +82,12 @@ BaSTA_chain_converg_plot <-
 BaSTA_model_diag_plot <-
   BaSTA_autocorr_plot + BaSTA_chain_converg_plot + 
   plot_layout(heights = c(0.45, 0.55)) +
-  plot_annotation(tag_levels = "a")
+  plot_annotation(tag_levels = "A")
 
 BaSTA_model_diag_plot
 
 ggsave(plot = BaSTA_model_diag_plot,
-       filename = "products/figures/BaSTA_model_diag_plot.svg",
+       filename = "products/figures/jpg/BaSTA_model_diag_plot.jpg",
        width = 4.5,
        height = 7, 
        units = "in")
@@ -200,12 +200,12 @@ set_dim(recruit_ages_freq_plot, max_dims)
 BaSTA_curve_plot <- 
   recruit_ages_freq_plot / female_mortality_plot +
   plot_layout(heights = c(0.4, 0.6)) +
-  plot_annotation(tag_levels = "a")
+  plot_annotation(tag_levels = "A")
 
 BaSTA_curve_plot
 
 ggsave(plot = BaSTA_curve_plot,
-       filename = "products/figures/BaSTA_curve_plot.svg",
+       filename = "products/figures/jpg/BaSTA_curve_plot.jpg",
        width = 4.5,
        height = 5, 
        units = "in")

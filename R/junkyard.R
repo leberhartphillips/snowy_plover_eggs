@@ -1989,3 +1989,114 @@ eggs_2006_2020 %>%
   # dplyr::filter(!eggv %in% boxplot.stats(eggv)$out) %>%
   ggplot(., aes(year, volume)) +
   geom_boxplot()
+
+#### peak-performace of laydate ----
+# create data that contains all factor levels and covariate means to use for
+# calculating predictions
+new_data <- expand.grid(est_age_t_deviation = seq(0:max(first_nests_age_data$est_age_t_deviation)) - 1,
+                        PrePeak_mod = c("1","0"),
+                        first_age_t = mean(first_nests_age_data$first_age_t),
+                        last_age_t = mean(first_nests_age_data$last_age_t),
+                        avg_ad_tarsi = mean(first_nests_age_data$avg_ad_tarsi),
+                        age_first_cap = c("A", "J"))
+
+# create an empty list to store for-loop output
+bs.predictions <- list(
+  
+  # peak values from previous simulation
+  peaks = xpeak_mod,
+  
+  # age-specific predictions
+  predictions = matrix(ncol = n_sim, nrow = nrow(new_data)),
+  
+  # slope of pre-peak effect
+  PrePeak_age_effect = matrix(ncol = n_sim, nrow = 1),
+  
+  # slope of post-peak effect
+  PostPeak_age_effect = matrix(ncol = n_sim, nrow = 1))
+
+i=2
+# 
+# first_nests_age_data %>% 
+#   arrange(desc(est_age_t_deviation))
+
+# for-loop to run peak analysis on all simulated posteriors above
+for (i in 1:n_sim) {
+  
+  # start loop with mod_laydate_I_peak as NULL and attempt as 0
+  mod_laydate_I_peak <- NULL
+  attempt <- 0
+  
+  # store model output and predictions only if mod_laydate_I_peak converged (i.e., is not
+  # NULL) and it's less than 100 attempts
+  while(is.null(mod_laydate_I_peak) && attempt <= 100) {
+    
+    # next attempt
+    attempt <- attempt + 1
+    
+    # set peak based on the mean estimate from the previous simulation
+    first_nests_age_data$PrePeak_mod[first_nests_age_data$est_age_t_deviation < (ceiling(bs.predictions$peaks[i]) + 1)] <- "0"
+    first_nests_age_data$PrePeak_mod[first_nests_age_data$est_age_t_deviation > ceiling(bs.predictions$peaks[i])] <- "1"
+    
+    sum(as.numeric(first_nests_age_data$PrePeak_mod))
+    
+    try(
+      # run peak analysis (i.e., now the quadratic effect is broken up into two
+      # pieces reflective of the pre- and post-peak sections of the curve)
+      mod_laydate_I_peak <-
+        lmer(first_laydate ~ PrePeak_mod + est_age_t_deviation * PrePeak_mod + 
+               first_age_t + last_age_t + avg_ad_tarsi + age_first_cap +
+               (1|ring) + (1|year),
+             data = filter(first_nests_age_data, year != "2006"))
+    )
+    
+    try(
+      # calculate predictions from model
+      bs.predictions$predictions[, i] <- 
+        predict(mod_laydate_I_peak, new_data, re.form = NA)
+    )
+    
+  }
+  
+  # calculate the slope of the pre-peak age effect (i.e., because pre-peak is 
+  # set as the baseline level of the factor, this is simply the baseline age 
+  # slope)
+  bs.predictions$PrePeak_age_effect[i] <- 
+    ifelse("PrePeak_mod1:est_age_t_deviation" %in% 
+             row.names(summary(mod_laydate_I_peak)$coefficients), 
+           summary(mod_laydate_I_peak)$coefficients["est_age_t_deviation","Estimate"],
+           NA)
+  
+  # calculate the slope of the post-peak age effect (i.e., because pre-peak is 
+  # set as the baseline level of the factor, this is calculated as the baseline 
+  # age slope plus the interaction slope)
+  bs.predictions$PostPeak_age_effect[i] <- 
+    ifelse("PrePeak_mod1:est_age_t_deviation" %in% 
+             row.names(summary(mod_laydate_I_peak)$coefficients), 
+           summary(mod_laydate_I_peak)$coefficients["est_age_t_deviation","Estimate"] + 
+             summary(mod_laydate_I_peak)$coefficients["PrePeak_mod1:est_age_t_deviation","Estimate"],
+           NA)
+  
+}
+
+# Retrieve pre-peak age estimate (mean, credible intervals)
+coefPrePeakAgeTable <- 
+  data.frame(coefName = "Pre-peak age effect",
+             mean_estimate = mean(bs.predictions$PrePeak_age_effect, 
+                                  na.rm = TRUE),
+             lower95 = quantile(bs.predictions$PrePeak_age_effect, 
+                                prob = c(0.025), na.rm = TRUE),
+             upper95 = quantile(bs.predictions$PrePeak_age_effect, 
+                                prob = c(0.975), na.rm = TRUE), 
+             row.names = 1)
+
+# Retrieve post-peak age estimate (mean, credible intervals)
+coefPostPeakAgeTable <- 
+  data.frame(coefName = "Post-peak age effect",
+             mean_estimate = mean(bs.predictions$PostPeak_age_effect, 
+                                  na.rm = TRUE),
+             lower95 = quantile(bs.predictions$PostPeak_age_effect, 
+                                prob = c(0.025), na.rm = TRUE),
+             upper95 = quantile(bs.predictions$PostPeak_age_effect, 
+                                prob = c(0.975), na.rm = TRUE), 
+             row.names = 1)

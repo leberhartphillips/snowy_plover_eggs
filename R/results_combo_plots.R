@@ -30,7 +30,8 @@ first_nests_age_data <-
                 age_first_cap, nest_order) %>% 
   distinct() %>% 
   dplyr::filter(!is.na(est_age_t_deviation) & nest_order == 1) %>% 
-  mutate(age_first_cap_dummy = ifelse(age_first_cap == "J", 1, 0))
+  mutate(age_first_cap_dummy = ifelse(age_first_cap == "J", 1, 0)) %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 2.2, 0.8))
 
 #### Plotting of Figure ----
 # extract fitted values
@@ -108,12 +109,12 @@ polyandry_date_mod_plot <-
 # plot the posterior age at peak distribution
 polyandry_date_dist_plot <-
   ceuta_egg_chick_female_data %>% 
-  dplyr::select(polyandry, first_laydate, ID, year, ring) %>%
+  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring) %>%
   distinct() %>%
   mutate(polyandry = as.factor(polyandry)) %>%
-  dplyr::filter(first_laydate > -50) %>%
-  mutate(first_laydate = as.numeric(first_laydate)) %>% 
-  ggplot(data = ., aes(x = first_laydate, y = 1, group = polyandry)) + 
+  dplyr::filter(jul_lay_date_std_num > -50) %>%
+  mutate(jul_lay_date_std_num = as.numeric(jul_lay_date_std_num)) %>% 
+  ggplot(data = ., aes(x = jul_lay_date_std_num, y = 1, group = polyandry)) + 
   geom_violin(data = . %>% dplyr::filter(polyandry == "mono"), 
               alpha = 0.5, fill = plot_palette_polyandry[2], color = "grey50",
               trim = FALSE) +
@@ -138,7 +139,7 @@ polyandry_date_dist_plot <-
 #### Trend plot of egg volume over season ----
 # extract the fitted values of the polynomial season effect
 eggv_mod_date_fits <- 
-  as.data.frame(effect("poly(first_laydate, 2)", stats_eggv_mod$mod, 
+  as.data.frame(effect("poly(first_laydate, 2)", stats_eggv_mod$mod_poly, 
                        xlevels = list(first_laydate = seq(min(ceuta_egg_chick_female_data$first_laydate), 
                                                           max(ceuta_egg_chick_female_data$first_laydate), 1))))
 # summary of fitted trend
@@ -156,7 +157,7 @@ eggv_mod_date_fits %>%
 eggv_date_mod_plot <-
   ggplot() +
   geom_point(data = ceuta_egg_chick_female_data, alpha = 0.4,
-             aes(x = first_laydate, y = volume_cm),
+             aes(x = jul_lay_date_std_num, y = volume_cm),
              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
   geom_line(data = eggv_mod_date_fits, aes(x = first_laydate, y = fit),
             lwd = 0.5, colour = "grey20") +
@@ -214,15 +215,15 @@ eggv_age_trend_plot <-
   theme(panel.border = element_blank()) +
   geom_jitter(data = ceuta_egg_chick_female_data, 
               alpha = 0.4, width = 0.3,
-              aes(x = est_age_t + 1, y = volume_cm),
+              aes(x = est_age_t_deviation + 1, y = volume_cm),
               shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
-  geom_line(data = eggv_mod_age_fits, aes(x = est_age_t + 1, y = fit),
+  geom_line(data = eggv_mod_age_fits, aes(x = est_age_t_deviation + 1, y = fit),
             lwd = 0.5) +
   geom_ribbon(data = eggv_mod_age_fits,
-              aes(x = est_age_t + 1, ymax = upper, ymin = lower),
+              aes(x = est_age_t_deviation + 1, ymax = upper, ymin = lower),
               lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
-  xlab("Estimated age (years)") +
+  xlab("Years since first breeding") +
   scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13)) +
   annotate(geom = "text", y = 9, x = 1,
            label = "All eggs",
@@ -240,41 +241,100 @@ date_age_trend_plot <-
   ggplot() +
   luke_theme +
   theme(panel.border = element_blank(),
-        axis.text.x = element_blank(),
-        axis.title.x = element_blank()) +
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        axis.title.y = element_text(size = 11),
+        axis.title.x = element_text(size = 11),
+        axis.ticks.y = element_blank()) +#,
+        # axis.text.x = element_blank(),
+        # axis.title.x = element_blank()) +
   geom_jitter(data = first_nests_age_data, 
               alpha = 0.4, width = 0.3,
-              aes(x = est_age_t + 1, y = first_laydate),
+              aes(x = est_age_t_deviation, y = first_laydate),
               shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
-  geom_line(data = laydate_mod_age_fits, aes(x = est_age_t_deviation + 1, y = fit),
+  geom_line(data = laydate_mod_age_fits, aes(x = est_age_t_deviation, y = fit),
             lwd = 0.5) +
   geom_ribbon(data = laydate_mod_age_fits, 
-              aes(x = est_age_t_deviation + 1, ymax = upper, ymin = lower),
+              aes(x = est_age_t_deviation, ymax = upper, ymin = lower),
               lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
-  xlab("Estimated age (years)") +
-  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13)) +
-  annotate(geom = "text", y = 50, x = 1,
+  xlab("Years since first local breeding attempt") +
+  scale_x_continuous(limits = c(-0.5, 12.5), breaks = seq(0, 12, by = 2)) +
+  scale_y_continuous(limits = c(-60, 60)) +
+  annotate(geom = "text", y = 55, x = 0,
            label = "First nests of the season",
            color = "black", size = 3, fontface = 'italic', hjust = 0)
 
+# extract fitted values
+laydate_mod_rec_fits <- 
+  as.data.frame(effect(term = "age_first_cap", mod = stats_laydate_mod$mod_poly, 
+                       xlevels = list(age_first_cap = c("A", "J")))) %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 1.8, 1.2))
+
+plot_palette_recruit <- brewer.pal(6, "Dark2")[c(2,3)]
+
+date_recruit_plot <- 
+  ggplot2::ggplot() + 
+  geom_boxplot(data = first_nests_age_data,
+               aes(x = age_first_cap_plot, y = first_laydate,
+                   group = age_first_cap, fill = age_first_cap),
+               color = "grey50",
+               width = 0.05, alpha = 0.5,
+               position = position_dodge(width = 0)) +
+  geom_errorbar(data = laydate_mod_rec_fits, 
+                aes(x = age_first_cap_plot, ymax = upper, ymin = lower),
+                alpha = 1, color = "black", width = 0.05, lwd = 0.5) + 
+  geom_point(data = laydate_mod_rec_fits, 
+             aes(x = age_first_cap_plot, y = fit, fill = age_first_cap),
+             lwd = 1, shape = 21, color= "black") +
+  geom_jitter(data = first_nests_age_data, 
+                aes(x = age_first_cap, y = first_laydate, 
+                    group = age_first_cap, 
+                    fill = age_first_cap, color = age_first_cap), 
+                width = 0.02, alpha = 0.2, shape = 19) +
+  luke_theme +
+  theme(legend.position = "none",
+        panel.border = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        # axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.background = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        axis.title.x = element_text(size = 11)) +
+  scale_y_continuous(limits = c(-60, 60)) +
+  scale_x_discrete(labels = c("A" = "Immigrant",
+                              "J" = "Local\nrecruit")) +
+  ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
+  xlab("Origin") +
+  scale_color_manual(values = rev(plot_palette_recruit)) +
+  scale_fill_manual(values = rev(plot_palette_recruit))# +
+  # annotate(geom = "text", x = 0.5, y = 58,
+  #          label = "First nests of the season",
+  #          color = "black", size = 3, fontface = 'italic', hjust = 0)
+
+date_recruit_plot
+
 #### Combo plot of age dynamics ----
 Age_plot <-
-  (date_age_trend_plot / eggv_age_trend_plot) + 
+  (date_age_trend_plot | date_recruit_plot) + 
   plot_annotation(tag_levels = 'A') + 
-  plot_layout(heights = unit(c(7, 7), c('cm', 'cm')))
+  plot_layout(heights = unit(c(7, 7), c('cm', 'cm')),
+              widths = unit(c(7, 4), c('cm', 'cm')))
 Age_plot
 
 # write plot to disk
 ggsave(plot = Age_plot,
        filename = "products/figures/svg/Age_plot.svg",
-       width = 4.5,
-       height = 6.75, units = "in")
+       width = 6,
+       height = 4, units = "in")
 
 ggsave(plot = Age_plot,
-       filename = "products/figures/jpg/Age_plot_van_de_Pol.jpg",
-       width = 4.5,
-       height = 6.75, units = "in")
+       filename = "products/figures/jpg/Age_plot.jpg",
+       width = 6,
+       height = 3.5, units = "in")
 
 #### Trend plot of egg volume over tarsus ----
 # extract fitted values
@@ -309,8 +369,8 @@ eggv_tarsus_trend_plot <-
               aes(x = avg_ad_tarsi, ymax = upper, ymin = lower),
               lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
-  xlab("Mother tarsus length (mm)") #+
-  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13))
+  xlab("Mother tarsus length (mm)") +
+  scale_x_continuous(limits = c(22, 27))
 
 #### Plot of trend ----
 # extract fitted values
@@ -336,8 +396,8 @@ date_tarsus_trend_plot <-
               aes(x = avg_ad_tarsi, ymax = upper, ymin = lower),
               lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
-  xlab("Estimated age (years)")# +
-  scale_x_continuous(limits = c(0.5, 13.5), breaks = c(1:13))
+  xlab("Estimated age (years)") +
+  scale_x_continuous(limits = c(22, 27))
 
 #### Combo plot of Tarsus dynamics ----
 Tarsus_plot <-
