@@ -2100,3 +2100,33 @@ coefPostPeakAgeTable <-
              upper95 = quantile(bs.predictions$PostPeak_age_effect, 
                                 prob = c(0.975), na.rm = TRUE), 
              row.names = 1)
+
+
+#### cooks distance outlier detection ----
+cooks.distance(mod_laydate_p_no_outlier)
+
+first_nests_age_data_no_outliers <- 
+  first_nests_age_data[-influential, ]
+
+mod_laydate_I_no_outliers <-
+  lmer(first_laydate ~ est_age_t_deviation + I(est_age_t_deviation^2) + 
+         first_age_t + last_age_t + avg_ad_tarsi + age_first_cap +
+         (1|ring) + (1|year),
+       data = filter(first_nests_age_data_no_outliers, year != "2006"))
+
+boxplot(first_nests_age_data$est_age_t_deviation, boxwex = 0.1)
+boxplot.stats(first_nests_age_data$est_age_t_deviation)$out
+
+boxplot(eggdf$eggv ~ eggdf$est_age, boxwex = 0.4)
+
+cooksd <- cooks.distance(mod_laydate_I_no_outliers)
+
+plot(cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance")  # plot cook's distance
+abline(h = 4*mean(cooksd, na.rm=T), col="red")  # add cutoff line
+text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>4*mean(cooksd, na.rm=T),names(cooksd),""), col="red")  # add labels
+
+influential <- as.numeric(names(cooksd)[(cooksd > 4*mean(cooksd, na.rm=T))])  # influential row numbers
+head(first_nests_age_data[influential, ])
+length(influential)
+
+first_nests_age_data[158, ]

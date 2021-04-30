@@ -20,28 +20,37 @@ BaSTA_DIC_table <-
   gt() %>% 
   cols_label(model = "Mortality function",
              shape = "Shape",
-             k = md("***k***"),
+             k = md("*k*"),
              # DIC = md("*DIC*"),
              DICdiff = md("\U0394*DIC*")) %>% 
   fmt_number(columns = vars(DICdiff),
              decimals = 2,
              use_seps = FALSE) %>% 
-  tab_options(column_labels.font.weight = "bold",
-              table.width = pct(50),
-              column_labels.font.size = 14,
-              table.font.size = 12,
-              data_row.padding = 5, table.align = "left") %>% 
+  # tab_options(column_labels.font.weight = "bold",
+  #             table.width = pct(50),
+  #             column_labels.font.size = 14,
+  #             table.font.size = 12,
+  #             data_row.padding = 5, table.align = "left") %>% 
   fmt_missing(columns = 3,
-              missing_text = "")
+              missing_text = "") %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
 
 BaSTA_DIC_table
 
 # save as rtf for manuscript
 BaSTA_DIC_table %>% 
-  gtsave("BaSTA_DIC_table.rtf", path = "products/tables/", expand = 1)
+  gtsave("BaSTA_DIC_table.rtf", path = "products/tables/rtf/", expand = 1)
 
 BaSTA_DIC_table %>% 
-  gtsave("BaSTA_DIC_table.png", path = "products/tables/", expand = 0.5)
+  gtsave("BaSTA_DIC_table.png", path = "products/tables/png/", expand = 0.5)
 
 # Extract top model
 plover_survival_model <- 
