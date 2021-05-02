@@ -13,10 +13,12 @@ first_nests_age_data <-
   ceuta_egg_chick_female_data %>% 
   dplyr::select(ring, ID, first_laydate, est_age_t_deviation, year,
                 first_age_t, last_age_t, n_years_obs, avg_ad_tarsi,
-                age_first_cap, nest_order) %>% 
+                age_first_cap, nest_order, est_age_t) %>% 
   distinct() %>% 
-  dplyr::filter(!is.na(est_age_t_deviation) & nest_order == 1) %>% 
-  mutate(age_first_cap_dummy = ifelse(age_first_cap == "J", 1, 0))
+  dplyr::filter(!is.na(est_age_t_deviation) & 
+                  nest_order == 1 &
+                  year != "2006") %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 2.2, 0.8))
 
 #### Table of effect sizes ----
 # Retrieve sample sizes

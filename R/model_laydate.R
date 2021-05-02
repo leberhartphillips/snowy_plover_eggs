@@ -18,7 +18,8 @@ first_nests_age_data <-
   distinct() %>% 
   dplyr::filter(!is.na(est_age_t_deviation) & 
                   nest_order == 1 &
-                  year != "2006")
+                  year != "2006") %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 2.2, 0.8))
 
 first_nests_age_data %>% 
   # summarise(n_ind = n_distinct(ring),
@@ -277,6 +278,8 @@ model_parameters(mod_laydate_I_no_outlier_peak, standardize = "refit")
 model_parameters(mod_laydate_I_no_outlier_peak)
 summary(mod_laydate_I_no_outlier_peak)
 
+
+#### Plotting ----
 mod_laydate_poly_no_outlier <-
   lmer(first_laydate ~ poly(est_age_t_deviation, 2) +
          first_age_t + last_age_t + avg_ad_tarsi + age_first_cap +
@@ -297,9 +300,9 @@ pre_post_laydate_mod_age_fits <-
 
 
 laydate_mod_age_fits <- 
-  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = mod_laydate_poly, 
+  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = stats_laydate_mod$mod_poly, 
                        xlevels = list(est_age_t_deviation = seq(min(first_nests_age_data$est_age_t_deviation, na.rm = TRUE), 
-                                                                max(dplyr::filter(first_nests_age_data, est_age_t_deviation < 9)$est_age_t_deviation, na.rm = TRUE), 1))))
+                                                                max(first_nests_age_data$est_age_t_deviation, na.rm = TRUE), 1))))
 pre_post_laydate_mod_age_fits <- 
   as.data.frame(effect(term = "PrePeak_mod:est_age_t_deviation", mod = mod_laydate_I_peak, 
                        xlevels = list(est_age_t_deviation = seq(min(first_nests_age_data$est_age_t_deviation, na.rm = TRUE), 
@@ -318,7 +321,11 @@ pre_post_date_age_trend_plot <-
         axis.title.y = element_text(size = 11),
         axis.title.x = element_text(size = 11),
         axis.ticks.y = element_blank()) +
-  geom_jitter(data = filter(first_nests_age_data, est_age_t_deviation < 9), 
+  # geom_jitter(data = filter(first_nests_age_data, est_age_t_deviation < 9), 
+  #             alpha = 0.4, width = 0.3,
+  #             aes(x = est_age_t_deviation, y = first_laydate),
+  #             shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_jitter(data = first_nests_age_data, 
               alpha = 0.4, width = 0.3,
               aes(x = est_age_t_deviation, y = first_laydate),
               shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
@@ -333,15 +340,15 @@ pre_post_date_age_trend_plot <-
   # geom_ribbon(data = filter(pre_post_laydate_mod_age_fits, PrePeak_mod == "0"),
   #             aes(x = est_age_t_deviation, ymax = upper, ymin = lower),
   #             lwd = 1, alpha = 0.25, fill = "#D95F02") +
-  geom_line(data = filter(pre_post_laydate_mod_age_fits, PrePeak_mod == "1"),
-            aes(x = est_age_t_deviation, y = fit),
-            lwd = 1, alpha = 1, color = "#1B9E77") +
+  # geom_line(data = filter(pre_post_laydate_mod_age_fits, PrePeak_mod == "1"),
+  #           aes(x = est_age_t_deviation, y = fit),
+  #           lwd = 1, alpha = 1, color = "#1B9E77") +
   # geom_ribbon(data = filter(pre_post_laydate_mod_age_fits, PrePeak_mod == "1"),
   #             aes(x = est_age_t_deviation, ymax = upper, ymin = lower),
   #             lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
   xlab("Years since first local breeding attempt") +
-  scale_x_continuous(limits = c(-0.5, 8.5), breaks = seq(0, 8, by = 1)) +
+  scale_x_continuous(limits = c(-0.5, 12.5), breaks = seq(0, 12, by = 2)) +
   scale_y_continuous(limits = c(-60, 60)) +
   annotate(geom = "text", y = 55, x = 0,
            label = "First nests of the season",
