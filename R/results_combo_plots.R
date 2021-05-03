@@ -451,3 +451,41 @@ date_firstage_trend_plot <-
 
 coefplot2(stats_date_van_de_Pol$mod_I)
 plot(allEffects(stats_date_van_de_Pol$mod_I))
+
+#### Residuals plot ----
+load("output/stats_eggv_mod.rds")
+load("output/stats_laydate_mod.rds")
+load("output/stats_polyandry_mod.rds")
+
+eggv_residuals_plot <- 
+  ggplot(augment(stats_eggv_mod$mod_poly), aes(x = .fitted, y = .resid)) + 
+  geom_point(alpha = 0.4, shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_hline(yintercept = 0, 
+             linetype = "dashed", color = "grey") +
+  ylab("Residual") +
+  xlab("Fitted value") +
+  luke_theme
+
+qqnorm(resid(stats_eggv_mod$mod_poly))
+qqmath(stats_eggv_mod$mod_poly, id=0.025)
+
+laydate_residuals_plot <- 
+  ggplot(augment(stats_laydate_mod$mod_poly), aes(x = .fitted, y = .resid)) + 
+  geom_point(alpha = 0.4, shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_hline(yintercept = 0, 
+             linetype = "dashed", color = "grey") +
+  ylab("Residual") +
+  xlab("Fitted value") +
+  luke_theme
+
+qqnorm(resid(stats_laydate_mod$mod_poly))
+qqmath(stats_laydate_mod$mod_poly, id=0.025)
+
+residuals_combo_plot <- 
+  (eggv_residuals_plot / laydate_residuals_plot) +
+  plot_annotation(tag_levels = 'A')
+
+ggsave(plot = residuals_combo_plot,
+       filename = "products/figures/jpg/residuals_plot.jpg",
+       width = 4.5,
+       height = 9, units = "in")
