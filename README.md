@@ -20,8 +20,8 @@ In this repository you can find all the raw data and code needed to reproduce ou
   
   - [BaSTA_checked_life_table_females_2006-2020.rds](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/BaSTA_checked_life_table_females_2006-2020.rds) is the processed BaSTA file containing the encounter histories of all individually marked plovers in the population
   - [ceuta_egg_chick_female_data.rds](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/ceuta_egg_chick_female_data.rds) is the trait data used in the polyandry, egg volume, and lay date models
-  - [raw_encounter_histories_females_2006_2020.rds](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/raw_encounter_histories_females_2006_2020.rds) is raw the unprocessed encounter histories of all individually marked plovers in the population (each row is an encounter)
-  - [raw_life_table_females_2006_2020.rds](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/raw_life_table_females_2006_2020.rds) is raw the unprocessed encounter histories of all individually marked plovers in the population (each row is an individual and columns include annual detections. The main difference with the BaSTA life table file is that this contains the individual identities)
+  - [raw_encounter_histories_females_2006_2020.rds](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/raw_encounter_histories_females_2006_2020.rds) is the raw unprocessed encounter histories of all individually marked plovers in the population with each row being an encounter.
+  - [raw_life_table_females_2006_2020.rds](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/raw_life_table_females_2006_2020.rds) is the raw unprocessed encounter histories of all individually marked plovers in the population with each row being an individual and columns including annual detections (i.e., the main difference with the BaSTA life table file is that this contains the individual identities)
 
 **`output/`**
 
