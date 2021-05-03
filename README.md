@@ -1,9 +1,15 @@
-# Snowy Plover Egg-Size Study
-## Age- and season-dependant variation in egg size and breeding phenology of female snowy plovers *Charadrius nivosus*
+# Reproducible datasets and code for:
+## Female-female scramble competition, not senescence, shapes egg size variation in a long-lived polyandrous shorebird
 ### April 30, 2021
 #### Luke J. Eberhart-Hertel
 
 In this repository you can find all the raw data and code needed to reproduce our investigation of egg size variation in snowy plovers (_Charadrius nivosus_) monitored annually since 2006 at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site in western Mexico.
+
+<p align="center">
+  <img width="600" src="./products/figures/jpg/eggs_plot_ms.jpg">
+</p>  
+
+<p align="center" > <i>Egg size variation and its relationship to chick size in snowy plovers (Charadrius nivosus). Illustrations by Luke Eberhart-Hertel.</i></p>
 
 #### Repository Contents
 **`R/`**
@@ -45,6 +51,7 @@ In this repository you can find all the raw data and code needed to reproduce ou
   - [`laydate_forest_ms.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
 
 **`products/tables/`**
+
   - [`eggv_mod_table.png`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)
   - [`polyandry_mod_table.png`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)
   - [`laydate_mod_table.png`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
