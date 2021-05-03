@@ -15,7 +15,7 @@ In this repository you can find all the raw data and code needed to reproduce ou
 **`R/`**
 
   - `project_X.R` scripts contain housekeeping code (custom functions, loading libraries, plotting themes, etc.)
-  - `wrangle_X.R` scripts contain code used to wrangle the CeutaOPEN database into the format used in the models presented in this investigation
+  - `wrangle_X.R` scripts contain code used to wrangle the [CeutaOPEN](https://www.nature.com/articles/s41597-020-0490-y "CeutaOPEN") database into the format used in the models presented in this investigation
   - `explore_X.R` scripts contain code used for exploratory analysis of trait distributions
   - `model_X.R` scripts contain code used for modeling and exporting output
   - `results_X.R` scripts contain code used to process the model output into figures and tables
