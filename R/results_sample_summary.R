@@ -422,7 +422,8 @@ ceuta_egg_chick_female_data %>%
             min_n_nests = min(n_nests, na.rm = TRUE))
 
 # number of nests: polyandrous v monogamous
-ceuta_egg_chick_female_data %>% 
+mating_behaviour_nest_n_plot <- 
+  ceuta_egg_chick_female_data %>% 
   dplyr::select(ring, year, n_nests, polyandry) %>% 
   distinct() %>% 
   Rmisc::summarySEwithin(.,
@@ -439,12 +440,17 @@ ceuta_egg_chick_female_data %>%
   geom_errorbar(width = 0.1, aes(x = polyandry, y = n_nests, 
                                  ymin = lcl, ymax = ucl)) +
   ylab("Number of nests per female per year (mean ± 95% CI)") +
-  xlab("Mating tactics of a given female in a given year") +
+  xlab("Observed mating behaviour\nof a given female in a given year") +
   scale_x_discrete(labels = c("mono" = "Monogamous",
                               "poly" = "Polyandrous")) +
-  scale_fill_manual(values = c("black", "#f03b20")) +
+  scale_fill_manual(values = rev(plot_palette_polyandry)) +
   luke_theme +
   theme(legend.position = "none")
+
+ggsave(plot = mating_behaviour_nest_n_plot,
+       filename = "products/figures/jpg/mating_behaviour_nest_n_plot.jpg",
+       width = 4.5,
+       height = 4.5, units = "in")
 
 # number of polyandrous females
 ceuta_egg_chick_female_data %>% 
@@ -555,3 +561,11 @@ ceuta_egg_chick_female_data %>%
   kable() %>% 
   kable_styling() %>%
   scroll_box(width = "70%")
+
+# tally number of nests with various lay date methods
+ceuta_egg_chick_female_data %>%
+  select(ID, lay_date_method) %>% 
+  distinct() %>% 
+  group_by(lay_date_method) %>% 
+  summarise(n_nests = n_distinct(ID)) %>% 
+  mutate(prop_nests = as.numeric(as.character(n_nests))/sum(n_nests))
