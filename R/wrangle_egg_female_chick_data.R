@@ -61,7 +61,7 @@ nest_caps_F <-
              ifelse(!is.na(nest_initiation_date), nest_initiation_date,
                     ifelse((!is.na(end_date) & fate == "Hatch"), end_date - 25, 
                            ifelse((!is.na(found_date) & float1 == "F"), found_date - 11,
-                                  ifelse(!is.na(found_date), found_date, NA)))), 
+                                  ifelse(!is.na(found_date), found_date + 17, NA)))), 
              origin = "1970-01-01"),
          lay_date_method = 
            ifelse(!is.na(nest_initiation_date), "nest_initiation_date",

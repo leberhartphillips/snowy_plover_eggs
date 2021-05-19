@@ -71,6 +71,16 @@ ggsave(plot = egg_lengths_plot,
        height = 9, units = "cm")
 
 #### Data wrangle of nest summary ----
+
+eggs_and_chicks_nest_summary <- 
+  ceuta_egg_chick_female_data %>% 
+  summarise(avg_egg_length = mean(length_cm, na.rm = TRUE),
+            sd_egg_length = sd(length_cm, na.rm = TRUE),
+            avg_egg_width = mean(width_cm, na.rm = TRUE),
+            sd_egg_width = sd(width_cm, na.rm = TRUE),
+            avg_egg_volume = mean(volume_cm, na.rm = TRUE),
+            sd_egg_volume = sd(volume_cm, na.rm = TRUE))
+
 # summarize egg morphometric data by nest
 eggs_and_chicks_nest_summary <- 
   ceuta_egg_chick_female_data %>% 

@@ -56,7 +56,7 @@ mod_comp_names <-
 
 # Fixed effect sizes (non-standardized)
 fixefTable <- 
-  stats_eggv_van_de_pol$tidy %>% 
+  stats_eggv_mod$tidy %>% 
   dplyr::filter(effect == "fixed") %>% 
   dplyr::select(term, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -64,7 +64,7 @@ fixefTable <-
 
 # Fixed effect sizes (standardized)
 fixef_bw_Table <- 
-  stats_eggv_van_de_pol$partR2m$BW %>% 
+  stats_eggv_mod$partR2m$BW %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed_bw") %>% 
   rename(conf.low = CI_lower,
@@ -72,8 +72,8 @@ fixef_bw_Table <-
 
 # Semi-partial R2 estimates
 R2Table <- 
-  bind_rows(stats_eggv_van_de_pol$partR2m$R2,
-            stats_eggv_van_de_pol$partR2c$R2[1,]) %>% 
+  bind_rows(stats_eggv_mod$partR2m$R2,
+            stats_eggv_mod$partR2c$R2[1,]) %>% 
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "partR2") %>% 
@@ -82,7 +82,7 @@ R2Table <-
 
 # Random effects variances
 ranefTable <- 
-  stats_eggv_van_de_pol$tidy %>% 
+  stats_eggv_mod$tidy %>% 
   dplyr::filter(effect == "ran_pars") %>% 
   dplyr::select(group, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -94,7 +94,7 @@ ranefTable <-
 
 # Adjusted repeatabilities
 coefRptTable <- 
-  stats_eggv_van_de_pol$rptR$R_boot %>% 
+  stats_eggv_mod$rptR$R_boot %>% 
   dplyr::select(-Fixed) %>% 
   mutate(residual = 1 - rowSums(.)) %>% 
   apply(., 2, 

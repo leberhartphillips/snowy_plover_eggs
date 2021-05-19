@@ -4,7 +4,7 @@ source("R/project_functions.R")
 source("R/project_plotting.R")
 
 # load the saved results
-load("output/stats_polyandry_mod.rds")
+load("output/stats_polyandry_age_mod.rds")
 load("data/ceuta_egg_chick_female_data.rds")
 
 # wrangle data to include only first nests
@@ -33,8 +33,8 @@ poly_data <-
 polyd <- density(poly_data$jul_lay_date_std_num)
 
 polyd_fit <- flexmix(jul_lay_date_std_num ~ 1, data = poly_data, k = 2, model = list(m1, m2))
-poly_peak1 <- parameters(polyd_fit, component=1)[[1]]
-poly_peak2 <- parameters(polyd_fit, component=2)[[1]]
+poly_peak1 <- modeltools::parameters(polyd_fit, component=1)[[1]]
+poly_peak2 <- modeltools::parameters(polyd_fit, component=2)[[1]]
 
 plot(polyd)
 abline(v=poly_peak1[[1]], lty=2, col='blue')
@@ -49,8 +49,8 @@ mono_data <-
 monod <- density(mono_data$jul_lay_date_std_num)
 
 monod_fit <- flexmix(jul_lay_date_std_num ~ 1, data = mono_data, k = 2, model = list(m1, m2))
-mono_peak1 <- parameters(monod_fit, component=1)[[1]]
-mono_peak2 <- parameters(monod_fit, component=2)[[1]]
+mono_peak1 <- modeltools::parameters(monod_fit, component=1)[[1]]
+mono_peak2 <- modeltools::parameters(monod_fit, component=2)[[1]]
 
 plot(monod)
 abline(v=mono_peak1[[1]], lty=2, col='blue')
@@ -77,7 +77,12 @@ sample_sizes <-
 # clean model component names
 mod_comp_names <- 
   data.frame(comp_name = c("First nest lay date",
+                           "Age since first breeding",
+                           "First breeding age",
                            "Total Marginal \U1D479\U00B2",
+                           "First nest lay date",
+                           "Age since first breeding",
+                           "First breeding age",
                            "Total Conditional \U1D479\U00B2",
                            "Individual",
                            "Year",
@@ -89,7 +94,7 @@ mod_comp_names <-
 
 # Fixed effect sizes (non-standardized)
 fixefTable <- 
-  stats_polyandry_mod$tidy %>% 
+  stats_polyandry_age_mod$tidy %>% 
   dplyr::filter(effect == "fixed") %>% 
   dplyr::select(term, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -98,7 +103,7 @@ fixefTable <-
 
 # Fixed effect sizes (standardized)
 fixef_bw_Table <- 
-  stats_polyandry_mod$partR2m$BW %>% 
+  stats_polyandry_age_mod$partR2m$BW %>% 
   # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed_bw") %>% 
@@ -107,7 +112,7 @@ fixef_bw_Table <-
 
 # Semi-partial R2 estimates
 ranefTable <- 
-  stats_polyandry_mod$tidy %>% 
+  stats_polyandry_age_mod$tidy %>% 
   dplyr::filter(effect == "ran_pars") %>% 
   dplyr::select(group, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -119,8 +124,8 @@ ranefTable <-
 
 # Random effects variances
 R2Table <- 
-  bind_rows(stats_polyandry_mod$partR2m$R2[1,],
-            stats_polyandry_mod$partR2c$R2[1,]) %>%   
+  bind_rows(stats_polyandry_age_mod$partR2m$R2,
+            stats_polyandry_age_mod$partR2c$R2[1,]) %>%   
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "partR2") %>% 
@@ -129,11 +134,11 @@ R2Table <-
 
 # Adjusted repeatabilities
 coefRptTable <- 
-  stats_polyandry_mod$rptR$R["R_org", ] %>% 
+  stats_polyandry_age_mod$rptR$R["R_org", ] %>% 
   dplyr::select(-Fixed) %>%
   t() %>% 
   as.data.frame() %>% 
-  bind_cols(stats_polyandry_mod$rptR$CI_emp$CI_org[c("ring", "year"),]) %>% 
+  bind_cols(stats_polyandry_age_mod$rptR$CI_emp$CI_org[c("ring", "year"),]) %>% 
   rownames_to_column("term") %>% 
   rename(estimate = R_org,
          conf.low = `2.5%`,
@@ -154,7 +159,7 @@ allCoefs_mod <-
                                     round(conf.low, 2), ", ", 
                                     round(conf.high, 2), "]"),
                              NA),
-         effect = c(rep("Fixed effects \U1D6FD (standardized)", nrow(fixef_bw_Table)),
+         effect = c(rep("Fixed effects \U1D6FD (logit standardized)", nrow(fixef_bw_Table)),
                     rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
                     rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
                     rep("Adjusted repeatability \U1D45F", nrow(coefRptTable)),
@@ -171,11 +176,11 @@ polyandry_mod_table <-
              estimate = "Mean estimate",
              coefString = "95% confidence interval") %>% 
   fmt_number(columns = vars(estimate),
-             rows = 1:7,
+             rows = 1:12,
              decimals = 2,
              use_seps = FALSE) %>% 
   fmt_number(columns = vars(estimate),
-             rows = 9:10,
+             rows = 13:15,
              decimals = 0,
              use_seps = FALSE) %>% 
   fmt_missing(columns = 1:4,
@@ -222,13 +227,16 @@ poly_mod_forest_plot_fixef <-
   luke_theme +
   theme(axis.title.x = element_text(size = 10)) +
   ylab("Fixed\neffects") +
-  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("Standardized effect size (logit", beta,")" %+-% "95% CI", sep = ""))))
 
 # Semi-partial R2 estimates
 poly_mod_forest_plot_partR2 <-
   allCoefs_mod %>%
   filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
   mutate(comp_name = fct_relevel(comp_name,
+                                 "Age since first breeding",
+                                 "First breeding age",
+                                 "First nest lay date",
                                  "Total Marginal \U1D479\U00B2")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
@@ -302,7 +310,7 @@ poly_mod_forest_plot_combo <-
      # poly_mod_forest_plot_randef / 
      poly_mod_forest_plot_rptR) + 
   plot_annotation(tag_levels = 'A', title = 'Polyandry model', theme = theme(plot.title = element_text(face = 'italic'))) +
-  plot_layout(heights = unit(c(0.75, 0.75, 
+  plot_layout(heights = unit(c(2.00, 2.25, 
                                # 1.5, 
                                1.5), c('cm', 'cm', 
                                        # 'cm', 

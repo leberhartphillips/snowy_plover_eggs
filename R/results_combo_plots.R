@@ -37,7 +37,8 @@ first_nests_age_data <-
 # extract fitted values
 polyandry_mod_fits <- function(offs) {
   model <- lme4::glmer(cbind(poly, mono) ~ 
-                         I(first_laydate - offs) + (1| ring) + (1 | year), 
+                         I(first_laydate - offs) +
+                       (1| ring) + (1 | year), 
                        data = first_nests_data, family = binomial)
   
   ests <- summary(model)$coefficients[1,1:2]
@@ -94,7 +95,7 @@ polyandry_date_mod_plot <-
         legend.background = element_blank()) +
   scale_y_continuous(limits = c(-0.15, 1.2),
                      breaks = c(0, 0.25, 0.5, 0.75, 1)) +
-  scale_x_continuous(limits = c(-60, 60)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   ylab("Probabilty of polyandry ± 95% CI") +
   scale_color_manual(values = rev(plot_palette_polyandry),
                      guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
@@ -127,7 +128,7 @@ polyandry_date_dist_plot <-
         legend.direction = "horizontal",
         legend.key.size = unit(0.5,"cm"),
         panel.grid.major.x = element_line(colour = "grey70", size = 0.25)) +
-  scale_x_continuous(limits = c(-60, 60)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   scale_y_continuous(limits = c(0.4, 1.8)) +
   annotate(geom = "text", y = 1.7, x = -58,
            label = "Lay date distributions for all nests",
@@ -142,6 +143,7 @@ eggv_mod_date_fits <-
   as.data.frame(effect("poly(first_laydate, 2)", stats_eggv_mod$mod_poly, 
                        xlevels = list(first_laydate = seq(min(ceuta_egg_chick_female_data$first_laydate), 
                                                           max(ceuta_egg_chick_female_data$first_laydate), 1))))
+
 # summary of fitted trend
 eggv_mod_date_fits %>% 
   summarise(min_eggv_fit = min(fit),
@@ -170,7 +172,7 @@ eggv_date_mod_plot <-
         axis.ticks.x = element_blank()) +
   ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
   xlab("Standardized lay date") +
-  scale_x_continuous(limits = c(-60, 60)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   theme(legend.position = "none") +
   annotate(geom = "text", y = 9, x = -58,
            label = "Lay dates for all eggs",
@@ -236,6 +238,21 @@ laydate_mod_age_fits <-
                        xlevels = list(est_age_t_deviation = seq(min(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 
                                                                 max(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 1))))
 
+# summary of fitted trend
+laydate_mod_age_fits %>% 
+  summarise(min_laydate_fit = min(fit),
+            max_laydate_fit = max(fit),
+            min_laydate_age = est_age_t_deviation[which.min(fit)],
+            max_laydate_age = est_age_t_deviation[which.max(fit)],
+            min_laydate_lower = lower[which.min(fit)],
+            min_laydate_upper = upper[which.min(fit)],
+            max_laydate_lower = lower[which.max(fit)],
+            max_laydate_upper = upper[which.max(fit)])
+
+(laydate_mod_age_fits[1, 2] - laydate_mod_age_fits[6, 2])/5
+(laydate_mod_age_fits[1, 4] - laydate_mod_age_fits[6, 4])/5
+(laydate_mod_age_fits[1, 5] - laydate_mod_age_fits[6, 5])/5
+
 # plot predicted trend and raw data
 date_age_trend_plot <- 
   ggplot() +
@@ -260,7 +277,7 @@ date_age_trend_plot <-
   ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
   xlab("Years since first local breeding attempt") +
   scale_x_continuous(limits = c(-0.5, 12.5), breaks = seq(0, 12, by = 2)) +
-  scale_y_continuous(limits = c(-60, 60)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   annotate(geom = "text", y = 55, x = 0,
            label = "First nests of the season",
            color = "black", size = 3, fontface = 'italic', hjust = 0)
@@ -272,6 +289,10 @@ laydate_mod_rec_fits <-
   mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 1.8, 1.2))
 
 plot_palette_recruit <- brewer.pal(6, "Dark2")[c(2,3)]
+
+laydate_mod_rec_fits[1, 2] - laydate_mod_rec_fits[2, 2] 
+laydate_mod_rec_fits[1, 4] - laydate_mod_rec_fits[2, 4] 
+laydate_mod_rec_fits[1, 5] - laydate_mod_rec_fits[2, 5] 
 
 date_recruit_plot <- 
   ggplot2::ggplot() + 
@@ -304,7 +325,7 @@ date_recruit_plot <-
         panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
         panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
         axis.title.x = element_text(size = 11)) +
-  scale_y_continuous(limits = c(-60, 60)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   scale_x_discrete(labels = c("A" = "Immigrant",
                               "J" = "Local\nrecruit")) +
   ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
@@ -397,7 +418,9 @@ date_tarsus_trend_plot <-
               lwd = 1, alpha = 0.25, fill = "grey20") +
   ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
   xlab("Estimated age (years)") +
-  scale_x_continuous(limits = c(22, 27))
+  scale_x_continuous(limits = c(22, 27)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60))
+  
 
 #### Combo plot of Tarsus dynamics ----
 Tarsus_plot <-
@@ -453,9 +476,9 @@ coefplot2(stats_date_van_de_Pol$mod_I)
 plot(allEffects(stats_date_van_de_Pol$mod_I))
 
 #### Residuals plot ----
-load("output/stats_eggv_mod.rds")
+load("output/stats_eggv_mod2.rds")
 load("output/stats_laydate_mod.rds")
-load("output/stats_polyandry_mod.rds")
+load("output/stats_polyandry_age_mod.rds")
 
 eggv_residuals_plot <- 
   ggplot(augment(stats_eggv_mod$mod_poly), aes(x = .fitted, y = .resid)) + 
@@ -484,6 +507,8 @@ qqmath(stats_laydate_mod$mod_poly, id=0.025)
 residuals_combo_plot <- 
   (eggv_residuals_plot / laydate_residuals_plot) +
   plot_annotation(tag_levels = 'A')
+
+residuals_combo_plot
 
 ggsave(plot = residuals_combo_plot,
        filename = "products/figures/jpg/residuals_plot.jpg",

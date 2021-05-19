@@ -2130,3 +2130,15 @@ head(first_nests_age_data[influential, ])
 length(influential)
 
 first_nests_age_data[158, ]
+
+#### Libraries and data ----
+source("R/project_functions.R")
+source("R/project_libraries.R")
+source("R/project_plotting.R")
+
+load("data/ceuta_egg_chick_female_data.rds")
+
+ceuta_egg_chick_female_data %>% 
+  filter(ID %in% dates_to_check$ID) %>% 
+  select(ID, end_date, fate, lay_date) %>% 
+  distinct()

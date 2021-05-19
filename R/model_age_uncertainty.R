@@ -167,6 +167,10 @@ set.seed(14)
 # est_age_boot_out <- 
 #   BaSTA_est_age_boot(nreps = 1000)
 
+save(est_age_boot_out, file = "output/age_estimate_uncertainty_bootstraps.rds")
+
+load("output/age_estimate_uncertainty_bootstraps.rds")
+
 #### Egg volume ----
 mod_eggv_poly <-
   lmer(volume_cm ~ poly(est_age_t_deviation, 2) +
@@ -197,6 +201,8 @@ boot_eggv_first_age_plot <-
   geom_line(data = eggv_first_age_boot_out_melt,
             aes(x = as.numeric(first_age), y = volume_cm, group = iteration),
             lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = eggv_mod_first_age_fits, aes(x = first_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
   luke_theme +
   theme(panel.border = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
@@ -232,6 +238,8 @@ boot_eggv_last_age_plot <-
   geom_line(data = eggv_last_age_boot_out_melt,
             aes(x = as.numeric(last_age), y = volume_cm, group = iteration),
             lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = eggv_mod_last_age_fits, aes(x = last_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
   luke_theme +
   theme(panel.border = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
@@ -267,6 +275,8 @@ boot_eggv_age_dev_plot <-
   geom_line(data = eggv_age_dev_boot_out_melt,
             aes(x = as.numeric(est_age_t_deviation) - 1, y = volume_cm, group = iteration),
             lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = eggv_mod_age_dev_fits, aes(x = est_age_t_deviation, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
   luke_theme +
   theme(panel.border = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
@@ -318,6 +328,8 @@ boot_laydate_first_age_plot <-
   geom_line(data = laydate_first_age_boot_out_melt,
             aes(x = as.numeric(first_age), y = first_laydate, group = iteration),
             lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = laydate_mod_first_age_fits, aes(x = first_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
   luke_theme +
   theme(panel.border = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
@@ -327,7 +339,7 @@ boot_laydate_first_age_plot <-
         axis.ticks.y = element_blank()) +
   ylab("Standardized lay date of first nest") +
   xlab("Estimated age at first\nlocal breeding attempt") +
-  scale_y_continuous(limits = c(-60, 60)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   scale_x_continuous(limits = c(0.5, max(ceuta_egg_chick_female_data$first_age_t) + 1.5), 
                      breaks = c(1:(max(ceuta_egg_chick_female_data$first_age_t) + 1)))
 
@@ -352,6 +364,8 @@ boot_laydate_last_age_plot <-
   geom_line(data = laydate_last_age_boot_out_melt,
             aes(x = as.numeric(last_age), y = first_laydate, group = iteration),
             lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = laydate_mod_last_age_fits, aes(x = last_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
   luke_theme +
   theme(panel.border = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
@@ -361,7 +375,7 @@ boot_laydate_last_age_plot <-
         axis.ticks.y = element_blank()) +
   ylab("Standardized lay date of first nest") +
   xlab("Estimated age at last\nlocal breeding attempt") +
-  scale_y_continuous(limits = c(-60, 60)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   scale_x_continuous(limits = c(0.5, max(ceuta_egg_chick_female_data$last_age_t) + 1.5), 
                      breaks = seq(1, (max(ceuta_egg_chick_female_data$last_age_t) + 1), 2))
 
@@ -386,6 +400,8 @@ boot_laydate_age_dev_plot <-
   geom_line(data = laydate_age_dev_boot_out_melt,
             aes(x = as.numeric(est_age_t_deviation) - 1, y = first_laydate, group = iteration),
             lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = laydate_mod_age_dev_fits, aes(x = est_age_t_deviation, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
   luke_theme +
   theme(panel.border = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
@@ -393,7 +409,7 @@ boot_laydate_age_dev_plot <-
         axis.ticks.y = element_blank()) +
   ylab("Standardized lay date of first nest") +
   xlab("Years since first local\nbreeding attempt") +
-  scale_y_continuous(limits = c(-60, 60)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
   scale_x_continuous(limits = c(-0.5, max(ceuta_egg_chick_female_data$est_age_t_deviation) + 0.5), 
                      breaks = seq(0, (max(ceuta_egg_chick_female_data$est_age_t_deviation)), by = 2))
 
@@ -402,6 +418,8 @@ Est_age_boot_plot <-
   (boot_eggv_age_dev_plot | boot_eggv_first_age_plot | boot_eggv_last_age_plot) / 
   (boot_laydate_age_dev_plot | boot_laydate_first_age_plot | boot_laydate_last_age_plot) + 
   plot_annotation(tag_levels = 'A')
+
+Est_age_boot_plot
 
 # write plot to disk
 ggsave(plot = Est_age_boot_plot,

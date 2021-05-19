@@ -4,7 +4,7 @@ source("R/project_functions.R")
 source("R/project_plotting.R")
 
 #### Results ----
-load("output/stats_laydate_mod.rds")
+load("output/stats_laydate_mod2.rds")
 load("data/ceuta_egg_chick_female_data.rds")
 
 #### Data wrangle ----
@@ -60,15 +60,15 @@ mod_comp_names <-
                            "Observations (i.e., Nests)"))
 
 
-str(model_parameters(stats_date_van_de_Pol$mod_poly, standardize = "refit"))
+str(model_parameters(stats_laydate_mod$mod_poly, standardize = "refit"))
 model_parameters(stats_laydate_mod$mod_poly, standardize = "refit")$Coefficient
-model_parameters(stats_date_van_de_Pol$mod_I, standardize = "refit")$Coefficient
-model_parameters(stats_date_van_de_Pol$mod_I, standardize = "refit")$CI_low
-model_parameters(stats_date_van_de_Pol$mod_I, standardize = "refit")$CI_high
+model_parameters(stats_laydate_mod$mod_I, standardize = "refit")$Coefficient
+model_parameters(stats_laydate_mod$mod_I, standardize = "refit")$CI_low
+model_parameters(stats_laydate_mod$mod_I, standardize = "refit")$CI_high
 
 # Fixed effect sizes (non-standardized)
 fixefTable <- 
-  stats_date_van_de_Pol$tidy %>% 
+  stats_laydate_mod$tidy %>% 
   dplyr::filter(effect == "fixed") %>% 
   dplyr::select(term, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -76,7 +76,7 @@ fixefTable <-
 
 # Fixed effect sizes (standardized)
 fixef_bw_Table <- 
-  stats_date_van_de_Pol$partR2m$BW %>% 
+  stats_laydate_mod$partR2m$BW %>% 
   # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed_bw") %>% 
@@ -85,7 +85,7 @@ fixef_bw_Table <-
 
 # Semi-partial R2 estimates
 fixef_bw_Table <-
-  model_parameters(stats_date_van_de_Pol$mod_I, standardize = "refit") %>%
+  model_parameters(stats_laydate_mod$mod_I, standardize = "refit") %>%
   select(Parameter, Coefficient, CI_low, CI_high) %>% 
   as.data.frame() %>% 
   mutate(stat = "fixed_bw") %>% 
@@ -96,8 +96,8 @@ fixef_bw_Table <-
   filter(term != "(Intercept)")
 
 R2Table <- 
-  bind_rows(stats_date_van_de_Pol$partR2m$R2,
-            stats_date_van_de_Pol$partR2c$R2[1,]) %>% 
+  bind_rows(stats_laydate_mod$partR2m$R2,
+            stats_laydate_mod$partR2c$R2[1,]) %>% 
   dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
   as.data.frame() %>% 
   mutate(stat = "partR2") %>% 
@@ -106,7 +106,7 @@ R2Table <-
 
 # Random effects variances
 ranefTable <- 
-  stats_date_van_de_Pol$tidy %>% 
+  stats_laydate_mod$tidy %>% 
   dplyr::filter(effect == "ran_pars") %>% 
   dplyr::select(group, estimate, conf.low, conf.high) %>% 
   as.data.frame() %>% 
@@ -118,7 +118,7 @@ ranefTable <-
 
 # Adjusted repeatabilities
 coefRptTable <- 
-  stats_date_van_de_Pol$rptR$R_boot %>% 
+  stats_laydate_mod$rptR$R_boot %>% 
   dplyr::select(-Fixed) %>% 
   mutate(residual = 1 - rowSums(.)) %>% 
   apply(., 2, 
@@ -313,7 +313,7 @@ laydate_mod_forest_plot_combo <-
   (laydate_mod_forest_plot_fixef / laydate_mod_forest_plot_partR2 / 
      # laydate_mod_forest_plot_randef / 
      laydate_mod_forest_plot_rptR) + 
-  plot_annotation(tag_levels = 'A', title = 'Laydate model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_annotation(tag_levels = 'A', title = 'Lay date model', theme = theme(plot.title = element_text(face = 'italic'))) +
   plot_layout(heights = unit(c(4, 4, 
                                # 2.5, 
                                2.5), c('cm', 'cm', 

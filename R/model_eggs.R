@@ -23,7 +23,7 @@ load("data/ceuta_egg_chick_female_data.rds")
 # lay date. The "x_deviation" effect is interpreted as the within individual
 # effect, whereas the "first_x" (or "last_x") effect is interpreted as the between 
 # individual effect.
-mod_eggv_poly <-
+`mod_eggv_poly <-
   lmer(volume_cm ~ poly(est_age_t_deviation, 2) +
          first_age_t + last_age_t + avg_ad_tarsi + 
          laydate_deviation +
@@ -35,7 +35,7 @@ mod_eggv_I <-
   lmer(volume_cm ~ est_age_t_deviation + I(est_age_t_deviation^2) +
          first_age_t + last_age_t + avg_ad_tarsi + 
          laydate_deviation +
-         first_laydate + I(first_laydate^2) +
+         first_laydate + #I(first_laydate^2) +
          (1 | ID) + (1 | ring) + (1 | year),
        data = ceuta_egg_chick_female_data)
 
@@ -93,15 +93,15 @@ stats_eggv_mod <-
        tidy = tidy_mod_eggv,
        rptR = rpt_mod_eggv,
        partR2m = R2m_mod_eggv,
-       partR2c = R2c_mod_eggv)
+       partR2c = R2c_mod_eggv)`
 
-# save(stats_eggv_mod,
-#      file = "output/stats_eggv_mod.rds")
+save(stats_eggv_mod,
+     file = "output/stats_eggv_mod.rds")
 
 load("output/stats_eggv_mod.rds")
 
-model_parameters(stats_eggv_mod$mod, standardize = "refit")
-random_parameters(stats_eggv_mod$mod)
+model_parameters(stats_eggv_mod$mod_I, standardize = "refit")
+random_parameters(stats_eggv_mod$mod_poly)
 plot(allEffects(stats_eggv_mod$mod_I))
 
 #### Peak-performance post-hoc analysis ----
