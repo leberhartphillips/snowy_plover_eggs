@@ -198,9 +198,11 @@ eggv_mod_forest_plot_fixef <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_text(size = 10, hjust = 0),
+        plot.title = element_text(face = 'italic', hjust = 0.5)) +
   ylab("Fixed effects") +
-  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("              Standardized effect size (", beta,")" %+-% "95% CI", sep = "")))) +
+  ggtitle('Egg volume model')
 
 # Semi-partial R2 estimates
 eggv_mod_forest_plot_partR2 <-
@@ -227,7 +229,7 @@ eggv_mod_forest_plot_partR2 <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_text(size = 10, hjust = 0)) +
   scale_y_discrete(labels = c("Between ind. seasonality" = expression("Between ind. seasonality"),
                               "Within ind. seasonality" = expression("Within ind. seasonality"),
                               "Selective disappearance" = expression("Selective disappearance"),
@@ -236,7 +238,7 @@ eggv_mod_forest_plot_partR2 <-
                               "Mother tarsus length" = expression("Mother tarsus length"),
                               "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
   ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
-  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("               Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
 
 # Random effect variances
 eggv_mod_forest_plot_randef <-
@@ -260,7 +262,7 @@ eggv_mod_forest_plot_randef <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_text(size = 10, hjust = 0)) +
   ylab("Random\neffects") +
   xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
 
@@ -286,16 +288,17 @@ eggv_mod_forest_plot_rptR <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_text(size = 10, hjust = 0)) +
   ylab("Intra-class\ncorrelation") +
-  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("              Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
 
 # Patchwork plot
 eggv_mod_forest_plot_combo <-
   (eggv_mod_forest_plot_fixef / eggv_mod_forest_plot_partR2 / 
      # eggv_mod_forest_plot_randef / 
      eggv_mod_forest_plot_rptR) + 
-  plot_annotation(tag_levels = 'A', title = 'Egg volume model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_annotation(tag_levels = 'A', title = 'Egg volume model', 
+                  theme = theme(plot.title = element_text(face = 'italic', hjust = 0.2))) +
   plot_layout(heights = unit(c(4.5, 4, 
                                # 2.5, 
                                2.5), c('cm', 'cm', 

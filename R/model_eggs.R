@@ -7,7 +7,8 @@ source("R/project_functions.R")
 source("R/project_libraries.R")
 source("R/project_plotting.R")
 
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 #### Modeling egg volume ----
 # Full model predicting egg volume:
@@ -23,7 +24,7 @@ load("data/ceuta_egg_chick_female_data.rds")
 # lay date. The "x_deviation" effect is interpreted as the within individual
 # effect, whereas the "first_x" (or "last_x") effect is interpreted as the between 
 # individual effect.
-`mod_eggv_poly <-
+mod_eggv_poly <-
   lmer(volume_cm ~ poly(est_age_t_deviation, 2) +
          first_age_t + last_age_t + avg_ad_tarsi + 
          laydate_deviation +
@@ -93,10 +94,10 @@ stats_eggv_mod <-
        tidy = tidy_mod_eggv,
        rptR = rpt_mod_eggv,
        partR2m = R2m_mod_eggv,
-       partR2c = R2c_mod_eggv)`
+       partR2c = R2c_mod_eggv)
 
 save(stats_eggv_mod,
-     file = "output/stats_eggv_mod.rds")
+     file = "output/Stats_eggv_mod.rds")
 
 load("output/stats_eggv_mod.rds")
 

@@ -30,7 +30,7 @@ nest_caps_F <-
          avg_ad_weight = mean(ad_weight, na.rm = TRUE),
          sd_ad_weight = sd(ad_weight, na.rm = TRUE),
          n_ad_weight = sum(!is.na(ad_weight))) %>% 
-  
+
   # join the nest data
   left_join(., dplyr::filter(dbReadTable(CeutaCLOSED, "Nests"), species == "SNPL"), 
             by = "ID") %>% 
@@ -52,22 +52,68 @@ nest_caps_F <-
   # change to as.Date format
   plover_date_convert(input = "Rdate") %>%
   
+  group_by(ID) %>% 
   # specify the lay date as the nest initiation date. If this is unknown, then
   # subtract 25 days from the end date if the nest hatched. If this is not the case,
   # then subtract 11 days from the found date if the float score of the first 
   # egg is "F". If this isn't the case, then take the found date.
-  mutate(lay_date = 
+  mutate(lay_date1 = 
            as.Date(
-             ifelse(!is.na(nest_initiation_date), nest_initiation_date,
-                    ifelse((!is.na(end_date) & fate == "Hatch"), end_date - 25, 
-                           ifelse((!is.na(found_date) & float1 == "F"), found_date - 11,
-                                  ifelse(!is.na(found_date), found_date + 17, NA)))), 
+                      ifelse((!is.na(found_date) & float1 == "A"), found_date - 0,
+                        ifelse((!is.na(found_date) & float1 == "AB"), found_date - 1,
+                          ifelse((!is.na(found_date) & float1 == "B"), found_date - 2,
+                            ifelse((!is.na(found_date) & float1 == "C"), found_date - 5,
+                              ifelse((!is.na(found_date) & float1 == "D"), found_date - 8,
+                                ifelse((!is.na(found_date) & float1 == "E"), found_date - 10,
+                                  ifelse((!is.na(found_date) & float1 == "F"), found_date - 11,
+                                    ifelse((!is.na(end_date) & fate == "Hatch"), end_date - 25, 
+                                      ifelse(!is.na(found_date), found_date - 17, NA))))))))), 
              origin = "1970-01-01"),
-         lay_date_method = 
-           ifelse(!is.na(nest_initiation_date), "nest_initiation_date",
-                    ifelse((!is.na(end_date) & fate == "Hatch"), "end_date - 25", 
-                           ifelse((!is.na(found_date) & float1 == "F"), "found_date - 11",
-                                  ifelse(!is.na(found_date), "found_date", NA))))) %>% 
+         lay_date2 = 
+           as.Date(
+                 ifelse((!is.na(found_date) & float2 == "A"), found_date - 0,
+                   ifelse((!is.na(found_date) & float2 == "AB"), found_date - 1,
+                     ifelse((!is.na(found_date) & float2 == "B"), found_date - 2,
+                       ifelse((!is.na(found_date) & float2 == "C"), found_date - 5,
+                         ifelse((!is.na(found_date) & float2 == "D"), found_date - 8,
+                           ifelse((!is.na(found_date) & float2 == "E"), found_date - 10,
+                             ifelse((!is.na(found_date) & float2 == "F"), found_date - 11,
+                                ifelse((!is.na(end_date) & fate == "Hatch"), end_date - 25, 
+                                  ifelse(!is.na(found_date), found_date - 17, NA))))))))), 
+             origin = "1970-01-01"),
+         lay_date3 = 
+           as.Date(
+                 ifelse((!is.na(found_date) & float3 == "A"), found_date - 0,
+                   ifelse((!is.na(found_date) & float3 == "AB"), found_date - 1,
+                     ifelse((!is.na(found_date) & float3 == "B"), found_date - 2,
+                       ifelse((!is.na(found_date) & float3 == "C"), found_date - 5,
+                         ifelse((!is.na(found_date) & float3 == "D"), found_date - 8,
+                           ifelse((!is.na(found_date) & float3 == "E"), found_date - 10,
+                              ifelse((!is.na(found_date) & float3 == "F"), found_date - 11,
+                                 ifelse((!is.na(end_date) & fate == "Hatch"), end_date - 25, 
+                                   ifelse(!is.na(found_date), found_date - 17, NA))))))))), 
+             origin = "1970-01-01"),
+         min_egg_float = min(c(float1, float2, float3), na.rm = TRUE)) %>% 
+  
+  mutate(lay_date = as.Date(min(c(lay_date1, lay_date3, lay_date3), 
+                                na.rm = TRUE), 
+                            origin = "1970-01-01")) %>% 
+  mutate(lay_date = as.Date(ifelse(min_egg_float == "F" & !is.na(found_date) & fate != "Hatch", 
+                                   found_date - 17, 
+                                   ifelse((min_egg_float == "F" | is.na(min_egg_float)) & !is.na(found_date) & fate == "Hatch", 
+                                          end_date - 25, lay_date)), origin = "1970-01-01")) %>% 
+  mutate(lay_date = as.Date(ifelse(is.na(lay_date) & !is.na(found_date), 
+                                   found_date - 17, lay_date), 
+                            origin = "1970-01-01")) %>% 
+
+  mutate(lay_date_method =
+           ifelse((min_egg_float < "F" & !is.na(min_egg_float)), "floatation",
+                    ifelse((!is.na(end_date) & fate == "Hatch"), "hatch date",
+                                  ifelse(!is.na(found_date), "found_date - 17", NA)))) %>%
+  
+  # select(ID, fate, found_date, end_date, lay_date1, lay_date2, lay_date3,
+  #        float1, float2, float3, min_egg_float, lay_date, lay_date_method) %>%
+  # View()
   
   # create a julian lay date
   mutate(jul_lay_date = as.numeric(format(lay_date, "%j"))) %>% 
@@ -503,5 +549,10 @@ chick_size_summary <-
 ceuta_egg_chick_female_data <- 
   left_join(eggs_2006_2020, chick_size_summary, by = "ID")
 
-# save(ceuta_egg_chick_female_data,
-#      file = "data/ceuta_egg_chick_female_data.rds")
+# saveRDS(ceuta_egg_chick_female_data,
+#      file = "data/Ceuta_egg_chick_female_data.rds")
+
+
+ceuta_egg_chick_female_data %>% 
+  filter(ring == "CN0527") %>% 
+  select(ID, lay_date)

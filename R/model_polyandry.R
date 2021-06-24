@@ -7,7 +7,8 @@
 source("R/project_functions.R")
 source("R/project_libraries.R")
 
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 #### Modeling ----
 # Modeling the relationship between mating behavior and initiation date
@@ -86,7 +87,7 @@ stats_polyandry_mod <-
        partR2c = R2c_polyandry)
 
 save(stats_polyandry_mod,
-     file = "output/stats_polyandry_mod.rds")
+     file = "output/Stats_polyandry_mod.rds")
 
 # load the saved results
 load("output/stats_polyandry_mod.rds")

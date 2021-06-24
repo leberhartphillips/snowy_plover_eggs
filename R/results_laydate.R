@@ -203,9 +203,11 @@ laydate_mod_forest_plot_fixef <-
   filter(str_detect(effect, "Fixed") & 
            term != "(Intercept)") %>%
   mutate(comp_name = fct_relevel(comp_name,
-                                 "Between ind. last breeding age", "Between ind. first breeding age", 
+                                 "Local recruit",
+                                 "Between ind. last breeding age", 
+                                 "Between ind. first breeding age", 
                                  "Within ind. quadratic age", "Within ind. linear age",
-                                 "Mother tarsus length", "Local recruit")) %>%
+                                 "Mother tarsus length")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
   geom_errorbarh(aes(xmin = conf.low,
@@ -219,9 +221,14 @@ laydate_mod_forest_plot_fixef <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank(),
+        plot.title = element_text(face = 'italic', hjust = 0.5)) +
   ylab("Fixed effects") +
-  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = "")))) +
+  scale_y_discrete(position = "right") +
+  ggtitle('Lay date model')
 
 # Semi-partial R2 estimates
 laydate_mod_forest_plot_partR2 <-
@@ -229,10 +236,11 @@ laydate_mod_forest_plot_partR2 <-
   filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
   mutate(comp_name = fct_relevel(comp_name,
                                  # "Seasonality",
+                                 "Local recruit",
                                  "Selective disappearance",
                                  "Selective appearance",
                                  "Senescence",
-                                 "Mother tarsus length", "Local recruit",
+                                 "Mother tarsus length",
                                  "Total Marginal \U1D479\U00B2")) %>%
   ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
@@ -247,14 +255,17 @@ laydate_mod_forest_plot_partR2 <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank()) +
   scale_y_discrete(labels = c(#"Seasonality" = expression("Seasonality"),
     "Selective disappearance" = expression("Selective disappearance"),
     "Selective appearance" = expression("Selective appearance"),
     "Senescence" = expression("Senescence"),
     "Mother tarsus length" = expression("Mother tarsus length"),
     "Recruit status" = expression("Recruit status"),
-    "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
+    "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = ""))),
+    position = "right") +
   ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
   xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
 
@@ -279,9 +290,12 @@ laydate_mod_forest_plot_randef <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank()) +
   ylab("Random\neffects") +
-  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = "")))) +
+  scale_y_discrete(position = "right")
 
 # Adjusted repeatabilities
 laydate_mod_forest_plot_rptR <-
@@ -304,16 +318,21 @@ laydate_mod_forest_plot_rptR <-
              fill = "#ECEFF4", col = col_all, 
              alpha = 1, stroke = 0.5) +
   luke_theme +
-  theme(axis.title.x = element_text(size = 10)) +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank()) +
+  
   ylab("Intra-class\ncorrelation") +
-  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
+  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = "")))) +
+  scale_y_discrete(position = "right")
 
 # Patchwork plot
 laydate_mod_forest_plot_combo <-
   (laydate_mod_forest_plot_fixef / laydate_mod_forest_plot_partR2 / 
      # laydate_mod_forest_plot_randef / 
      laydate_mod_forest_plot_rptR) + 
-  plot_annotation(tag_levels = 'A', title = 'Lay date model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_annotation(tag_levels = 'A', title = 'Lay date model', 
+                  theme = theme(plot.title = element_text(face = 'italic', hjust = 0.2))) +
   plot_layout(heights = unit(c(4, 4, 
                                # 2.5, 
                                2.5), c('cm', 'cm', 
@@ -321,6 +340,25 @@ laydate_mod_forest_plot_combo <-
                                        'cm')))
 
 laydate_mod_forest_plot_combo
+
+forest_plot_combo <-
+  ((eggv_mod_forest_plot_fixef + laydate_mod_forest_plot_fixef) / 
+     (eggv_mod_forest_plot_partR2 + laydate_mod_forest_plot_partR2) / 
+     # eggv_mod_forest_plot_randef / 
+     (eggv_mod_forest_plot_rptR + laydate_mod_forest_plot_rptR)) + 
+  # plot_annotation(tag_levels = 'A', title = 'Egg volume model', 
+  #                 theme = theme(plot.title = element_text(face = 'italic', hjust = 0.2))) +
+  plot_layout(heights = unit(c(4.5, 4, 
+                               # 2.5, 
+                               2.5), c('cm', 'cm', 
+                                       # 'cm', 
+                                       'cm')))
+# forest_plot_combo
+
+ggsave(plot = forest_plot_combo,
+       filename = "products/figures/jpg/Figure_5.jpg",
+       width = 8,
+       height = 9, units = "in")
 
 # export plot to disk
 ggsave(plot = laydate_mod_forest_plot_combo,
@@ -331,4 +369,9 @@ ggsave(plot = laydate_mod_forest_plot_combo,
 ggsave(plot = laydate_mod_forest_plot_combo,
        filename = "products/figures/jpg/laydate_mod_forest_plot.jpg",
        width = 5,
+       height = 9, units = "in")
+
+ggsave(plot = forest_plot_combo,
+       filename = "products/figures/jpg/Figure_5.jpg",
+       width = 8,
        height = 9, units = "in")

@@ -32,6 +32,7 @@ extrafont::loadfonts() # load these into R
 # set plotting color palettes
 plot_palette_sex <- RColorBrewer::brewer.pal(8, "Dark2")[c(2,1)]
 plot_palette_polyandry <- RColorBrewer::brewer.pal(8, "Dark2")[c(6,1)]
+plot_palette_renesting <- RColorBrewer::brewer.pal(8, "Dark2")[c(2,3)]
 plot_palette_nest_order <- c("black", "#f03b20")
 
 # specify the facet labels for each species

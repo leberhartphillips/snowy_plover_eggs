@@ -6,10 +6,13 @@ source("R/project_plotting.R")
 #### Results ----
 load("output/stats_eggv_mod.rds")
 load("output/stats_laydate_mod.rds")
-load("output/stats_polyandry_mod.rds")
+load("output/stats_polyandry_age_mod.rds")
+load("output/stats_renesting_mod.rds")
+
 
 #### Data ----
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 # wrangle data to include only first nests
 first_nests_data <-
@@ -33,7 +36,21 @@ first_nests_age_data <-
   mutate(age_first_cap_dummy = ifelse(age_first_cap == "J", 1, 0)) %>%
   mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 2.2, 0.8))
 
-#### Plotting of Figure ----
+# wrangle data for renesting plot
+renesting_data <-
+  ceuta_egg_chick_female_data %>% 
+  # 1) subset to only cases in which the first nest failed
+  dplyr::filter(nest_order == 1) %>% 
+  select(ID, ring, year, nest_1_fate, first_laydate, n_mates, n_nests, polyandry, multiclutch) %>% 
+  distinct() %>% 
+  # 2) subset to nests that are confirmed failed
+  filter(nest_1_fate != "Hatch" & nest_1_fate != "Unknown") %>% 
+  mutate(multiclutch = as.factor(multiclutch)) %>%
+  mutate(multi = ifelse(multiclutch == "multi", 1, 0),
+         single = ifelse(multiclutch == "single", 1, 0)) %>%
+  mutate(multi_plot = ifelse(multi == 1, multi + 0.1, multi - 0.1))
+
+#### Plotting of polyandry potential Figure ----
 # extract fitted values
 polyandry_mod_fits <- function(offs) {
   model <- lme4::glmer(cbind(poly, mono) ~ 
@@ -84,7 +101,7 @@ polyandry_date_mod_plot <-
   geom_line(data = polyandry_fits, 
             aes(x = first_laydate, y = Mean), lwd = 0.5, colour = "grey20") +
   luke_theme +
-  theme(legend.position = c(0.5, -0.04),
+  theme(legend.position = c(0.5, -0.08),
         legend.title = element_blank(),
         legend.text = element_text(size = 10),
         panel.border = element_blank(),
@@ -92,19 +109,21 @@ polyandry_date_mod_plot <-
         axis.title.x = element_blank(),
         panel.grid.major.x = element_line(colour = "grey70", size=0.25),
         axis.ticks.x = element_blank(),
+        axis.title.y = element_text(size = 11),
         legend.background = element_blank()) +
   scale_y_continuous(limits = c(-0.15, 1.2),
                      breaks = c(0, 0.25, 0.5, 0.75, 1)) +
   scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
-  ylab("Probabilty of polyandry ± 95% CI") +
+  # ylab("Probabilty of polyandry ± 95% CI") +
+  ylab("P(polyandry) ± 95% CI") +
   scale_color_manual(values = rev(plot_palette_polyandry),
                      guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
                      labels = c("Monogamous", "Polyandrous")) +
   scale_fill_manual(values = rev(plot_palette_polyandry),
                     guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
                     labels = c("Monogamous", "Polyandrous")) +
-  annotate(geom = "text", y = 1.2, x = -58,
-           label = "Lay dates for first nests of the season",
+  annotate(geom = "text", y = 0.5, x = 5,
+           label = "Lay dates for first\nnests of the season",
            color = "black", size = 3, fontface = 'italic', hjust = 0)
 
 # plot the posterior age at peak distribution
@@ -137,7 +156,140 @@ polyandry_date_dist_plot <-
                     guide = guide_legend(title.position = "top", nrow = 2),
                     labels = c("Monogamous", "Polyandrous"))
 
+# plot the posterior age at peak distribution
+renesting_date_dist_plot <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::select(multiclutch, jul_lay_date_std_num, ID, year, ring) %>%
+  distinct() %>%
+  mutate(multiclutch = as.factor(multiclutch)) %>%
+  dplyr::filter(jul_lay_date_std_num > -50) %>%
+  mutate(jul_lay_date_std_num = as.numeric(jul_lay_date_std_num)) %>% 
+  ggplot(data = ., aes(x = jul_lay_date_std_num, y = 1, group = multiclutch)) + 
+  geom_violin(data = . %>% dplyr::filter(multiclutch == "single"), 
+              alpha = 0.5, fill = plot_palette_renesting[2], color = "grey50",
+              trim = FALSE) +
+  geom_violin(data = . %>% dplyr::filter(multiclutch == "multi"), 
+              alpha = 0.5, fill = plot_palette_renesting[1], color = "grey50",
+              trim = FALSE) +
+  theme_void() +
+  theme(legend.position = c(0.85, 0.2),
+        legend.title = element_blank(),
+        legend.direction = "horizontal",
+        legend.key.size = unit(0.5,"cm"),
+        panel.grid.major.x = element_line(colour = "grey70", size = 0.25)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  scale_y_continuous(limits = c(0.4, 1.8)) +
+  annotate(geom = "text", y = 1.7, x = -58,
+           label = "Lay date distributions for all nests",
+           color = "black", size = 3, fontface = 'italic', hjust = 0) +
+  scale_fill_manual(values = plot_palette_renesting,
+                    guide = guide_legend(title.position = "top", nrow = 2),
+                    labels = c("Single", "Re-nester"))
+
+#### Plotting of re-nesting potential Figure ----
+# extract fitted values
+renesting_mod_fits <- function(offs) {
+  model <- lme4::glmer(cbind(multi, single) ~ 
+                         I(first_laydate - offs) +
+                         (1| ring) + (1 | year), 
+                       data = renesting_data, family = binomial)
+  
+  ests <- summary(model)$coefficients[1,1:2]
+  
+  # backlink the coefficients to the probability scale
+  return(c(offs, ests, invlogit(ests[1] + c(-1, 0, 1) * 1.96 * ests[2])))
+}
+
+# specify the offs (i.e., vector of numbers from min to max dates stepped by 1)
+offs_first_laydate <- 
+  seq(min(renesting_data$first_laydate, na.rm = TRUE), 
+      max(renesting_data$first_laydate, na.rm = TRUE), 1)
+
+# apply the offs vector to the function (retuning a matrix)
+renesting_fits <- sapply(offs_first_laydate, renesting_mod_fits)
+
+# transpose the matrix
+renesting_fits <- t(renesting_fits)
+
+# convert the matrix to a data.frame
+renesting_fits <- data.frame(renesting_fits)
+
+# define the column names
+colnames(renesting_fits) <- 
+  c("first_laydate", "Estimate", "Std. Error", "Upper", "Mean", "Lower")
+
+renesting_date_mod_plot <- 
+  ggplot2::ggplot() + 
+  geom_boxplot(data = renesting_data, 
+               aes(x = first_laydate, y = multi_plot, 
+                   group = multiclutch, fill = multiclutch), 
+               color = "grey50",
+               width = 0.05, alpha = 0.5,
+               position = position_dodge(width = 0)) +
+  geom_jitter(data = renesting_data, 
+              aes(x = first_laydate, y = multi, 
+                  group = multiclutch, 
+                  fill = multiclutch, color = multiclutch), 
+              height = 0.02, alpha = 0.4, shape = 19) +
+  geom_ribbon(data = renesting_fits, 
+              aes(x = first_laydate, y = Mean, ymin = Lower, ymax = Upper), 
+              fill = "grey50", alpha = 0.25) +
+  geom_line(data = renesting_fits, 
+            aes(x = first_laydate, y = Mean), lwd = 0.5, colour = "grey20") +
+  luke_theme +
+  theme(legend.position = c(0.5, 1.1),
+    #legend.position = c(0.5, -0.04),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 10),
+        panel.border = element_blank(),
+        # axis.text.x = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 11),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey70", size=0.25),
+        legend.background = element_blank()) +
+  scale_y_continuous(limits = c(-0.15, 1.2),
+                     breaks = c(0, 0.25, 0.5, 0.75, 1)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  # ylab("Probabilty of renesting after failure ± 95% CI") +
+  ylab("P(re-nesting) ± 95% CI") +
+  xlab("Standardized lay date") +
+  scale_color_manual(values = plot_palette_renesting,
+                     guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
+                     labels = c("Re-nest", "Single")) +
+  scale_fill_manual(values = plot_palette_renesting,
+                    guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
+                    labels = c("Re-nest", "Single")) +
+  annotate(#geom = "text", y = 1.2, x = -58,
+           geom = "text", y = 0.5, x = 5,
+           label = "Lay dates for first\nnests of the season",
+           color = "black", size = 3, fontface = 'italic', hjust = 0)
+
+renesting_date_mod_plot
+
+
 #### Trend plot of egg volume over season ----
+# extract the fitted values of the polynomial season effect
+eggv_mod_within_fits <- 
+  as.data.frame(effect("laydate_deviation", stats_eggv_mod$mod_poly, 
+                       xlevels = list(laydate_deviation = seq(min(ceuta_egg_chick_female_data$laydate_deviation), 
+                                                          max(ceuta_egg_chick_female_data$laydate_deviation), 1))))
+
+# summary of fitted trend
+eggv_mod_within_fits %>% 
+  summarise(min_eggv_fit = min(fit),
+            max_eggv_fit = max(fit),
+            min_eggv_dev = laydate_deviation[which.min(fit)],
+            max_eggv_dev = laydate_deviation[which.max(fit)],
+            min_eggv_lower = lower[which.min(fit)],
+            min_eggv_upper = upper[which.min(fit)],
+            max_eggv_lower = lower[which.max(fit)],
+            max_eggv_upper = upper[which.max(fit)])
+
+7.788539 - 7.575227
+7.683123 - 7.509994
+7.893956 - 7.64046
+
 # extract the fitted values of the polynomial season effect
 eggv_mod_date_fits <- 
   as.data.frame(effect("poly(first_laydate, 2)", stats_eggv_mod$mod_poly, 
@@ -159,7 +311,7 @@ eggv_mod_date_fits %>%
 eggv_date_mod_plot <-
   ggplot() +
   geom_point(data = ceuta_egg_chick_female_data, alpha = 0.4,
-             aes(x = jul_lay_date_std_num, y = volume_cm),
+             aes(x = first_laydate, y = volume_cm),
              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
   geom_line(data = eggv_mod_date_fits, aes(x = first_laydate, y = fit),
             lwd = 0.5, colour = "grey20") +
@@ -169,7 +321,10 @@ eggv_date_mod_plot <-
   luke_theme +
   theme(panel.border = element_blank(),
         panel.grid.major.x = element_line(colour = "grey70", size=0.25),
-        axis.ticks.x = element_blank()) +
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        plot.margin = unit(c(0,0,0,0), "cm")) +
   ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
   xlab("Standardized lay date") +
   scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
@@ -186,16 +341,32 @@ Season_plot <-
 
 Season_plot
 
+Season_plot2 <-
+  (polyandry_date_mod_plot / polyandry_date_dist_plot / eggv_date_mod_plot / renesting_date_dist_plot / renesting_date_mod_plot) + 
+  plot_annotation(tag_levels = 'A') + 
+  plot_layout(heights = unit(c(3.5, 1.5, 7, 1.5, 3.5), c('cm', 'cm', 'cm')),
+              widths = unit(c(7, 7, 7, 7, 7), c('cm', 'cm', 'cm')))
+
+Season_plot2
+
+Season_plot3 <-
+  (polyandry_date_mod_plot / renesting_date_mod_plot / eggv_date_mod_plot) + 
+  plot_annotation(tag_levels = 'A') + 
+  plot_layout(heights = unit(c(4.5, 4.5, 7), c('cm', 'cm', 'cm')),
+              widths = unit(c(7, 7, 7), c('cm', 'cm', 'cm')))
+
+Season_plot3
+
 # write plot to disk
-ggsave(plot = Season_plot,
-       filename = "products/figures/Season_plot.png",
-       width = 10,
-       height = 20, units = "cm", dpi = 600)
+ggsave(plot = Season_plot2,
+       filename = "products/figures/Figure_3.png",
+       width = 7 * 1.3,
+       height = sum(c(3.5, 1.5, 7, 1.5, 3.5)) * 1.3, units = "cm", dpi = 600)
 
 #### Trend plot of egg volume over age ----
 # extract fitted values
 eggv_mod_age_fits <- 
-  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = stats_eggv_mod$mod_poly, 
+  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = mod_eggv_poly, #stats_eggv_mod$mod_poly, 
                        xlevels = list(est_age_t_deviation = seq(min(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 
                                                                 max(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 1))))
 
@@ -234,7 +405,7 @@ eggv_age_trend_plot <-
 #### Plot of trend ----
 # extract fitted values
 laydate_mod_age_fits <- 
-  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = stats_laydate_mod$mod_poly, 
+  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = mod_laydate_poly, #stats_laydate_mod$mod_poly, 
                        xlevels = list(est_age_t_deviation = seq(min(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 
                                                                 max(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 1))))
 
@@ -284,7 +455,7 @@ date_age_trend_plot <-
 
 # extract fitted values
 laydate_mod_rec_fits <- 
-  as.data.frame(effect(term = "age_first_cap", mod = stats_laydate_mod$mod_poly, 
+  as.data.frame(effect(term = "age_first_cap", mod = mod_laydate_poly, #stats_laydate_mod$mod_poly, 
                        xlevels = list(age_first_cap = c("A", "J")))) %>%
   mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 1.8, 1.2))
 

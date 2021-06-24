@@ -7,7 +7,8 @@ source("R/project_libraries.R")
 source("R/project_functions.R")
 source("R/project_plotting.R")
 
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 #### Data wrangle ----
 # subset to nest level and first nest attempts of the season for each female
@@ -91,14 +92,14 @@ stats_laydate_mod <-
        partR2c = R2c_mod_laydate)
 
 save(stats_laydate_mod,
-     file = "output/stats_laydate_mod2.rds")
+     file = "output/Stats_laydate_mod.rds")
 
 load(file = "output/stats_laydate_mod.rds")
 
 
 plot(allEffects(mod_laydate_p_no_outlier))
 random_parameters(mod_laydate_p_no_outlier)
-model_parameters(stats_laydate_mod$mod_I, standardize = "refit")
+model_parameters(mod_laydate_poly, standardize = "refit")
 
 #### Peak-performance post-hoc analysis ----
 # set seed to make simulation reproducible

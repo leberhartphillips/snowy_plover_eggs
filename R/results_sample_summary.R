@@ -421,6 +421,7 @@ ceuta_egg_chick_female_data %>%
             max_n_nests = max(n_nests, na.rm = TRUE),
             min_n_nests = min(n_nests, na.rm = TRUE))
 
+ 
 # number of nests: polyandrous v monogamous
 mating_behaviour_nest_n_plot <- 
   ceuta_egg_chick_female_data %>% 
@@ -462,6 +463,21 @@ ceuta_egg_chick_female_data %>%
   group_by(polyandry) %>% 
   tally()
 
+# number of polyandrous females per year
+ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, year, polyandry) %>% 
+  distinct() %>% 
+  group_by(year, polyandry) %>% 
+  summarise(n_poly = n_distinct(ring)) %>% 
+  pivot_wider(names_from = polyandry, values_from = n_poly) %>% 
+  mutate(poly = ifelse(is.na(poly), 0, poly),
+         mono = ifelse(is.na(mono), 0, mono)) %>% 
+  mutate(poly_incidence = poly/(mono + poly)) %>% 
+  ungroup() %>% 
+  summarise(max_poly_incidence = max(poly_incidence),
+            min_poly_incidence = min(poly_incidence),
+            avg_poly_incidence = mean(poly_incidence))
+
 ceuta_egg_chick_female_data %>% 
   summarise(n_distinct(ring))
 
@@ -485,6 +501,37 @@ ceuta_egg_chick_female_data %>%
   summarise(n_distinct(ring))
 
 76/425
+
+# number of multinest females
+ceuta_egg_chick_female_data %>% 
+  # dplyr::filter(nest_order == 1) %>% 
+  select(ID, ring, year, nest_1_fate, first_laydate, n_mates, n_nests, polyandry, multiclutch) %>% 
+  distinct() %>% 
+  filter(nest_1_fate != "Hatch" & nest_1_fate != "Unknown") %>% 
+  group_by(ring, multiclutch) %>% 
+  summarise(n_multinest = n_distinct(year)) %>% 
+  arrange(desc(ring)) %>% 
+  ungroup() %>% 
+  group_by(multiclutch) %>% 
+  tally()
+
+55/(55+134)
+
+# number of renesting females per year
+ceuta_egg_chick_female_data %>% 
+  select(ID, ring, year, nest_1_fate, first_laydate, n_mates, n_nests, polyandry, multiclutch) %>% 
+  distinct() %>% 
+  filter(nest_1_fate != "Hatch" & nest_1_fate != "Unknown") %>% 
+  group_by(year, multiclutch) %>% 
+  summarise(n_multi = n_distinct(ring)) %>% 
+  pivot_wider(names_from = multiclutch, values_from = n_multi) %>% 
+  mutate(multi = ifelse(is.na(multi), 0, multi),
+         single = ifelse(is.na(single), 0, single)) %>% 
+  mutate(renest_incidence = multi/(single + multi)) %>% 
+  ungroup() %>% 
+  summarise(max_renest_incidence = max(renest_incidence),
+            min_renest_incidence = min(renest_incidence),
+            avg_renest_incidence = mean(renest_incidence))
 
 # tally number of individuals with a total of x nests in the sample (should have minimum of 3)
 ceuta_egg_chick_female_data %>% 
@@ -569,3 +616,39 @@ ceuta_egg_chick_female_data %>%
   group_by(lay_date_method) %>% 
   summarise(n_nests = n_distinct(ID)) %>% 
   mutate(prop_nests = as.numeric(as.character(n_nests))/sum(n_nests))
+
+ceuta_egg_chick_female_data %>% 
+  filter(lay_date_method == "found_date - 17") %>% 
+  select(year, ID, egg, end_date, last_observation_alive, fate, float, lay_date, 
+         lay_date_method, jul_lay_date, jul_lay_date_std, jul_lay_date_std_num,
+         laydate_deviation, first_laydate, last_laydate) %>% 
+  # filter(fate == "Hatch") %>% 
+  distinct() %>% 
+  filter(float != "F") %>% 
+  select(year, ID, end_date, fate) %>% 
+  distinct() %>% 
+  # group_by(float) %>% 
+  # summarise(n = n())
+  pull(ID)
+
+# number of females molecularly sex-typed
+dbReadTable(CeutaCLOSED,"Captures") %>% 
+  dplyr::filter(ring %in% ceuta_egg_chick_female_data$ring) %>% 
+  dplyr::select(ring, mol_sex, sex) %>%
+  distinct %>% 
+  group_by(ring) %>% 
+  arrange(mol_sex) %>% 
+  slice(1) %>% 
+  group_by(mol_sex) %>% 
+  summarise(n = n()) %>% 
+  mutate(prop_sexed = as.numeric(as.character(n))/sum(n))
+
+# chick measuring age
+chicks_2006_2020 %>% 
+  arrange(chick_ring, age) %>% 
+  group_by(chick_ring) %>% 
+  slice(1) %>% 
+  dplyr::filter(age %in% c(0, 1)) %>% 
+  group_by(age) %>% 
+  summarise(n = n()) %>% 
+  mutate(prop_age = as.numeric(as.character(n))/sum(n))
