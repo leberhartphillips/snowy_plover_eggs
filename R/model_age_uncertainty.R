@@ -5,14 +5,17 @@ source("R/project_libraries.R")
 source("R/project_functions.R")
 source("R/project_plotting.R")
 
-load("data/ceuta_egg_chick_female_data.rds")
-load("output/stats_laydate_mod.rds")
-load("output/stats_eggv_mod.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
+
+load("output/Stats_laydate_mod.rds")
+load("output/Stats_eggv_mod.rds")
 
 #### Bootstrap function ----
 # Function to randomly draw an age estimate from the BaSTA posteriors, run the
 # age-dependent mixed models, and store the results
-BaSTA_est_age_boot <- function(nreps = 1000, df = ceuta_egg_chick_female_data){
+BaSTA_est_age_boot <- 
+  function(nreps = 1000, df = ceuta_egg_chick_female_data){
   
   ceuta_egg_chick_female_data_skew <- 
     ceuta_egg_chick_female_data %>% 
@@ -164,12 +167,12 @@ BaSTA_est_age_boot <- function(nreps = 1000, df = ceuta_egg_chick_female_data){
 set.seed(14)
 
 # run the bootstrap
-# est_age_boot_out <- 
-#   BaSTA_est_age_boot(nreps = 1000)
+# est_age_boot_out <-
+#   BaSTA_est_age_boot(nreps = 1000, df = ceuta_egg_chick_female_data)
 
-save(est_age_boot_out, file = "output/age_estimate_uncertainty_bootstraps.rds")
+save(est_age_boot_out, file = "output/Age_Estimate_Uncertainty_Bootstraps.rds")
 
-load("output/age_estimate_uncertainty_bootstraps.rds")
+# load("output/age_estimate_uncertainty_bootstraps.rds")
 
 #### Egg volume ----
 mod_eggv_poly <-
@@ -428,6 +431,6 @@ ggsave(plot = Est_age_boot_plot,
        height = 8, units = "in")
 
 ggsave(plot = Est_age_boot_plot,
-       filename = "products/figures/jpg/Est_age_boot_plot.jpg",
+       filename = "products/figures/jpg/Figure_S8.jpg",
        width = 8,
        height = 8, units = "in")

@@ -93,7 +93,7 @@ R2m_renesting <-
          nboot = 1000, CI = 0.95, max_level = 1)
 
 R2c_renesting <-
-  partR2(mod_renesting,
+  partR2(mod_renesting_opt,
          partvars = c("first_laydate"),
          R2_type = "conditional",
          nboot = 1000, CI = 0.95, max_level = 1)

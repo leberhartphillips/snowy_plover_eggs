@@ -153,6 +153,6 @@ save(stats_polyandry_age_mod,
 # load the saved results
 load("output/stats_polyandry_age_mod.rds")
 
-model_parameters(stats_polyandry_mod$mod, standardize = "refit")
-random_parameters(stats_polyandry_mod$mod)
-plot(allEffects(stats_polyandry_mod$mod))
+model_parameters(stats_polyandry_age_mod$mod, standardize = "refit")
+random_parameters(stats_polyandry_age_mod$mod)
+plot(allEffects(stats_polyandry_age_mod$mod))

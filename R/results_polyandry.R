@@ -5,7 +5,8 @@ source("R/project_plotting.R")
 
 # load the saved results
 load("output/stats_polyandry_age_mod.rds")
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 # wrangle data to include only first nests
 first_nests_data <-
@@ -204,7 +205,7 @@ polyandry_mod_table %>%
   gtsave("polyandry_mod_table.rtf", path = "products/tables/rtf/")
 
 polyandry_mod_table %>% 
-  gtsave("polyandry_mod_table.png", path = "products/tables/png/")
+  gtsave("Table_S4.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
 # Standardized fixed effects
@@ -325,6 +326,6 @@ ggsave(plot = poly_mod_forest_plot_combo,
        height = 9, units = "in")
 
 ggsave(plot = poly_mod_forest_plot_combo,
-       filename = "products/figures/jpg/poly_mod_forest_plot.jpg",
+       filename = "products/figures/jpg/Figure_S4.jpg",
        width = 5,
        height = 9, units = "in")

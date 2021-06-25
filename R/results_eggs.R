@@ -5,7 +5,8 @@ source("R/project_plotting.R")
 
 #### Results and data----
 load("output/stats_eggv_mod.rds")
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 #### Table of effect sizes (van de Pol method) ----
 # Retrieve sample sizes
@@ -170,7 +171,7 @@ eggv_mod_table %>%
   gtsave("eggv_mod_table.rtf", path = "products/tables/rtf/")
 
 eggv_mod_table %>%
-  gtsave("eggv_mod_table.png", path = "products/tables/png/")
+  gtsave("Table_S3.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
 # Standardized fixed effects

@@ -262,7 +262,7 @@ renesting_date_mod_plot <-
                     labels = c("Re-nest", "Single")) +
   annotate(#geom = "text", y = 1.2, x = -58,
            geom = "text", y = 0.5, x = 5,
-           label = "Lay dates for first\nnests of the season",
+           label = "Lay dates for first\nnests of the season\nthat failed",
            color = "black", size = 3, fontface = 'italic', hjust = 0)
 
 renesting_date_mod_plot
@@ -293,8 +293,8 @@ eggv_mod_within_fits %>%
 # extract the fitted values of the polynomial season effect
 eggv_mod_date_fits <- 
   as.data.frame(effect("poly(first_laydate, 2)", stats_eggv_mod$mod_poly, 
-                       xlevels = list(first_laydate = seq(min(ceuta_egg_chick_female_data$first_laydate), 
-                                                          max(ceuta_egg_chick_female_data$first_laydate), 1))))
+                       xlevels = list(first_laydate = seq(min(ceuta_egg_chick_female_data$jul_lay_date_std_num), 
+                                                          max(ceuta_egg_chick_female_data$jul_lay_date_std_num), 1))))
 
 # summary of fitted trend
 eggv_mod_date_fits %>% 
@@ -311,7 +311,7 @@ eggv_mod_date_fits %>%
 eggv_date_mod_plot <-
   ggplot() +
   geom_point(data = ceuta_egg_chick_female_data, alpha = 0.4,
-             aes(x = first_laydate, y = volume_cm),
+             aes(x = jul_lay_date_std_num, y = volume_cm),
              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
   geom_line(data = eggv_mod_date_fits, aes(x = first_laydate, y = fit),
             lwd = 0.5, colour = "grey20") +
@@ -524,7 +524,7 @@ ggsave(plot = Age_plot,
        height = 4, units = "in")
 
 ggsave(plot = Age_plot,
-       filename = "products/figures/jpg/Age_plot.jpg",
+       filename = "products/figures/jpg/Figure_4.jpg",
        width = 6,
        height = 3.5, units = "in")
 
@@ -608,7 +608,7 @@ ggsave(plot = Tarsus_plot,
        height = 6.75, units = "in")
 
 ggsave(plot = Tarsus_plot,
-       filename = "products/figures/jpg/Tarsus_plot.jpg",
+       filename = "products/figures/jpg/Figure_S7.jpg",
        width = 4.5,
        height = 6.75, units = "in")
 
@@ -647,7 +647,7 @@ coefplot2(stats_date_van_de_Pol$mod_I)
 plot(allEffects(stats_date_van_de_Pol$mod_I))
 
 #### Residuals plot ----
-load("output/stats_eggv_mod2.rds")
+load("output/stats_eggv_mod.rds")
 load("output/stats_laydate_mod.rds")
 load("output/stats_polyandry_age_mod.rds")
 
@@ -682,6 +682,6 @@ residuals_combo_plot <-
 residuals_combo_plot
 
 ggsave(plot = residuals_combo_plot,
-       filename = "products/figures/jpg/residuals_plot.jpg",
+       filename = "products/figures/jpg/Figure_S6.jpg",
        width = 4.5,
        height = 9, units = "in")

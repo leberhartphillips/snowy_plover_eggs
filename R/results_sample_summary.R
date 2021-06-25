@@ -3,7 +3,8 @@ source("R/project_functions.R")
 source("R/project_libraries.R")
 source("R/project_plotting.R")
 
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 load("data/raw_encounter_histories_females_2006_2020.rds")
 load("output/BaSTA_age_estimates_2006-2020.rds")
 load("data/BaSTA_checked_life_table_females_2006-2020.rds")
@@ -149,7 +150,7 @@ Imm_plot <-
   scale_x_continuous(limits = c(0, 24),
                      breaks = seq(0, 24, by = 2)) +
   ylab("First captured as adults") +
-  xlab("Age ± 95% CI") +
+  xlab("Age ± 95% CrI") +
   luke_theme +
   theme(legend.position = c(0.75, 0.8),
         legend.title = element_text(size = 9),
@@ -193,10 +194,15 @@ plot_of_sample_population <-
             # heights = c(0.5, 0.5))
             heights = c(0.19, 0.81))
 
+plot_of_sample_population2 <-
+  (Rec_plot / Imm_plot) + 
+  plot_annotation(tag_levels = 'A') + 
+  plot_layout(heights = c(0.19, 0.81))
+
 plot_of_sample_population
 
-ggsave(plot = plot_of_sample_population,
-       filename = "products/figures/jpg/sample_distribution_plot.jpg",
+ggsave(plot = plot_of_sample_population2,
+       filename = "products/figures/jpg/Figure_2.jpg",
        width = 6,
        height = 10, units = "in")
 

@@ -4,8 +4,9 @@ source("R/project_functions.R")
 source("R/project_plotting.R")
 
 #### Results ----
-load("output/stats_laydate_mod2.rds")
-load("data/ceuta_egg_chick_female_data.rds")
+load("output/stats_laydate_mod.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 #### Data wrangle ----
 # subset to nest level and first nest attempts of the season for each female
@@ -194,7 +195,7 @@ laydate_mod_table %>%
   gtsave("laydate_mod_table.rtf", path = "products/tables/rtf/")
 
 laydate_mod_table %>% 
-  gtsave("laydate_mod_table.png", path = "products/tables/png/")
+  gtsave("Table_S6.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
 # Standardized fixed effects
@@ -356,9 +357,9 @@ forest_plot_combo <-
 # forest_plot_combo
 
 ggsave(plot = forest_plot_combo,
-       filename = "products/figures/jpg/Figure_5.jpg",
+       filename = "products/figures/jpg/Figure_3.jpg",
        width = 8,
-       height = 9, units = "in")
+       height = 6.5, units = "in")
 
 # export plot to disk
 ggsave(plot = laydate_mod_forest_plot_combo,

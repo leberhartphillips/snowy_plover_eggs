@@ -204,7 +204,7 @@ renesting_mod_table %>%
   gtsave("renesting_mod_table.rtf", path = "products/tables/rtf/")
 
 renesting_mod_table %>% 
-  gtsave("renesting_mod_table.png", path = "products/tables/png/")
+  gtsave("Table_S5.png", path = "products/tables/png/")
 
 #### Forest plot of results ----
 # Standardized fixed effects
@@ -323,6 +323,6 @@ ggsave(plot = renesting_mod_forest_plot_combo,
        height = 9, units = "in")
 
 ggsave(plot = renesting_mod_forest_plot_combo,
-       filename = "products/figures/jpg/renesting_mod_forest_plot.jpg",
+       filename = "products/figures/jpg/Figure_S5.jpg",
        width = 5,
        height = 9, units = "in")

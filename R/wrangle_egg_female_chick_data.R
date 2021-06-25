@@ -551,8 +551,3 @@ ceuta_egg_chick_female_data <-
 
 # saveRDS(ceuta_egg_chick_female_data,
 #      file = "data/Ceuta_egg_chick_female_data.rds")
-
-
-ceuta_egg_chick_female_data %>% 
-  filter(ring == "CN0527") %>% 
-  select(ID, lay_date)

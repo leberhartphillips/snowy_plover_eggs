@@ -5,7 +5,8 @@
 source("R/project_functions.R")
 source("R/project_libraries.R")
 
-load("data/ceuta_egg_chick_female_data.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
 #### Data wrangle of nest summary ----
 # summarize egg morphometric data by nest
@@ -33,6 +34,8 @@ mod_chickw <-
          (1|mother_ring) + (1|year),
        data = dplyr::filter(eggs_and_chicks_nest_summary,
                             !is.na(avg_chick_weight)))
+
+summary(mod_chickw)
 
 # run tidy bootstrap to obtain model diagnostics
 tidy_mod_chickw <-

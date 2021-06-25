@@ -98,8 +98,9 @@ load(file = "output/stats_laydate_mod.rds")
 
 
 plot(allEffects(mod_laydate_p_no_outlier))
-random_parameters(mod_laydate_p_no_outlier)
-model_parameters(mod_laydate_poly, standardize = "refit")
+random_parameters(stats_laydate_mod$mod_poly)
+model_parameters(stats_laydate_mod$mod_poly, standardize = "refit")
+stats_laydate_mod$rptR
 
 #### Peak-performance post-hoc analysis ----
 # set seed to make simulation reproducible
