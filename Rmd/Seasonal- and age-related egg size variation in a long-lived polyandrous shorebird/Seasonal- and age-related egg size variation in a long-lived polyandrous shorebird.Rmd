@@ -32,7 +32,7 @@ opts_knit$set(width=75)
 
 In this document we provide all the necessary code for reproducing the analyses presented in our paper.  To reproduce our analytical steps presented in this Rmarkdown at your own leisure, please download this [GitHub](https://github.com/leberhartphillips/snowy_plover_eggs) repository. Simply follow the link and click on *Download ZIP* on the right-hand side of the page.  An explanation of the files in the repository can be found in the Readme file.  Please don't hesitate to contact Luke Eberhart-Hertel (`luke.eberhart[at]orn.mpg.de`), Lourenço Falcão (`lourenco.falcao[at]uam.es`) or Clemens Küpper (`ckuepper[at]orn.mpg.de`) if you have any questions.
 
-The structure of the code we present here follows the analyses presented in the *Results* section of the paper.
+The structure of the code we present here follows the analyses presented in the *Methods* and *Results* sections of the paper.
 
 The document is best viewed in html on an internet browser.
 
@@ -208,13 +208,20 @@ col_all <- "#2E3440"
 ## Data Import and Wrangle
 Firstly, connect to the CeutaOPEN SQLite database (open-access between 2006 to 2016; for more details, see: Eberhart-Phillips, L.J., Cruz-López, M., Lozano-Angulo, L. et al. CeutaOPEN, individual-based field observations of breeding snowy plovers *Charadrius nivosus*. *Scientific Data* 7, 149 (2020). https://doi.org/10.1038/s41597-020-0490-y).
 
-Our raw field data collected between 2017 to 2020 are not yet publicly available, but the data in these years that are needed to reproduce the results shown in our manuscript are provided here in the `BaSTA_checked_life_table_females.rds` (for Part 1 "BaSTA model selection") and the `egg_volume_data_2006_2019.rds` (for Parts 2 and 3) files found in the data folder included in the project's OSF repository.
+Our raw field data collected between 2017 to 2020 are not yet publicly available, but the data in these years that are needed to reproduce the results shown in our manuscript are provided here in the `BaSTA_checked_life_table_females_2006_2020.rds` (for Part 1 "BaSTA model selection") and the `ceuta_egg_chick_female_data.rds` (for Part 2) files found in the data folder included in the project's OSF repository.
 
-```{r BaSTA data wrangle, eval=FALSE}
+```{r}
+# connect to CeutaOPEN
+CeutaOPEN <- 
+  dbConnect(SQLite(), 
+            dbname = "/Users/Luke/Documents/Academic_Projects/Postdoc_Seewiesen/Ceuta_Open/Ceuta_OPEN/data/Ceuta_OPEN_version_releases/Ceuta_OPEN_v1-5.sqlite")
+```
+
+```{r BaSTA data wrangle}
 # Wrangle the capture data
 captures <-
   # extract the capture datatable
-  dbReadTable(CeutaCLOSED,"Captures") %>% 
+  dbReadTable(CeutaOPEN,"Captures") %>% 
   
   # subset to only include snowy plovers
   dplyr::filter(species == "SNPL") %>% 
@@ -267,7 +274,7 @@ captures %>%
 # Wrangle the resight data
 resightings <- 
   # extract the resight datatable
-  dbReadTable(CeutaCLOSED,"Resights") %>% 
+  dbReadTable(CeutaOPEN,"Resights") %>% 
   
   # subset to only include snowy plovers
   dplyr::filter(species == "SNPL") %>% 
@@ -420,7 +427,7 @@ BaSTA_checked_life_table_females_2006_2020 <-
 
 Run the multibasta function to fit all possible survival trends to the data, while specifying the study start year at 2006, study end year at 2020, 800000 iterations, burn-in of 10000, thinning every 2000th iteration, 4 parallel chains, and a minimum age of 1 (i.e., our mark-recapture data only includes individuals that are either adults of unknown age (age >= 1), or individuals that were born locally but were encountered in subsequent years (ie., first-year survival = 1.0)).
 
-```{r}
+```{r, echo=FALSE}
 load(file = "data/BaSTA_checked_life_table_females_2006-2020.rds")
 ```
 
@@ -432,10 +439,12 @@ multiout_females <-
              nsim = 4, parallel = TRUE, ncpus = 4, updateJumps = TRUE)
 ```
 
+To save time, load the output file here:
 ```{r}
 load(file = "output/multibasta_output_females_min_age_1_2006-2020.rds")
-load(file = "data/raw_life_table_females_2006_2020.rds")
+```
 
+```{r}
 # DIC model selection shows that the Logistic mortality model with bathtub 
 # shape fits our data the best
 BaSTA_DIC_table <- 
@@ -484,14 +493,13 @@ knitr::include_graphics("../../products/tables/BaSTA_DIC_table.png")
 ```
 
 ```{r, echo=FALSE}
-# # save as rtf for manuscript
-# BaSTA_DIC_table %>% 
-#   gtsave("BaSTA_DIC_table.rtf", path = "products/tables/rtf/", expand = 1)
-# 
-# BaSTA_DIC_table %>% 
-#   gtsave("BaSTA_DIC_table.png", path = "products/tables/png/", expand = 0.5)
-```
+# save as rtf for manuscript
+BaSTA_DIC_table %>%
+  gtsave("BaSTA_DIC_table.rtf", path = "products/tables/rtf/", expand = 1)
 
+BaSTA_DIC_table %>%
+  gtsave("BaSTA_DIC_table.png", path = "products/tables/png/", expand = 0.5)
+```
 
 ```{r}
 # Extract top model
@@ -544,23 +552,22 @@ knitr::include_graphics("../../products/figures/png/BaSTA_model_diag_plot.png")
 ```
 
 ```{r}
-# ggsave(plot = BaSTA_model_diag_plot,
-#        filename = "products/figures/jpg/BaSTA_model_diag_plot.jpg",
-#        width = 4.5,
-#        height = 7, 
-#        units = "in")
-# 
-# # Trace plot: should look like a hairy catepillar instead of a snake...good!
-# plot(plover_survival_model)
-# 
-# BaSTA_trace_plot <-
-#   pdf("products/figures/BaSTA_trace_plot.pdf",
-#       width = 6,
-#       height = 8)
-# plot(plover_survival_model)
-# dev.off()
-```
+ggsave(plot = BaSTA_model_diag_plot,
+       filename = "products/figures/jpg/BaSTA_model_diag_plot.jpg",
+       width = 4.5,
+       height = 7,
+       units = "in")
 
+# Trace plot: should look like a hairy catepillar instead of a snake...good!
+plot(plover_survival_model)
+
+BaSTA_trace_plot <-
+  pdf("products/figures/BaSTA_trace_plot.pdf",
+      width = 6,
+      height = 8)
+plot(plover_survival_model)
+dev.off()
+```
 
 ```{r}
 # Plot age-specific female survival probability and mortality rate for the Logistic mortality model with bathtub shape.
@@ -672,13 +679,12 @@ knitr::include_graphics("../../products/figures/jpg/BaSTA_curve_plot.jpg")
 ```
 
 ```{r}
-# ggsave(plot = BaSTA_curve_plot,
-#        filename = "products/figures/jpg/BaSTA_curve_plot.jpg",
-#        width = 4.5,
-#        height = 5, 
-#        units = "in")
+ggsave(plot = BaSTA_curve_plot,
+       filename = "products/figures/jpg/BaSTA_curve_plot.jpg",
+       width = 4.5,
+       height = 5,
+       units = "in")
 ```
-
 
 ```{r}
 # Wrangle the estimated birth year and age-at-death for each individual given 
@@ -744,7 +750,7 @@ load("output/BaSTA_age_estimates_2006-2020.rds")
 nest_caps_F <-
   
   # extract snowy plover captures of adult females
-  dbReadTable(CeutaCLOSED,"Captures") %>% 
+  dbReadTable(CeutaOPEN,"Captures") %>% 
   dplyr::filter(species == "SNPL" & sex == "F" & age == "A") %>% 
   
   # summarise body morphometric data with the earliest capture of each nest
@@ -766,7 +772,7 @@ nest_caps_F <-
          n_ad_weight = sum(!is.na(ad_weight))) %>% 
 
   # join the nest data
-  left_join(., dplyr::filter(dbReadTable(CeutaCLOSED, "Nests"), species == "SNPL"), 
+  left_join(., dplyr::filter(dbReadTable(CeutaOPEN, "Nests"), species == "SNPL"), 
             by = "ID") %>% 
   
   # remove repeated observations of nests 2020_C_4 and 2020_D_201 that were done
@@ -787,10 +793,10 @@ nest_caps_F <-
   plover_date_convert(input = "Rdate") %>%
   
   group_by(ID) %>% 
-  # specify the lay date as the nest initiation date. If this is unknown, then
+  # specify the lay date as the nest initiation date based on float score. If this is unknown, then
   # subtract 25 days from the end date if the nest hatched. If this is not the case,
-  # then subtract 11 days from the found date if the float score of the first 
-  # egg is "F". If this isn't the case, then take the found date.
+  # then subtract 17 days from the found date if the float score of the first 
+  # egg is "F".
   mutate(lay_date1 = 
            as.Date(
                       ifelse((!is.na(found_date) & float1 == "A"), found_date - 0,
@@ -845,19 +851,11 @@ nest_caps_F <-
                     ifelse((!is.na(end_date) & fate == "Hatch"), "hatch date",
                                   ifelse(!is.na(found_date), "found_date - 17", NA)))) %>%
   
-  # select(ID, fate, found_date, end_date, lay_date1, lay_date2, lay_date3,
-  #        float1, float2, float3, min_egg_float, lay_date, lay_date_method) %>%
-  # View()
-  
   # create a julian lay date
   mutate(jul_lay_date = as.numeric(format(lay_date, "%j"))) %>% 
   
   # remove any duplicated rows resulting from joining above
   distinct() %>% 
-  
-  # mutate(
-  #   # scale the julian lay date by year
-  #   jul_std_date = scale_by(jul_lay_date ~ year, ., scale = 0)) %>%
   
   # remove any rows without lay date information
   dplyr::filter(!is.na(jul_lay_date)) %>% 
@@ -1047,7 +1045,7 @@ nest_caps_F <-
 
 # Determine the age at first capture for females in the data
 age_at_first_cap_info <- 
-  dbReadTable(CeutaCLOSED, "Captures") %>%
+  dbReadTable(CeutaOPEN, "Captures") %>%
   dplyr::filter(ring %in% nest_caps_F$ring) %>%
   plover_date_convert(input = "Rdate") %>%
   group_by(ring) %>%
@@ -1183,7 +1181,7 @@ eggs_2006_2020 <-
 # Extract chick measurements from the capture data
 chicks_measurements <-
   # read the Captures table
-  dbReadTable(CeutaCLOSED, "Captures") %>% 
+  dbReadTable(CeutaOPEN, "Captures") %>% 
   # subset to SNPL
   dplyr::filter(species == "SNPL") %>% 
   # average the left and right tarsus length measurements in to one value
@@ -1215,7 +1213,7 @@ chicks_measurements <-
 # Extract hatch dates
 hatch_dates <-
   # read the Nests table
-  dbReadTable(CeutaCLOSED, "Nests") %>%
+  dbReadTable(CeutaOPEN, "Nests") %>%
   # extract only the nests that contain chicks in the previous capture subset
   dplyr::filter(ID %in% chicks_measurements$bio_ID) %>%
   # subset the nests that have hatch date information
@@ -1282,9 +1280,6 @@ chick_size_summary <-
 # join the summarised data together by nest
 ceuta_egg_chick_female_data <- 
   left_join(eggs_2006_2020, chick_size_summary, by = "ID")
-
-# saveRDS(ceuta_egg_chick_female_data,
-#      file = "data/Ceuta_egg_chick_female_data.rds")
 ```
 
 ```{r}
@@ -1374,38 +1369,6 @@ eggdf_age_CI$ring_ordered <-
                                                  eggdf_age_CI$obs_span,
                                                  decreasing = TRUE)]), 
          ordered = TRUE)
-
-# # join polyandry information
-# eggdf_mating_sys_all <-
-#   dbReadTable(Ceuta_OPEN, "BirdRef") %>% 
-#   dplyr::select(year, ID, male, female) %>%
-#   filter(female %in% eggdf$ring) %>% 
-#   arrange(female) %>%
-#   group_by(female, year) %>%
-#   summarise(n_mates = n_distinct(male, na.rm = TRUE)) %>% 
-#   mutate(polyandry = ifelse(n_mates > 1, "poly", "mono"),
-#          year = as.integer(year),
-#          n_mates = ifelse(n_mates == 0, 1, n_mates)) %>% 
-#   rename(ring = female)
-# 
-# matings_without_egg_obs <- 
-#   anti_join(eggdf_mating_sys_all, eggdf, 
-#             by = c("ring", "year")) %>% 
-#   left_join(., dplyr::select(eggdf, ring, age_first_cap, est_b), by = "ring") %>% 
-#   mutate(est_age = year - est_b) %>% 
-#   distinct()
-
-# # specify the factor levels according to the rank (for plotting)
-# matings_without_egg_obs_plot <- 
-#   matings_without_egg_obs %>% 
-#   dplyr::filter(ring %in% ceuta_egg_chick_female_data_3_year$ring)
-# 
-# matings_without_egg_obs_plot$ring_ordered <- 
-#   factor(matings_without_egg_obs_plot$ring, 
-#          levels = levels(eggdf_age_CI$ring_ordered),
-#          ordered = TRUE)
-# 
-# dplyr::filter(ceuta_egg_chick_female_data_3_year, is.na(volume) & !is.na(polyandry))
 
 # specify point size for number of clutches per year
 point_size <- c(1, 2, 3, 4)
@@ -5442,7 +5405,7 @@ ceuta_egg_chick_female_data %>%
   pull(ID)
 
 # number of females molecularly sex-typed
-dbReadTable(CeutaCLOSED,"Captures") %>% 
+dbReadTable(CeutaOPEN,"Captures") %>% 
   dplyr::filter(ring %in% ceuta_egg_chick_female_data$ring) %>% 
   dplyr::select(ring, mol_sex, sex) %>%
   distinct %>% 
