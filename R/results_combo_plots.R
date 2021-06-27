@@ -359,7 +359,7 @@ Season_plot3
 
 # write plot to disk
 ggsave(plot = Season_plot2,
-       filename = "products/figures/Figure_3.png",
+       filename = "products/figures/Figure_5.png",
        width = 7 * 1.3,
        height = sum(c(3.5, 1.5, 7, 1.5, 3.5)) * 1.3, units = "cm", dpi = 600)
 

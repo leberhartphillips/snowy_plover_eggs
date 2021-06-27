@@ -40,6 +40,7 @@ library(sp)
 library(standardize)
 library(tidybayes)
 library(tidyverse)
+library(rmdformats)
 
 # connect to CeutaCLOSED
 CeutaCLOSED <- 
