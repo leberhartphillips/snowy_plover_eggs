@@ -284,7 +284,10 @@ eggv_mod_within_fits %>%
             min_eggv_lower = lower[which.min(fit)],
             min_eggv_upper = upper[which.min(fit)],
             max_eggv_lower = lower[which.max(fit)],
-            max_eggv_upper = upper[which.max(fit)])
+            max_eggv_upper = upper[which.max(fit)]) %>% 
+  mutate(diff = max_eggv_fit - min_eggv_fit,
+         diff_upper = max_eggv_upper - min_eggv_lower,
+         diff_lower = max_eggv_lower - min_eggv_upper) 
 
 7.788539 - 7.575227
 7.683123 - 7.509994
@@ -405,7 +408,7 @@ eggv_age_trend_plot <-
 #### Plot of trend ----
 # extract fitted values
 laydate_mod_age_fits <- 
-  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = mod_laydate_poly, #stats_laydate_mod$mod_poly, 
+  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = stats_laydate_mod$mod_poly, 
                        xlevels = list(est_age_t_deviation = seq(min(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 
                                                                 max(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 1))))
 
@@ -455,7 +458,7 @@ date_age_trend_plot <-
 
 # extract fitted values
 laydate_mod_rec_fits <- 
-  as.data.frame(effect(term = "age_first_cap", mod = mod_laydate_poly, #stats_laydate_mod$mod_poly, 
+  as.data.frame(effect(term = "age_first_cap", mod = stats_laydate_mod$mod_poly, 
                        xlevels = list(age_first_cap = c("A", "J")))) %>%
   mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 1.8, 1.2))
 
@@ -544,7 +547,10 @@ eggv_mod_tarsus_fits %>%
             min_eggv_lower = lower[which.min(fit)],
             min_eggv_upper = upper[which.min(fit)],
             max_eggv_lower = lower[which.max(fit)],
-            max_eggv_upper = upper[which.max(fit)])
+            max_eggv_upper = upper[which.max(fit)]) %>% 
+  mutate(diff = max_eggv_fit - min_eggv_fit,
+         diff_upper = max_eggv_upper - min_eggv_lower,
+         diff_lower = max_eggv_lower - min_eggv_upper) 
 
 # plot fitted values and raw data
 eggv_tarsus_trend_plot <- 

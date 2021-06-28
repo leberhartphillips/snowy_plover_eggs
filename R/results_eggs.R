@@ -133,6 +133,9 @@ allCoefs_mod <-
 allCoefs_mod <-
   allCoefs_mod[c(5, 1:4, 6:9, 16, 15, 10:14, 17:28), ]
 
+allCoefs_mod %>% 
+  round(estimate)
+
 # draw gt table
 eggv_mod_table <- 
   allCoefs_mod %>% 

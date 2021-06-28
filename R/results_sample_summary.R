@@ -207,14 +207,142 @@ ggsave(plot = plot_of_sample_population2,
        height = 10, units = "in")
 
 #### Sample size summaries ----
-# reports values listed in the first paragraph of discussion
+# reports values listed chronologicall in the manuscript
+
+# tally number of nests with various lay date methods
+ceuta_egg_chick_female_data %>%
+  select(ID, lay_date_method) %>% 
+  distinct() %>% 
+  group_by(lay_date_method) %>% 
+  summarise(n_nests = n_distinct(ID)) %>% 
+  mutate(prop_nests = as.numeric(as.character(n_nests))/sum(n_nests))
+
+# number of females molecularly sex-typed
+dbReadTable(CeutaCLOSED,"Captures") %>% 
+  dplyr::filter(ring %in% ceuta_egg_chick_female_data$ring) %>% 
+  dplyr::select(ring, mol_sex, sex) %>%
+  distinct %>% 
+  group_by(ring) %>% 
+  arrange(mol_sex) %>% 
+  slice(1) %>% 
+  group_by(mol_sex) %>% 
+  summarise(n = n()) %>% 
+  mutate(prop_sexed = as.numeric(as.character(n))/sum(n))
+
+#### Chick age wrangle ----
+# Extract chick measurements from the capture data
+chicks_measurements <-
+  # read the Captures table
+  dbReadTable(CeutaCLOSED, "Captures") %>% 
+  # subset to SNPL
+  dplyr::filter(species == "SNPL") %>% 
+  # average the left and right tarsus length measurements in to one value
+  mutate(tarsus = rowMeans(cbind(as.numeric(left_tarsus), 
+                                 as.numeric(right_tarsus)), na.rm = TRUE)) %>% 
+  # calculate Body Mass Index based on weight and structural size
+  mutate(BMI = weight/(tarsus^2)) %>% 
+  # subset to juvenile captures
+  dplyr::filter(age == "J",
+                # remove observations that are missing information for weight and tarsus
+                !is.na(weight) & !is.na(tarsus) & !is.na(date)) %>% 
+  # convert date columns to the %Y-%m-%d format
+  plover_date_convert(input = "Rdate") %>% 
+  # group by bird identity
+  group_by(ring) %>%
+  # specify the biological nest ID as the ID of the earliest capture (i.e.,
+  # brood mixing can occur and create multiple nest IDs for a chick in the
+  # capture data)
+  dplyr::mutate(bio_ID = ID[which.min(date)]) %>% 
+  # filter(bio_ID != ID) %>% 
+  # convert to dataframe
+  data.frame() %>% 
+  # select the relevant columns
+  dplyr::select(ring, year, bio_ID, age, sex, date, time, weight, tarsus, bill, BMI) %>% 
+  # extract only chicks that are in the egg data
+  dplyr::filter(bio_ID %in% eggs_2006_2020$ID) %>% 
+  arrange(ring)
+
+# Extract hatch dates
+hatch_dates <-
+  # read the Nests table
+  dbReadTable(CeutaCLOSED, "Nests") %>%
+  # extract only the nests that contain chicks in the previous capture subset
+  dplyr::filter(ID %in% chicks_measurements$bio_ID) %>%
+  # subset the nests that have hatch date information
+  dplyr::filter(fate == "Hatch") %>%
+  # define as a dataframe
+  data.frame() %>%
+  # classify date columns in the appropriate format
+  plover_date_convert(input = "Rdate") %>% 
+  # subset the result as simply the nest ID and their respective hatch dates
+  dplyr::select(ID, end_date) %>%
+  # rename the columns
+  rename(bio_ID = ID,
+         hatch_date = end_date)
+
+# combine chick measurements with hatch dates
+chicks_2006_2020 <- 
+  # join the hatch dates to the chick captures
+  left_join(x = chicks_measurements, y = hatch_dates, by = "bio_ID") %>%
+  # classify variables as factor or numeric and calculate age at capture
+  ungroup() %>% 
+  mutate(age = as.numeric(date - hatch_date),
+         year = as.factor(year),
+         weight = as.numeric(weight),
+         tarsus = as.numeric(tarsus),
+         ring = as.factor(ring),
+         sex = as.factor(sex)) %>% 
+  rename(chick_ring = ring,
+         ID = bio_ID) %>% 
+  # specify ages less than 0 as 0 (i.e., hatch dates represent the average hatch
+  # date of a brood and thus the earliest chick to hatch in a nest could be up
+  # 2 days earlier than the nest's hatch date)
+  mutate(age = ifelse(age < 0, 0, age)) %>% 
+  # scale the numeric variables in preparation for modeling
+  mutate(age.z = scale(age),
+         weight.z = scale(weight),
+         tarsus.z = scale(tarsus),
+         BMI.z = scale(BMI)) %>% 
+  # remove individuals that don't have an age value (i.e., hatch date was NA)
+  dplyr::filter(!is.na(age)) %>% 
+  left_join(., dplyr::select(eggs_2006_2020, ID, ring)) %>% 
+  rename(mother_ring = ring)# chick measuring age
+chicks_2006_2020 %>% 
+  arrange(chick_ring, age) %>% 
+  group_by(chick_ring) %>% 
+  slice(1) %>% 
+  dplyr::filter(age %in% c(0, 1)) %>% 
+  group_by(age) %>% 
+  summarise(n = n()) %>% 
+  mutate(prop_age = as.numeric(as.character(n))/sum(n))
+
+# capture-mark-recapture summary
+BaSTA_checked_life_table_females_2006_2020$newData %>% 
+  mutate(first_age = ifelse(birth == 0, "A", "J")) %>% 
+  group_by(first_age) %>% 
+  summarise(n_ind = n_distinct(idnames))
+
+# detection summary
+BaSTA_checked_life_table_females_2006_2020$newData %>% 
+  rowwise(idnames) %>% 
+  mutate(total_detections = sum(c_across(X2006:X2020))) %>% 
+  ungroup() %>% 
+  summarise(sum(total_detections))
+
+BaSTA_checked_life_table_females_2006_2020$newData %>% 
+  rowwise(idnames) %>% 
+  mutate(total_detections = sum(c_across(X2006:X2020))) %>% 
+  ungroup() %>% 
+  summarise(mean_detections = mean(total_detections),
+            sd_detections = sd(total_detections),
+            median_detections = median(total_detections))
 
 # number of observations in egg model
 ceuta_egg_chick_female_data %>% 
   summarise(Years = n_distinct(year),  # N = 14 years
-            Individuals = n_distinct(ring),    # N = 430 females
-            Nests = n_distinct(ID),    # N = 850 nests
-            Eggs = nrow(.)) %>%  # N = 2451 eggs
+            Individuals = n_distinct(ring),    # N = 426 females
+            Nests = n_distinct(ID),    # N = 841 nests
+            Eggs = nrow(.)) %>%  # N = 2392 eggs
   t(.) %>% 
   as.data.frame() %>% 
   rename(n = V1) %>% 
@@ -222,6 +350,126 @@ ceuta_egg_chick_female_data %>%
   kable(col.names = c("Sample size")) %>%
   kable_styling() %>%
   scroll_box(width = "50%")
+
+# tally number of individuals with 3, 4, etc. years of observations
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(n_years = n_distinct(year)) %>% 
+  mutate(n_years = as.factor(n_years)) %>% 
+  group_by(n_years) %>% 
+  tally() %>% 
+  collect() %>%
+  kable(col.names = c("Number of years",
+                      "Frequency of individuals")) %>%
+  kable_styling() %>%
+  scroll_box(width = "50%")
+
+(34+9+7+4+1+1)/(34+9+7+4+1+1+83+287)
+
+83/(34+9+7+4+1+1+83+287)
+
+287/(34+9+7+4+1+1+83+287)
+
+# tally number of recruits vs immigrants
+ceuta_egg_chick_female_data %>% 
+  group_by(age_first_cap) %>% 
+  summarise(n_inds = n_distinct(ring)) %>% 
+  mutate(prop = n_inds/sum(n_inds))
+mutate(n_years = as.factor(n_years)) %>% 
+  group_by(n_years) %>% 
+  tally() %>% 
+  collect() %>%
+  kable(col.names = c("Number of years",
+                      "Frequency of individuals")) %>%
+  kable_styling() %>%
+  scroll_box(width = "50%")
+
+# female tarsus measurements summary
+ceuta_egg_chick_female_data %>% 
+  summarise(mean_avg_ad_tarsi = mean(avg_ad_tarsi, na.rm = TRUE),
+            sd_avg_ad_tarsi = sd(avg_ad_tarsi, na.rm = TRUE),
+            mean_sd_ad_tarsi = mean(sd_ad_tarsi, na.rm = TRUE),
+            sd_sd_ad_tarsi = sd(sd_ad_tarsi, na.rm = TRUE)) %>% 
+  as.data.frame()
+
+# wrangle data to include only first nests
+first_nests_data <-
+  ceuta_egg_chick_female_data %>%
+  dplyr::filter(nest_order == 1) %>% 
+  dplyr::select(polyandry, year, ring, first_laydate, n_nests, ID,
+                est_age_t_deviation, first_age_t, last_age_t) %>%
+  distinct() %>%
+  mutate(polyandry = as.factor(polyandry)) %>%
+  mutate(poly = ifelse(polyandry == "poly", 1, 0),
+         mono = ifelse(polyandry == "mono", 1, 0)) %>%
+  mutate(poly_plot = ifelse(poly == 1, poly + 0.1, poly - 0.1))
+
+# sample size summary
+first_nests_data %>% 
+  summarise(n_inds = n_distinct(ring),
+            n_nests = n_distinct(ID))
+
+first_nests_data %>% 
+  mutate(multinest = ifelse(n_nests > 1, "multi", "single")) %>% 
+  group_by(polyandry, multinest) %>% 
+  summarise(n_cases = n()) %>% 
+  group_by(polyandry) %>% 
+  mutate(prop_cases = n_cases/sum(n_cases))
+
+# wrangle data
+renesting_data <-
+  ceuta_egg_chick_female_data %>% 
+  # 1) subset to only cases in which the first nest failed
+  dplyr::filter(nest_order == 1) %>% 
+  select(ID, ring, year, nest_1_fate, first_laydate, n_mates, n_nests, polyandry, multiclutch) %>% 
+  distinct() %>% 
+  # 2) subset to nests that are confirmed failed
+  filter(nest_1_fate != "Hatch" & nest_1_fate != "Unknown") %>% 
+  mutate(multiclutch = as.factor(multiclutch)) %>%
+  mutate(multi = ifelse(multiclutch == "multi", 1, 0),
+         single = ifelse(multiclutch == "single", 1, 0)) %>%
+  mutate(multi_plot = ifelse(multi == 1, multi + 0.1, multi - 0.1))
+
+# sample sizes
+renesting_data %>% 
+  summarise(Years = n_distinct(year),  # N = 14 years
+            Individuals = n_distinct(ring),    # N = 430 females
+            Nests = n_distinct(ID),    # N = 850 nests
+            Eggs = nrow(.))  # N = 2451 eggs
+
+# number of re-nesting attempts that were polyandrous vs. monogamous
+renesting_data %>% 
+  group_by(polyandry) %>% 
+  summarise(n = n()) %>% 
+  mutate(prop = n/sum(n))
+
+renesting_data %>% 
+  mutate(multinest = ifelse(n_nests > 1, "multi", "single")) %>% 
+  group_by(polyandry, multinest) %>% 
+  summarise(n_cases = n()) %>% 
+  group_by(polyandry) %>% 
+  mutate(prop_cases = n_cases/sum(n_cases))
+
+renesting_data %>% 
+  summarise(max_date = max(first_laydate, na.rm = TRUE),
+            min_date = min(first_laydate, na.rm = TRUE))
+
+#### Data wrangle ----
+# subset to nest level and first nest attempts of the season for each female
+first_nests_age_data <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, ID, first_laydate, est_age_t_deviation, year,
+                first_age_t, last_age_t, n_years_obs, avg_ad_tarsi,
+                age_first_cap, nest_order, est_age_t) %>% 
+  distinct() %>% 
+  dplyr::filter(!is.na(est_age_t_deviation) & 
+                  nest_order == 1 &
+                  year != "2006") %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 2.2, 0.8))
+
+first_nests_age_data %>% 
+  summarise(n_ind = n_distinct(ring),
+            n_nests = n_distinct(ID))
 
 # number of 3, 2, or 1 egg nests
 ceuta_egg_chick_female_data %>% 
@@ -277,20 +525,11 @@ ceuta_egg_chick_female_data %>%
   kable_styling() %>%
   scroll_box(width = "100%")
 
+3/43
+
 ceuta_egg_chick_female_data %>% 
   group_by(age_first_cap) %>% 
   summarise(n = n_distinct(ring))
-
-# summarize age obs per individaul
-ceuta_egg_chick_female_data %>% 
-  group_by(ring) %>% 
-  summarise(n_ages = n_distinct(est_age)) %>% 
-  ungroup() %>% 
-  summarise(mean_age_obs = mean(n_ages, na.rm = TRUE),
-            sd_age_obs = sd(n_ages, na.rm = TRUE),
-            median_age_obs = median(n_ages, na.rm = TRUE),
-            min_age_obs = min(n_ages, na.rm = TRUE),
-            max_age_obs = max(n_ages, na.rm = TRUE))
 
 # summarize tenure and age span
 encounter_histories %>% 
@@ -313,6 +552,17 @@ encounter_histories %>%
             min_age_span = min(max_age, na.rm = TRUE),
             max_age_span = max(max_age, na.rm = TRUE))
 
+# summarize age obs per individual
+ceuta_egg_chick_female_data %>% 
+  group_by(ring) %>% 
+  summarise(n_ages = n_distinct(est_age)) %>% 
+  ungroup() %>% 
+  summarise(mean_age_obs = mean(n_ages, na.rm = TRUE),
+            sd_age_obs = sd(n_ages, na.rm = TRUE),
+            median_age_obs = median(n_ages, na.rm = TRUE),
+            min_age_obs = min(n_ages, na.rm = TRUE),
+            max_age_obs = max(n_ages, na.rm = TRUE))
+
 # yearly nesting interval
 ceuta_egg_chick_female_data %>% 
   group_by(ring) %>% 
@@ -330,59 +580,14 @@ ceuta_egg_chick_female_data %>%
   kable_styling() %>%
   scroll_box(width = "80%")
 
-# capture-mark-recapture summary
-BaSTA_checked_life_table_females_2006_2020$newData %>% 
-  mutate(first_age = ifelse(birth == 0, "A", "J")) %>% 
-  group_by(first_age) %>% 
-  summarise(n_ind = n_distinct(idnames))
-
-# detection summary
-BaSTA_checked_life_table_females_2006_2020$newData %>% 
-  rowwise(idnames) %>% 
-  mutate(total_detections = sum(c_across(X2006:X2020))) %>% 
-  ungroup() %>% 
-  summarise(sum(total_detections))
-
-BaSTA_checked_life_table_females_2006_2020$newData %>% 
-  rowwise(idnames) %>% 
-  mutate(total_detections = sum(c_across(X2006:X2020))) %>% 
-  ungroup() %>% 
-  summarise(mean_detections = mean(total_detections),
-            sd_detections = sd(total_detections),
-            median_detections = median(total_detections))
-
-# tally number of individuals with 3, 4, etc. years of observations (should have minimum of 3)
+# summary of seasonal nesting trends
 ceuta_egg_chick_female_data %>% 
-  group_by(ring) %>% 
-  summarise(n_years = n_distinct(year)) %>% 
-  mutate(n_years = as.factor(n_years)) %>% 
-  group_by(n_years) %>% 
-  tally() %>% 
-  collect() %>%
-  kable(col.names = c("Number of years",
-                      "Frequency of individuals")) %>%
-  kable_styling() %>%
-  scroll_box(width = "50%")
+  summarise(mean_n_nests = mean(n_nests, na.rm = TRUE),
+            sd_n_nests = sd(n_nests, na.rm = TRUE),
+            median_n_nests = median(n_nests, na.rm = TRUE),
+            max_n_nests = max(n_nests, na.rm = TRUE),
+            min_n_nests = min(n_nests, na.rm = TRUE))
 
-(34+9+7+4+1+1)/(34+9+7+4+1+1+83+286)
-
-83/(34+9+7+4+1+1+83+286)
-
-286/(34+9+7+4+1+1+83+286)
-
-ceuta_egg_chick_female_data %>% 
-  group_by(age_first_cap) %>% 
-  summarise(n_inds = n_distinct(ring)) %>% 
-  mutate(prop = n_inds/sum(n_inds))
-  mutate(n_years = as.factor(n_years)) %>% 
-  group_by(n_years) %>% 
-  tally() %>% 
-  collect() %>%
-  kable(col.names = c("Number of years",
-                      "Frequency of individuals")) %>%
-  kable_styling() %>%
-  scroll_box(width = "50%")
-  
 # sample size summary of chick ~ egg model
 eggs_and_chicks_nest_summary <- 
   ceuta_egg_chick_female_data %>% 
@@ -404,20 +609,6 @@ eggs_and_chicks_nest_summary %>%
   ungroup() %>% 
   summarise(n_nests = n_distinct(ID),
             n_females = n_distinct(mother_ring))
-
-ceuta_egg_chick_female_data %>% 
-  summarise(mean_avg_ad_tarsi = mean(avg_ad_tarsi, na.rm = TRUE),
-            sd_avg_ad_tarsi = sd(avg_ad_tarsi, na.rm = TRUE),
-            mean_sd_ad_tarsi = mean(sd_ad_tarsi, na.rm = TRUE),
-            sd_sd_ad_tarsi = sd(sd_ad_tarsi, na.rm = TRUE))
-
-# summary of seasonal nesting trends
-ceuta_egg_chick_female_data %>% 
-  summarise(mean_n_nests = mean(n_nests, na.rm = TRUE),
-            sd_n_nests = sd(n_nests, na.rm = TRUE),
-            median_n_nests = median(n_nests, na.rm = TRUE),
-            max_n_nests = max(n_nests, na.rm = TRUE),
-            min_n_nests = min(n_nests, na.rm = TRUE))
 
 ceuta_egg_chick_female_data %>% 
   group_by(polyandry) %>% 
@@ -615,46 +806,9 @@ ceuta_egg_chick_female_data %>%
   kable_styling() %>%
   scroll_box(width = "70%")
 
-# tally number of nests with various lay date methods
-ceuta_egg_chick_female_data %>%
-  select(ID, lay_date_method) %>% 
-  distinct() %>% 
-  group_by(lay_date_method) %>% 
-  summarise(n_nests = n_distinct(ID)) %>% 
-  mutate(prop_nests = as.numeric(as.character(n_nests))/sum(n_nests))
-
 ceuta_egg_chick_female_data %>% 
-  filter(lay_date_method == "found_date - 17") %>% 
-  select(year, ID, egg, end_date, last_observation_alive, fate, float, lay_date, 
-         lay_date_method, jul_lay_date, jul_lay_date_std, jul_lay_date_std_num,
-         laydate_deviation, first_laydate, last_laydate) %>% 
-  # filter(fate == "Hatch") %>% 
-  distinct() %>% 
-  filter(float != "F") %>% 
-  select(year, ID, end_date, fate) %>% 
-  distinct() %>% 
-  # group_by(float) %>% 
-  # summarise(n = n())
-  pull(ID)
+  summarise(max_date = max(jul_lay_date_std_num),
+            min_date = min(jul_lay_date_std_num),
+            n_days = max(jul_lay_date_std_num) - min(jul_lay_date_std_num))
 
-# number of females molecularly sex-typed
-dbReadTable(CeutaCLOSED,"Captures") %>% 
-  dplyr::filter(ring %in% ceuta_egg_chick_female_data$ring) %>% 
-  dplyr::select(ring, mol_sex, sex) %>%
-  distinct %>% 
-  group_by(ring) %>% 
-  arrange(mol_sex) %>% 
-  slice(1) %>% 
-  group_by(mol_sex) %>% 
-  summarise(n = n()) %>% 
-  mutate(prop_sexed = as.numeric(as.character(n))/sum(n))
 
-# chick measuring age
-chicks_2006_2020 %>% 
-  arrange(chick_ring, age) %>% 
-  group_by(chick_ring) %>% 
-  slice(1) %>% 
-  dplyr::filter(age %in% c(0, 1)) %>% 
-  group_by(age) %>% 
-  summarise(n = n()) %>% 
-  mutate(prop_age = as.numeric(as.character(n))/sum(n))
