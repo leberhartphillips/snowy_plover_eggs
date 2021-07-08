@@ -176,7 +176,7 @@ chick_measuring_age <-
   mutate(prop_age = as.numeric(as.character(n))/sum(n))
 ```
 
-# MATERIALS AND METHODS (test again)
+# MATERIALS AND METHODS
 ## Data collection
 We studied the reproductive effort and breeding schedules of snowy plovers at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site located on the coast of Sinaloa, western Mexico. Details on the study site and population are provided elsewhere (e.g., Cruz-López et al., 2017b; Eberhart-Phillips et al., 2020a). In brief, we annually monitored breeding birds from mid-April until early July, and collected mark-recapture data following the methods described in (Székely et al., 2011). We searched for nests using telescopes and mobile hides to minimize disturbance. Upon finding a nest, we measured each eggs’ length and width to the nearest tenth of a mm to determine egg size (Figs. S1). Using these egg dimensions, we calculated egg volume following (Hoyt, 1979) as:
 
