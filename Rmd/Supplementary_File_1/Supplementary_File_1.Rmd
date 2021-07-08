@@ -1,5 +1,5 @@
 ---
-title: "Temporal egg size variation in a long-lived polyandrous shorebird"
+title: "Egg size variation in a long-lived polyandrous shorebird in the context of senescence and breeding phenology"
 date: "`r Sys.Date()`"
 author: Luke J. Eberhart-Hertel, Lourenço Falcão Rodrigues, Johannes Krietsch, Anne G. Eberhart-Hertel, Medardo Cruz López, Karina Alejandra Vázquez-Rojas, Erick González-Medina, Julia Schroeder, and Clemens Küpper
 output:

@@ -673,7 +673,8 @@ ceuta_egg_chick_female_data %>%
   ungroup() %>% 
   summarise(max_poly_incidence = max(poly_incidence),
             min_poly_incidence = min(poly_incidence),
-            avg_poly_incidence = mean(poly_incidence))
+            avg_poly_incidence = mean(poly_incidence),
+            total_poly_cases = sum(poly))
 
 ceuta_egg_chick_female_data %>% 
   summarise(n_distinct(ring))
@@ -728,7 +729,8 @@ ceuta_egg_chick_female_data %>%
   ungroup() %>% 
   summarise(max_renest_incidence = max(renest_incidence),
             min_renest_incidence = min(renest_incidence),
-            avg_renest_incidence = mean(renest_incidence))
+            avg_renest_incidence = mean(renest_incidence),
+            total_poly_cases = sum(multi))
 
 # tally number of individuals with a total of x nests in the sample (should have minimum of 3)
 ceuta_egg_chick_female_data %>% 
