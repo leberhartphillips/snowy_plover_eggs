@@ -1,6 +1,5 @@
 # Reproducible datasets and code for:
-## Seasonal- and age-related egg size variation in a long-lived polyandrous shorebird
-### "`r Sys.Date()`"
+## Egg size variation in a long-lived polyandrous shorebird in the context of senescence and breeding phenology
 #### Luke J. Eberhart-Hertel, Lourenço Falcão Rodrigues, Johannes Krietsch, Anne G. Eberhart-Hertel, Medardo Cruz López, Karina Alejandra Vázquez-Rojas, Erick González-Medina, Julia Schroeder, and Clemens Küpper
 
 In this repository you can find all the raw data and code needed to reproduce our investigation of egg size variation in snowy plovers (_Charadrius nivosus_) monitored annually since 2006 at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site in western Mexico.
