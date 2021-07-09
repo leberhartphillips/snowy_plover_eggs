@@ -6,7 +6,6 @@ date: "`r Sys.Date()`"
 author: Luke J. Eberhart-Hertel, Lourenço Falcão Rodrigues, Johannes Krietsch, Anne G. Eberhart-Hertel, Medardo Cruz López, Karina Alejandra Vázquez-Rojas, Erick González-Medina, Julia Schroeder, and Clemens Küpper
 output:
   rmdformats::downcute:
-    code_folding: show
     self_contained: true
     thumbnails: false
     lightbox: true
