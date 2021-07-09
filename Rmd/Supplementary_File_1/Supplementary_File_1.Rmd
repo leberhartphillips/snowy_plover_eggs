@@ -2043,8 +2043,7 @@ polyandry_date_mod_plot <-
                     labels = c("Monogamous", "Polyandrous")) +
   annotate(geom = "text", y = 0.5, x = 5,
            label = "Lay dates for first\nnests of the season",
-           color = "black", size = 3, fontface = 'italic', hjust = 0) +
-  xlab("Standardized lay date")
+           color = "black", size = 3, fontface = 'italic', hjust = 0)
 
 # plot the posterior age at peak distribution
 polyandry_date_dist_plot <-
@@ -2062,7 +2061,8 @@ polyandry_date_dist_plot <-
               alpha = 0.5, fill = plot_palette_polyandry[1], color = "grey50",
               trim = FALSE) +
   theme_void() +
-  theme(legend.position = c(0.85, 0),
+  theme(text = element_text(family = "Franklin Gothic Book"),
+        legend.position = c(0.85, 0),
         legend.title = element_blank(),
         legend.direction = "horizontal",
         legend.key.size = unit(0.5,"cm"),
@@ -2076,10 +2076,11 @@ polyandry_date_dist_plot <-
            color = "black", size = 3, fontface = 'italic', hjust = 0) +
   scale_fill_manual(values = plot_palette_polyandry,
                     guide = guide_legend(title.position = "top", nrow = 2),
-                    labels = c("Monogamous", "Polyandrous"))
+                    labels = c("Monogamous", "Polyandrous")) +
+  xlab("Standardized lay date")
 ```
 ```{r, echo=FALSE, fig.dim=c(4, 4)}
-(polyandry_date_mod_plot / polyandry_date_dist_plot) +  
+(polyandry_date_mod_plot / polyandry_date_dist_plot) +
   plot_layout(heights = c(1, 0.3)) 
 ```
 
