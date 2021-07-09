@@ -19,6 +19,8 @@ first_nests_data <-
          mono = ifelse(polyandry == "mono", 1, 0)) %>%
   mutate(poly_plot = ifelse(poly == 1, poly + 0.1, poly - 0.1))
 
+first_nests_data
+
 #### Find peaks for bimodal laydate distribution ---- 
 set.seed(42)
 

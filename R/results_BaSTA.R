@@ -121,7 +121,7 @@ female_survival_plot <-
   geom_ribbon(aes(x = age, ymin = `2.5%`, ymax = `97.5%`), 
               color = "#7570B3", fill = "#7570B3", alpha = 0.4) +
   scale_y_continuous(limits = c(0, 1)) +
-  ylab("Survival probability ± 95% CI") +
+  ylab("Survival probability ± 95% CrI") +
   xlab("Age (years)") +
   scale_x_continuous(limits = c(0.5, 12.5), breaks = c(1:12)) +
   luke_theme +
@@ -136,12 +136,15 @@ female_mortality_plot <-
   as.data.frame() %>% 
   mutate(age = as.numeric(rownames(.))) %>% 
   ggplot() +
-  geom_line(aes(x = age, y = `50%`), linetype = "dashed", color = "#7570B3") +
+  geom_line(aes(x = age, y = `50%`), lwd = 0.5, colour = "grey20") +
   geom_ribbon(aes(x = age, ymin = `2.5%`, ymax = `97.5%`), 
-              color = "#7570B3", fill = "#7570B3", alpha = 0.4) +
-  ylab("Mortality hazard ± 95% CI") +
+              fill = "grey50", alpha = 0.25) +
+  ylab("Mortality hazard ± 95% CrI") +
   xlab("Age (years)") +
   luke_theme +
+  theme(panel.grid.major.x = element_line(colour = "grey70", size=0.15),
+        panel.border = element_blank(),
+        axis.ticks.x = element_blank()) +
   # scale_x_continuous(limits = c(1, 12), breaks = c(1:12))
   scale_x_continuous(limits = c(0.5, 12.5), breaks = c(1:12))
 
@@ -185,7 +188,7 @@ recruit_ages_freq_plot <-
   recruit_ages_freq %>%
   dplyr::filter(age != 0) %>% 
   ggplot() +
-  geom_histogram(aes(age), alpha = 0.3, color = "grey40", fill = "#7570B3", 
+  geom_histogram(aes(age), alpha = 0.3, color = "grey40", fill = "grey20", 
                  binwidth = 1, position = "identity") +
   geom_text(aes(x = age, y = total + 5, label = total, fill = NULL),
             data = recruit_ages_freq_totals,

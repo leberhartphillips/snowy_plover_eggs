@@ -1,5 +1,7 @@
 ---
 title: "Egg size variation in a long-lived polyandrous shorebird in the context of senescence and breeding phenology"
+subtitle: | 
+  Supplementary File 1: Vignette of analysis
 date: "`r Sys.Date()`"
 author: Luke J. Eberhart-Hertel, Lourenço Falcão Rodrigues, Johannes Krietsch, Anne G. Eberhart-Hertel, Medardo Cruz López, Karina Alejandra Vázquez-Rojas, Erick González-Medina, Julia Schroeder, and Clemens Küpper
 output:
@@ -21,20 +23,21 @@ options(max.print="75")
 opts_chunk$set(echo=TRUE,
 	             cache=TRUE,
                prompt=FALSE,
-               tidy=TRUE,
                comment=NA,
                message=FALSE,
-               warning=FALSE)
+               warning=FALSE,
+               fig.align = 'left')
 opts_knit$set(width=75)
 ```
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
-In this document we provide all the necessary code for reproducing the analyses presented in our paper. To reproduce our analytical steps presented in this Rmarkdown at your own leisure, please download this [GitHub](https://github.com/leberhartphillips/snowy_plover_eggs) repository. Simply follow the link and click on *Download ZIP* on the right-hand side of the page. An explanation of the files in the repository can be found in the Readme file.  Please don't hesitate to contact Luke Eberhart-Hertel (`luke.eberhart[at]orn.mpg.de`), Lourenço Falcão (`lourenco.falcao[at]uam.es`) or Clemens Küpper (`ckuepper[at]orn.mpg.de`) if you have any questions.
+# OVERVIEW
+In this document we provide all the necessary code for reproducing the analyses presented in our paper. To reproduce our analytical steps presented in this Rmarkdown at your own leisure, please download this [GitHub](https://github.com/leberhartphillips/snowy_plover_eggs) repository. Simply follow the link and click on *Download ZIP* on the right-hand side of the page and open the "snowy_plover-eggs.Rprj" in RStudio. An explanation of the files in the repository can be found in the README file.  Please don't hesitate to contact Luke Eberhart-Hertel (`luke.eberhart[at]orn.mpg.de`), Lourenço Falcão (`lourenco.falcao[at]uam.es`) or Clemens Küpper (`ckuepper[at]orn.mpg.de`) if you have any questions.
 
-The structure of the code we present here follows the analyses presented in the *Methods* and *Results* sections of the paper. To review the wrangling steps to extract and process the CeutaOPEN database prior to analysis, please refer to the `R/wrangle_BaSTA_data.R` and `R/wrangle_egg_female_chick_data.R` scripts in the repository. This document is best viewed in html on an internet browser.
-
+The structure of the code we present here follows the analyses presented in the *Methods* and *Results* sections of the paper. To review the wrangling steps to extract and process the CeutaOPEN database prior to analysis, please refer to the [`R/wrangle_BaSTA_data.R`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/R/wrangle_BaSTA_data.R) and [`R/wrangle_egg_female_chick_data.R`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/R/wrangle_egg_female_chick_data.R) scripts in the repository. This document is best viewed in html on an internet browser.
 ```{r prereqs, include=FALSE}
 # install.packages("arm", "aspace", "BaSTA", "bayestestR", "broom.mixed", 
-#                  "coefplot2", "cowplot", "data.table","doParallel","effects", 
+#                  "coefplot2", "cowplot", "data.table","doParallel", "DT", "effects", 
 #                  "extrafont", "flexmix", "fGarch", "ggmap", "ggpubr", "ggridges",
 #                  "ggthemes", "grid", "gt", "kableExtra", "leaflet", "lme4", 
 #                  "magick", "mapview", "mgcv", "moveVis", "multcomp", 
@@ -51,6 +54,7 @@ library(coefplot2)
 library(cowplot)
 library(data.table)
 library(doParallel)
+library(DT)
 library(effects)
 library(extrafont)
 library(flexmix)
@@ -143,7 +147,6 @@ load("output/BaSTA_age_estimates_2006-2020.rds")
 load("data/BaSTA_checked_life_table_females_2006-2020.rds")
 load("data/mol_sex.rds")
 ```
-
 ```{r text objects, include=FALSE}
 # tally number of nests with various lay date methods
 lay_date_methods <- 
@@ -175,17 +178,15 @@ chick_measuring_age <-
   summarise(n = n()) %>% 
   mutate(prop_age = as.numeric(as.character(n))/sum(n))
 ```
+# DATA COLLECTION
+We studied the reproductive effort and breeding schedules of snowy plovers at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site located on the coast of Sinaloa, western Mexico. Details on the study site and population are provided elsewhere (e.g., Cruz-López et al., 2017b; Eberhart-Phillips et al., 2020a). In brief, we annually monitored breeding birds from mid-April until early July, and collected mark-recapture data following the methods described in (Székely et al., 2011). We searched for nests using telescopes and mobile hides to minimize disturbance. Upon finding a nest, we measured each eggs' length and width to the nearest tenth of a mm to determine egg size (Figs. S1). Using these egg dimensions, we calculated egg volume following (Hoyt, 1979) as:
 
-# MATERIALS AND METHODS
-## Data collection
-We studied the reproductive effort and breeding schedules of snowy plovers at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site located on the coast of Sinaloa, western Mexico. Details on the study site and population are provided elsewhere (e.g., Cruz-López et al., 2017b; Eberhart-Phillips et al., 2020a). In brief, we annually monitored breeding birds from mid-April until early July, and collected mark-recapture data following the methods described in (Székely et al., 2011). We searched for nests using telescopes and mobile hides to minimize disturbance. Upon finding a nest, we measured each eggs’ length and width to the nearest tenth of a mm to determine egg size (Figs. S1). Using these egg dimensions, we calculated egg volume following (Hoyt, 1979) as:
-
-Eq. 1				egg volume= K × length × 〖width〗^2,
+Eq. 1  $egg\_volume= K × length × width^2$,
 
 where K is 0.486, a volume-index constant for snowy plovers determined by (Székely et al., 1994) through the use of an egg volumeter (Hanson, 1954). The modal clutch size of snowy plovers is three (86.2%) and is the maximum number of eggs we have observed in this population (Eberhart-Phillips et al., 2020b). We regularly checked incomplete nests until the clutch was completed and assigned the age of these nests according to the lay date of the last egg laid (Plaschke et al., 2019). If the clutch was complete upon discovery and had not been incubated longer than 10 days, we determined its lay date by floating the egg and estimating the stage of embryonic development (Nosály & Székely, 1993). For successful clutches found after 10 days we assumed an incubation period of 25 days and back-calculated the laying date based on the hatching date (Plaschke et al., 2019). In the rare case that the nest did not hatch and we discovered it after day 10 of embryonic development, we assumed that the nest was 17 days old upon discovery (i.e., the midpoint between the minimum age of 11 days and the 25 day incubation period). In summary, the lay dates for `r lay_date_methods[1,2]` (`r round(lay_date_methods[1,3], 2)*100`%) nests were determined through floatation, `r lay_date_methods[3,2]` (`r round(lay_date_methods[3,3], 2)*100`%) were back-calculated from hatch date, and `r lay_date_methods[2,2]` (`r round(lay_date_methods[2,3], 2)*100`%) were assumed to be 17 days old at discovery.
 
-### Figure S1.
-Raw egg size variation.
+### *Figure S1*.
+<font size = "2">Raw egg size variation.</font>
 ```{r egg measurements, echo=FALSE, message=FALSE, fig.dim = c(8, 8), warning=FALSE}
 egg_image <- image_read("media/plover_egg.png")
 egg_image_grob <- rasterGrob(egg_image, interpolate = TRUE, height = 0.6)
@@ -253,7 +254,7 @@ fill_panel(egg_image_grob, row = 2, column = 2) %>%
 fill_panel(egg_widths_plot, row = 2, column = 3)
 ```
 
-### Egg volume distribution
+### *Egg volume distribution*
 ```{r figure 5 egg volume, echo=FALSE, message=FALSE, fig.dim=c(4,4), warning=FALSE}
 ceuta_egg_chick_female_data %>% 
   ggplot() + 
@@ -281,10 +282,11 @@ We identified previously marked nesting adults based on their unique colour ring
 
 We visited known active nests every four or five days to determine the status of the nest (e.g., active, abandoned, depredated) until the 20th day after egg laying and thereafter daily until the eggs hatched or failed. We weighed chicks as soon as possible after hatching (`r chick_measuring_age[1,2]` [`r round(chick_measuring_age[1,3], 2) * 100`%] within 24 hours of hatching, `r chick_measuring_age[2,2]` [`r round(chick_measuring_age[2,3], 2) * 100`%] during the second day after hatching) and marked them with an alphanumeric metal and a single colour ring for subsequent identification in the chance that these individuals recruited into the breeding population as adults in future years.
 
-For the years 2006 to 2016 all longitudinal data collected has been compiled as part of the [CeutaOPEN](https://www.nature.com/articles/s41597-020-0490-y) project – an open-access database for individual-based field studies in evolutionary ecology and conservation biology (Eberhart-Phillips et al., 2020a). We accessed these data directly from the open source repository (Eberhart-Phillips et al., 2020b) and supplemented them with data from four additional field seasons: 2017–2020. The CeutaOPEN database is composed of five tables that correspond to our routine data collection in the field (Székely & Kosztolányi, 2006). Here we used the “Captures”, “Resights”, and “Nests” tables. The “Captures” and “Resights” tables contain information about all the individuals captured and observed, whereas the “Nests” table contains the morphometric and spatiotemporal information related to each nest monitored.
+For the years 2006 to 2016 all longitudinal data collected has been compiled as part of the [CeutaOPEN](https://www.nature.com/articles/s41597-020-0490-y) project – an open-access database for individual-based field studies in evolutionary ecology and conservation biology (Eberhart-Phillips et al., 2020a). We accessed these data directly from the open source repository (Eberhart-Phillips et al., 2020b) and supplemented them with data from four additional field seasons: 2017–2020. The CeutaOPEN database is composed of five tables that correspond to our routine data collection in the field (Székely & Kosztolányi, 2006). Here we used the "Captures", "Resights", and "Nests" tables. The "Captures" and "Resights" tables contain information about all the individuals captured and observed, whereas the "Nests" table contains the morphometric and spatiotemporal information related to each nest monitored.
 
-## Statistical Analyses
-Age estimation of individuals with unknown origin—Investigating age-dependent processes of marked populations in the wild is challenging as they are often composed of a mix of individuals that are of known or unknown age (Colchero et al., 2012) – with the former being individuals initially marked at birth (i.e., uncensored), and the latter being immigrants of unknown age or those that were born before the study’s first marking occasion (i.e., left-truncated). To estimate the ages of unknown individuals in our marked population we employed a capture-mark-recapture analysis using the ‘Bayesian Survival Trajectory Analysis’ (BaSTA) package in R (v1.9.4, Colchero et al., 2012), which uses a Bayesian hierarchical framework to fit parametric survival functions of the marked population while accounting for imperfect detection. Furthermore, BaSTA derives birth year estimates of left-truncated individuals from the population mean of the projected survival function. As snowy plovers show prominent sex differences in survival (Eberhart-Phillips et al., 2017; 2018), we used female-specific survival functions for this study. Due to high natal dispersal, we could not confidently determine the fate of juveniles marked in our population. To acknowledge this uncertainty, our capture-mark-recapture sample only included individuals that survived to their first breeding season, i.e., we constrained first-year survival probability to 1.
+# STATISTICAL ANLAYSES
+## Age estimation with BaSTA
+Investigating age-dependent processes of marked populations in the wild is challenging as they are often composed of a mix of individuals that are of known or unknown age (Colchero et al., 2012) – with the former being individuals initially marked at birth (i.e., uncensored), and the latter being immigrants of unknown age or those that were born before the study's first marking occasion (i.e., left-truncated). To estimate the ages of unknown individuals in our marked population we employed a capture-mark-recapture analysis using the 'Bayesian Survival Trajectory Analysis' (`BaSTA`) package in R (v1.9.4, Colchero et al., 2012), which uses a Bayesian hierarchical framework to fit parametric survival functions of the marked population while accounting for imperfect detection. Furthermore, BaSTA derives birth year estimates of left-truncated individuals from the population mean of the projected survival function. As snowy plovers show prominent sex differences in survival (Eberhart-Phillips et al., 2017; 2018), we used female-specific survival functions for this study. Due to high natal dispersal, we could not confidently determine the fate of juveniles marked in our population. To acknowledge this uncertainty, our capture-mark-recapture sample only included individuals that survived to their first breeding season, i.e., we constrained first-year survival probability to 1.
 
 ```{r, include=FALSE}
 # capture-mark-recapture summary
@@ -343,12 +345,15 @@ female_mortality_plot <-
   as.data.frame() %>% 
   mutate(age = as.numeric(rownames(.))) %>% 
   ggplot() +
-  geom_line(aes(x = age, y = `50%`), linetype = "dashed", color = "#7570B3") +
+  geom_line(aes(x = age, y = `50%`), lwd = 0.5, colour = "grey20") +
   geom_ribbon(aes(x = age, ymin = `2.5%`, ymax = `97.5%`), 
-              color = "#7570B3", fill = "#7570B3", alpha = 0.4) +
-  ylab("Mortality hazard ± 95% CI") +
+              fill = "grey50", alpha = 0.25) +
+  ylab("Mortality hazard ± 95% CrI") +
   xlab("Age (years)") +
   luke_theme +
+  theme(panel.grid.major.x = element_line(colour = "grey70", size=0.15),
+        panel.border = element_blank(),
+        axis.ticks.x = element_blank()) +
   # scale_x_continuous(limits = c(1, 12), breaks = c(1:12))
   scale_x_continuous(limits = c(0.5, 12.5), breaks = c(1:12))
 
@@ -392,7 +397,7 @@ recruit_ages_freq_plot <-
   recruit_ages_freq %>%
   dplyr::filter(age != 0) %>% 
   ggplot() +
-  geom_histogram(aes(age), alpha = 0.3, color = "grey40", fill = "#7570B3", 
+  geom_histogram(aes(age), alpha = 0.3, color = "grey40", fill = "grey20", 
                  binwidth = 1, position = "identity") +
   geom_text(aes(x = age, y = total + 5, label = total, fill = NULL),
             data = recruit_ages_freq_totals,
@@ -419,16 +424,16 @@ BaSTA_curve_plot <-
   plot_annotation(tag_levels = "A")
 ```
 
-In total, our capture-mark-recapture data comprised of `r sum(BaSTA_summary[,2])` uniquely marked females, of which `r BaSTA_summary[2,2]` hatched locally and subsequently recruited into the adult population as known-age individuals (Fig. 1a), and the remaining `r BaSTA_summary[1,2]` females were adults of unknown age and origin. Over the 14-year study period we monitored the presence or absence of marked individuals annually by recapturing or observing them in the field, amounting to a total of `r detection_summary` post-birth detections of the `r sum(BaSTA_summary[,2])` females in our sample (median detections per adult = `r dplyr::pull(detection_summary2[1,3])`; mean = `r round(detection_summary2[1,1], 2)`, `r round(detection_summary2[1,2], 2)` SD). A logistic bathtub-shaped mortality model had the best fit to our data – revealing that female mortality rate increased until age 5 years, after which it became constant (Fig. 1b; see Appendix S1 for detailed methods). Using this model, we extracted the birth year estimate posteriors for each unknown-age individual in the capture-mark-recapture sample. Note that three individuals (one first encountered as an adult [CA1579] and two local recruits [CA2036 and CA1526]; Fig. 2) had been already marked two years prior to the start of our monitoring period (i.e., pre-2006) and were thus added to our sample after running BaSTA on the 2006–2020 capture-mark-recapture data.
+In total, our capture-mark-recapture data comprised of `r sum(BaSTA_summary[,2])` uniquely marked females, of which `r BaSTA_summary[2,2]` hatched locally and subsequently recruited into the adult population as known-age individuals (Fig. 1a), and the remaining `r BaSTA_summary[1,2]` females were adults of unknown age and origin. Over the 14-year study period we monitored the presence or absence of marked individuals annually by recapturing or observing them in the field, amounting to a total of `r detection_summary` post-birth detections of the `r sum(BaSTA_summary[,2])` females in our sample (median detections per adult = `r dplyr::pull(detection_summary2[1,3])`; mean = `r round(detection_summary2[1,1], 2)`, `r round(detection_summary2[1,2], 2)` SD). A logistic bathtub-shaped mortality model had the best fit to our data (Table S1) – revealing that female mortality rate increased until age 5 years, after which it became constant (Fig. 1b; see Appendix S1 for detailed methods). Using this model, we extracted the birth year estimate posteriors for each unknown-age individual in the capture-mark-recapture sample. Note that three individuals (one first encountered as an adult [CA1579] and two local recruits [CA2036 and CA1526]; Fig. 2) had been already marked two years prior to the start of our monitoring period (i.e., pre-2006) and were thus added to our sample after running BaSTA on the 2006–2020 capture-mark-recapture data.
 
-### Figure 1.
-Logistic-bathtub mortality function for snowy plover females: a) frequency distribution of age-specific observations of 45 known-aged females and b) age-dependent mortality hazard.
-```{r, echo=FALSE}
-BaSTA_curve_plot
+### *Figure 1*.
+<font size = "2">Logistic-bathtub mortality function for snowy plover females: a) frequency distribution of age-specific observations of 45 known-aged females and b) age-dependent mortality hazard.</font>
+```{r, echo=FALSE, fig.dim=c(6,6)}
+BaSTA_curve_plot 
 ```
 
-### Figure 2.
-Mating strategy and clutch number of female snowy plovers according to age. Each row shows an individual female in the population for which we have at least three years of observations (note that our analysis also includes females with one or two years of observation, but given space constraints only individuals with a minimum of three years are plotted in this graph). Panel A) shows known-aged females which were born locally, whereas B) shows females that were initially captured as adults and are therefore of unknown age. Points illustrate the age at which we collected observations of egg volume, with the size of the point corresponding to the number of clutches measured at a given age, and the colour indicating if we observed the female mating with one or two distinct males (i.e., in case of multiple clutches at a given age). The light grey buffer around unknown-age females indicates the 95% CrI of the ages for an individuals’ observed period (i.e., lower limit indicates the minimum age the individual could have entered the population and the upper limit indicates the maximum age of an individual’s last observation based on BaSTA’s birth year posterior). The dark grey lines indicate the period for which an individual was observed alive (i.e., in some cases we encountered an individual in the field and confirmed its survival, but we did not observe its nest to be able to measure the eggs. Note also that the age at first encounter of all known-aged individuals is 0).
+### *Figure 2*.
+<font size = "2">Mating strategy and clutch number of female snowy plovers according to age. Each row shows an individual female in the population for which we have at least three years of observations (note that our analysis also includes females with one or two years of observation, but given space constraints only individuals with a minimum of three years are plotted in this graph). Panel A) shows known-aged females which were born locally, whereas B) shows females that were initially captured as adults and are therefore of unknown age. Points illustrate the age at which we collected observations of egg volume, with the size of the point corresponding to the number of clutches measured at a given age, and the colour indicating if we observed the female mating with one or two distinct males (i.e., in case of multiple clutches at a given age). The light grey buffer around unknown-age females indicates the 95% CrI of the ages for an individuals' observed period (i.e., lower limit indicates the minimum age the individual could have entered the population and the upper limit indicates the maximum age of an individual's last observation based on BaSTA's birth year posterior). The dark grey lines indicate the period for which an individual was observed alive (i.e., in some cases we encountered an individual in the field and confirmed its survival, but we did not observe its nest to be able to measure the eggs. Note also that the age at first encounter of all known-aged individuals is 0).</font>
 
 ```{r, include=FALSE}
 # extract the first and last observations of each individual
@@ -590,7 +595,7 @@ plot_of_sample_population2 <-
   plot_layout(heights = c(0.19, 0.81))
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.dim=c(6,10)}
 plot_of_sample_population
 ```
 
@@ -643,67 +648,35 @@ ceuta_egg_chick_female_data %>%
   as.data.frame()
 ```
 
-### Modelling individual variation in egg volume (“Egg volume model”)
-Our sample for studying egg volume dynamics included `r egg_model_summary[4, 1]` eggs from `r egg_model_summary[3, 1]` nests of `r egg_model_summary[2, 1]` females. `r sum(age_tally[3:nrow(age_tally), 2])` (`r round((sum(age_tally[3:nrow(age_tally), 2])/sum(age_tally[,2])), 3) * 100`%) females had three or more years of repeated measures (Fig. 2), `r sum(age_tally[2, 2])` (`r round((sum(age_tally[2, 2])/sum(age_tally[,2])), 3) * 100`%) had two years of repeated measures, and `r sum(age_tally[1, 2])` (`r round((sum(age_tally[1, 2])/sum(age_tally[,2])), 3) * 100`%) were measured in a single year. Furthermore, 43 (10.1%) individuals in our sample were marked as hatchlings but later recruited as breeding adults in subsequent years (i.e., known age; Fig. 2a), with the remaining 38 (89.9%) individuals being initially marked as adults (i.e., unknown age; Fig. 2b). We followed common statistical approaches to investigate senescence in birds (e.g., (Bouwhuis et al., 2009; 2010; Schroeder et al., 2012; Herborn et al., 2016; Graham et al., 2019; Dingemanse et al., 2020) by fitting a quadratic function of age to model age-specific trends in egg volume. We controlled for selective appearance and disappearance of females differing in average egg volume by fitting ‘first observed age’ and ‘last observed age’ as fixed effects – a method that estimates between-individual age effects introduced by selective disappearance and appearance (van de Pol & Verhulst, 2006; Dingemanse et al., 2020). 
+## Modelling egg volume variation
+Our sample for studying egg volume dynamics included `r egg_model_summary[4, 1]` eggs from `r egg_model_summary[3, 1]` nests of `r egg_model_summary[2, 1]` females. `r sum(age_tally[3:nrow(age_tally), 2])` (`r round((sum(age_tally[3:nrow(age_tally), 2])/sum(age_tally[,2])), 3) * 100`%) females had three or more years of repeated measures (Fig. 2), `r sum(age_tally[2, 2])` (`r round((sum(age_tally[2, 2])/sum(age_tally[,2])), 3) * 100`%) had two years of repeated measures, and `r sum(age_tally[1, 2])` (`r round((sum(age_tally[1, 2])/sum(age_tally[,2])), 3) * 100`%) were measured in a single year. Furthermore, 43 (10.1%) individuals in our sample were marked as hatchlings but later recruited as breeding adults in subsequent years (i.e., known age; Fig. 2a), with the remaining 38 (89.9%) individuals being initially marked as adults (i.e., unknown age; Fig. 2b). We followed common statistical approaches to investigate senescence in birds (e.g., (Bouwhuis et al., 2009; 2010; Schroeder et al., 2012; Herborn et al., 2016; Graham et al., 2019; Dingemanse et al., 2020) by fitting a quadratic function of age to model age-specific trends in egg volume. We controlled for selective appearance and disappearance of females differing in average egg volume by fitting 'first observed age' and 'last observed age' as fixed effects – a method that estimates between-individual age effects introduced by selective disappearance and appearance (van de Pol & Verhulst, 2006; Dingemanse et al., 2020). 
 
-We modelled within-individual age effects on egg volume by fitting a univariate mixed-effect model, that included linear and quadratic forms of a within-group deviation score for age (henceforth ‘age-deviance’), calculated for individual i at age j as: ageij – [first observed age]i  (van de Pol & Verhulst, 2006; Snijders & Bosker, 2011). Tarsus length was also included as a fixed effect to control for female structural size, and was averaged over an individual’s measurements (i.e., our a priori expectation was that tarsus length is static throughout adult life and that any variation in this trait was due to measurement error) – grand average 24.73 mm (0.73 SD), grand average within-individual standard deviation 0.22 mm (1.13 SD). In addition to these fixed covariates, we included a quadratic function of lay date to assess seasonal variation in egg volume as several shorebird studies report seasonal increases (Skrade & Dinsmore, 2013; Kwon et al., 2018) or decreases in egg volume (Dittmann & Hötker, 2001; Skrade & Dinsmore, 2013; Kwon et al., 2018; Kubelka et al., 2020; Verhoeven et al., 2020). To disentangle within- from between-individual effects in lay date, we used the same logic as with age above: first lay dates of all individuals each year represented the between-individual seasonal effect, whereas the deviation in lay dates of an individual relative to its first nest of the season represented the within-individual seasonal effect. We included random intercepts for nest, individual, and year, and assumed a Gaussian error distribution of egg volume.
+We modelled within-individual age effects on egg volume by fitting a univariate mixed-effect model, that included linear and quadratic forms of a within-group deviation score for age (henceforth 'age-deviance'), calculated for individual *i* at age *j* as: $age_{ij}-[first\_observed\_age]_i$  (van de Pol & Verhulst, 2006; Snijders & Bosker, 2011). Tarsus length was also included as a fixed effect to control for female structural size, and was averaged over an individual's measurements (i.e., our a priori expectation was that tarsus length is static throughout adult life and that any variation in this trait was due to measurement error) – grand average 24.73 mm (0.73 SD), grand average within-individual standard deviation 0.22 mm (1.13 SD). In addition to these fixed covariates, we included a quadratic function of lay date to assess seasonal variation in egg volume as several shorebird studies report seasonal increases (Skrade & Dinsmore, 2013; Kwon et al., 2018) or decreases in egg volume (Dittmann & Hötker, 2001; Skrade & Dinsmore, 2013; Kwon et al., 2018; Kubelka et al., 2020; Verhoeven et al., 2020). To disentangle within- from between-individual effects in lay date, we used the same logic as with age above: first lay dates of all individuals each year represented the between-individual seasonal effect, whereas the deviation in lay dates of an individual relative to its first nest of the season represented the within-individual seasonal effect. We included random intercepts for nest, individual, and year, and assumed a Gaussian error distribution of egg volume.
 
-Modelling seasonal variation in polyandry potential (“Polyandry model”)—Our sample for studying seasonal polyandry dynamics included 426 females for which the identity of their mates had been verified through observation. We defined observed polyandry as a binomial variable that scored an individual as being monogamous or polyandrous each year based on our observations of them having one or multiple breeding partners, respectively (see Fig. 2 for an example of the sampling distribution). By definition, all polyandrous cases bred at least twice within a season, but also 12.4% of monogamous females were observed breeding more than once. Monogamous females remained with the same partner for another breeding attempt only after their initial attempt had failed. To assess the relationship between the likelihood of polyandry and lay date and age, we fitted a binomial linear mixed effects model that tested the likelihood of polyandry predicted by the fixed effects of lay date (i.e., of an individual’s first nest of the season), age-deviance (see above), and first observed age. We included individual and year as random effects.
+### *R workflow*
 
-Modelling seasonal variation in re-nesting potential (“Re-nesting model”)—Our sample for studying seasonal re-nesting dynamics included 177 females for which the fate of their initial nest had been verified as a failure. We defined re-nesting as a binomial variable that scored an individual as being a re-nester or a single-nester each year based on our observations of them attempting to re-nest after the loss of their first clutch or not, respectively. Almost all cases of re-nesting are monogamous in this population (92.4%; see Fig. 2 for an example of the sampling distribution). To assess the relationship between the likelihood of re-nesting and lay date, we fitted a binomial linear mixed effects model that tested the likelihood of re-nesting predicted by the fixed effect of lay date (i.e., of an individual’s first nest of the season). We included individual and year as random effects.
+*view dataset used in model*
+```{r, echo=FALSE}
+ceuta_egg_chick_female_data %>%
+  select(ID, ring, year, volume_cm, est_age_t_deviation, first_age_t, last_age_t, avg_ad_tarsi, laydate_deviation) %>% 
+  distinct() %>% 
+  datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
+```
 
-Modelling individual variation in lay date (“Lay date model”)— Modelling the age effects of first nest lay date followed the same logic as the above egg volume model, with a univariate mixed-effect structure that included age-deviance, age-deviance-squared, first observed age, last observed age, and average tarsus length as fixed covariates, and individual and year as random intercepts. Furthermore, recruitment status was also fitted as a two-level fixed effect describing if a breeding female hatched locally (“local recruit”) or was first encountered as an adult of unknown origin (“immigrant”). Our sample for studying lay date dynamics used the same nest-level sample as the polyandry model above, however, as we were interested in how the recruitment status of an individual influenced breeding phenology, we excluded data from 2006 as this was the first year of our study when all birds were first individually marked. This resulted in 568 nests from 376 females. We visualized the distribution of lay dates to confirm normality and to assess the population-level variance in breeding schedule – an indication of inter-female breeding asynchrony and the intensity of contest competition for mates (Andersson, 2004).
-
-Evaluating effect sizes and uncertainty—We used the “lme4” (Bates et al., 2015), “rptR” (Stoffel et al., 2017) and “partR2” (Stoffel et al., 2020) packages in R version “Bunny-Wunnies Freak Out” (R Core Team, 2020) to conduct our statistical modelling and assessed homoscedasticity by visually examining the residuals (see Fig. S4). For each of the four mixed-effect models described above, we evaluated uncertainty in our parameter estimates by simulating 1000 parametric bootstraps via the “partR2::partR2” function (Stoffel et al., 2020). Likewise we derived nest-, individual-, and year-level repeatabilities (i.e., intra-class correlations) by simulating 1000 parametric bootstraps of the four mixed-effect models using “rptR::rpt”. We report fixed effects as standardized regression coefficients (i.e., beta weights) and repeatability as the ‘adjusted repeatability’ – interpreted as the repeatability of a given hierarchical group after controlling for fixed effects (Nakagawa & Schielzeth, 2010). 
-
-To ensure that intercepts of our age-dependent models represented the reproductive performance for the earliest age at reproduction (i.e., age 1 in snowy plovers, Page et al., 2009), we fitted age as ‘age – 1’ – otherwise it would represent reproduction as age 0, which is an empirically meaningless estimate. For the “Egg volume model” and “Lay date model” we ran an additional simulation that acknowledged uncertainty in the BaSTA age estimate of a given individual: we bootstrapped each model 1000 times, with every iteration randomly drawing a birth year estimate for unknown aged individuals from their posterior distributions provided by BaSTA. For both simulations, we evaluated the influence of birth year uncertainty by examining the effect size distribution of the 1000 bootstraps in relation to the 95% confidence interval for effect sizes of the original model that used the median birth year estimate from BaSTA. 
-
-# RESULTS
-Over 14 breeding seasons, we collected measurements from 2392 eggs, originating from 841 clutches of 426 females. Modal clutch size was 3 eggs (724 nests, 86.1%; 2-eggs: 103 nests, 12.3%, 1-egg: 14 nests, 1.6%). Average egg length was 3.09 cm (0.10 cm SD, Fig. S1a) and width was 2.24 cm (0.05 cm SD, Fig. S1b), which translated into an average egg volume of 7.59 cm3 (0.46 cm3 SD). The average egg volume of a clutch strongly predicted the average hatch weight of the subsequent brood (β [95% CIs]: 0.63 [0.55–0.70]; R2marginal = 0.370 [0.310–0.436]; Figs. S1c and S3, Table S2, see Appendix S2 for methods). Based on BaSTA’s estimated birth year, 185 of the 383 unknown-age females in our sample were first observed nesting at age 1 (48.3%), 120 at age two (31.3%), 72 at age three (18.8%), five at age 4 (1.3%), and one at age 5 (0.3%). Of the 43 locally hatched females in our sample, 29 first nested at age one (67.4%), six were first observed nesting at age two (14.0%), two at age 3 (4.7%), three at age 4 (7.0%), three at ages 5, 7, and 8, respectively (7.0%). The average tenure of all females in the sample was 1.57 years (2.15 SD) with an average age span of 3.12 years (2.03 SD, median: 3, range: 1–14 years) and an average of 1.56 years of observed ages per female (1.04 SD, median: 1, range: 1–8 age-specific observations). Females in our sample were typically observed nesting every consecutive year since their first observation, however, some individuals skipped years (Fig. 2, average yearly interval between nesting attempts = 1.07, 0.27 SD). On average, females made 1.43 (0.56 SD) nesting attempts per season (median = 1, range 1 to 3).
-
-## Individual variation in egg volume
-Overall, mixed effects accounted for 71.2% ([68.2, 74.3] 95%CIs) of variation in egg volume, with fixed effects explaining 7.9% ([5.1, 12.3] 95%CIs) of this variation (Table S3). Females were highly repeatable in their egg volumes between clutches: r = 0.47 ([0.41, 0.53] 95%CIs; Fig. 3, Table S3). Furthermore, eggs within the same clutch were moderately repeatable in volume (r = 0.18 [0.14, 0.22]; Fig. 3, Table S3). Senescence in egg volume was not supported (βage [95% CIs]: 0.00 [-0.06, 0.6], βage2: -0.05 [-0.09, -0.01]; semi-partial R2 of senescence function = 0.003 [0, 0.05]; Fig. 3, Table S3). Furthermore, we found no support for selective (dis)appearance of individuals according to egg volume, as the 95% CIs for first and last observed ages of reproduction overlapped zero (Fig. 3, Table S3). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8a–c) confirmed these results. The strongest fixed effect explaining egg volume variation was the structural size of the mother (βtarsus [95% CI]: 0.23 [0.15, 0.29]; semi-partial R2 of female tarsus = 0.05 [0.02, 0.09]; Figs. S3 and S7b): larger females laid larger eggs than smaller females (model predicted difference: 0.58 cm3 [0.34, 0.81] 95%CI). The second strongest effect was the between-individual quadratic season function (Fig. 4c): eggs were smallest at the start of the season (model prediction: 7.18 cm3 [6.98, 7.37] 95%CI) and largest shortly after the middle of the season (model prediction: 7.68 cm3 [7.60, 7.76] 95%CI). Average egg volume also increased between sequential clutches within individuals but with smaller magnitude than the population-level trend (βwithin [ 95%CI]: 0.10 [0.06, 0.14], predicted increase of 0.21 cm3 [0.04, 0.38]; Fig. 3).
-
+*liner mixed effect model of egg volume*
 ```{r, eval=FALSE}
-#### Modeling egg volume ----
-# Full model predicting egg volume:
-# Fixed effects
-# - quadratic age effect (i.e., within-group deviation in age sensu van de Pol and Verhulst 2006)
-# - selective appearance and disappearence (i.e., age at first and last observation)
-# - female structural size (tarsus)
-# - quadratic seasonal effect of first lay date (i.e., between individual effect)
-# - linear within seasonal effect (i.e., within-group deviation in laydate)
-# Random intercepts: nest, individual, year
-
-# use van der Pol method to obtain the within-group deviation scores for age and
-# lay date. The "x_deviation" effect is interpreted as the within individual
-# effect, whereas the "first_x" (or "last_x") effect is interpreted as the between 
-# individual effect.
-mod_eggv_poly <-
+mod_egg_volume <-
   lmer(volume_cm ~ poly(est_age_t_deviation, 2) +
          first_age_t + last_age_t + avg_ad_tarsi + 
          laydate_deviation +
          poly(first_laydate, 2) +
          (1 | ID) + (1 | ring) + (1 | year),
        data = ceuta_egg_chick_female_data)
+```
 
-mod_eggv_I <-
-  lmer(volume_cm ~ est_age_t_deviation + I(est_age_t_deviation^2) +
-         first_age_t + last_age_t + avg_ad_tarsi + 
-         laydate_deviation +
-         first_laydate + #I(first_laydate^2) +
-         (1 | ID) + (1 | ring) + (1 | year),
-       data = ceuta_egg_chick_female_data)
-
-# run tidy bootstrap to obtain model diagnostics
-tidy_mod_eggv <-
-  tidy(mod_eggv_I, conf.int = TRUE, conf.method = "boot", nsim = 1000)
-
-model_parameters(mod_eggv_I)
-random_parameters(mod_eggv_I)
-
-# run rptR to obtain repeatabilities of random effects
-rpt_mod_eggv <-
+*run rptR to obtain repeatabilities of random effects*
+```{r, eval=FALSE}
+rpt_mod_egg_volume <-
   rpt(volume_cm ~ poly(est_age_t_deviation, 2) + first_age_t + last_age_t + 
         avg_ad_tarsi + 
         laydate_deviation + poly(first_laydate, 2) +
@@ -713,11 +686,12 @@ rpt_mod_eggv <-
       datatype = "Gaussian",
       nboot = 1000, npermut = 1000, ratio = TRUE,
       adjusted = TRUE, ncores = 4, parallel = TRUE)
+```
 
-# run partR2 on each model to obtain marginal R2, parameter estimates, and beta
-# weights
-R2m_mod_eggv <-
-  partR2(mod_eggv_poly,
+*run partR2 to obtain marginal R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2m_mod_egg_volume <-
+  partR2(mod_egg_volume,
          partvars = c("poly(est_age_t_deviation, 2)",
                       "first_age_t",
                       "last_age_t",
@@ -728,9 +702,12 @@ R2m_mod_eggv <-
          nboot = 1000,
          CI = 0.95,
          max_level = 1)
+```
 
-R2c_mod_eggv <-
-  partR2(mod_eggv_poly,
+*run partR2 to obtain conditional R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2c_mod_egg_volume <-
+  partR2(mod_egg_volume,
          partvars = c("poly(est_age_t_deviation, 2)",
                       "first_age_t",
                       "last_age_t",
@@ -741,21 +718,389 @@ R2c_mod_eggv <-
          nboot = 1000,
          CI = 0.95,
          max_level = 1)
-
-# save model, tidy, rptR, and partR2 output as a list
-stats_eggv_mod <-
-  list(mod_I = mod_eggv_I,
-       mod_poly = mod_eggv_poly,
-       tidy = tidy_mod_eggv,
-       rptR = rpt_mod_eggv,
-       partR2m = R2m_mod_eggv,
-       partR2c = R2c_mod_eggv)
 ```
 
 
-### Table S3
-Sources of egg size variation.
+## Modelling polyandry potential
+Our sample for studying seasonal polyandry dynamics included 426 females for which the identity of their mates had been verified through observation. We defined observed polyandry as a binomial variable that scored an individual as being monogamous or polyandrous each year based on our observations of them having one or multiple breeding partners, respectively (see Fig. 2 for an example of the sampling distribution). By definition, all polyandrous cases bred at least twice within a season, but also 12.4% of monogamous females were observed breeding more than once. Monogamous females remained with the same partner for another breeding attempt only after their initial attempt had failed. To assess the relationship between the likelihood of polyandry and lay date and age, we fitted a binomial linear mixed effects model that tested the likelihood of polyandry predicted by the fixed effects of lay date (i.e., of an individual's first nest of the season), age-deviance (see above), and first observed age. We included individual and year as random effects.
+
+### *R workflow*
+
+*wrangle data to include first nests only*
 ```{r}
+first_nests_data <-
+  ceuta_egg_chick_female_data %>%
+  dplyr::filter(nest_order == 1) %>% 
+  dplyr::select(polyandry, year, ring, first_laydate, n_nests, ID,
+                est_age_t_deviation, first_age_t, last_age_t) %>%
+  distinct() %>%
+  mutate(polyandry = as.factor(polyandry)) %>%
+  mutate(poly = ifelse(polyandry == "poly", 1, 0),
+         mono = ifelse(polyandry == "mono", 1, 0))
+```
+
+*view dataset used in model*
+```{r, echo=FALSE}
+first_nests_data %>% 
+  datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
+```
+
+*liner mixed effect model of polyandry potential*
+```{r, eval=FALSE}
+mod_polyandry <-
+  lme4::glmer(cbind(poly, mono) ~ first_laydate + est_age_t_deviation + first_age_t +
+              (1|ring) + (1|year),
+            data = first_nests_data, family = "binomial")
+```
+
+*run rptR to obtain repeatabilities of random effects*
+```{r, eval=FALSE}
+rpt_mod_polyandry <-
+  rptR::rpt(poly ~ first_laydate + est_age_t_deviation + first_age_t + 
+              (1|ring) + (1|year),
+            grname = c("ring", "year", "Fixed"),
+            data = first_nests_data,
+            datatype = "Binary",
+            nboot = 1000, npermut = 1000, ratio = TRUE,
+            adjusted = TRUE, ncores = 4, parallel = TRUE)
+```
+
+*run partR2 to obtain marginal R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2m_mod_polyandry <-
+  partR2::partR2(mod_polyandry,
+                 partvars = c("first_laydate", 
+                              "est_age_t_deviation",
+                              "first_age_t"),
+                 R2_type = "marginal",
+                 nboot = 1000, CI = 0.95, max_level = 1)
+```
+
+*run partR2 to obtain conditional R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2c_mod_polyandry <-
+  partR2::partR2(mod_polyandry,
+                 partvars = c("first_laydate", 
+                              "est_age_t_deviation",
+                              "first_age_t"),
+                 R2_type = "conditional",
+                 nboot = 1000, CI = 0.95, max_level = 1)
+```
+
+
+## Modelling re-nesting potential
+Our sample for studying seasonal re-nesting dynamics included 177 females for which the fate of their initial nest had been verified as a failure. We defined re-nesting as a binomial variable that scored an individual as being a re-nester or a single-nester each year based on our observations of them attempting to re-nest after the loss of their first clutch or not, respectively. Almost all cases of re-nesting are monogamous in this population (92.4%; see Fig. 2 for an example of the sampling distribution). To assess the relationship between the likelihood of re-nesting and lay date, we fitted a binomial linear mixed effects model that tested the likelihood of re-nesting predicted by the fixed effect of lay date (i.e., of an individual's first nest of the season). We included individual and year as random effects.
+
+### *R workflow*
+
+*wrangle data to only include first nests that failed*
+```{r}
+renesting_data <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::filter(nest_order == 1) %>% 
+  select(ID, ring, year, nest_1_fate, first_laydate, n_mates, n_nests, polyandry, multiclutch) %>% 
+  distinct() %>% 
+  filter(nest_1_fate != "Hatch" & nest_1_fate != "Unknown") %>% 
+  mutate(multiclutch = as.factor(multiclutch)) %>%
+  mutate(multi = ifelse(multiclutch == "multi", 1, 0),
+         single = ifelse(multiclutch == "single", 1, 0))
+```
+
+*view dataset used in model*
+```{r, echo=FALSE}
+renesting_data %>% 
+  datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
+```
+
+*liner mixed effect model of re-nesting potential*
+```{r, eval=FALSE}
+mod_renesting <-
+  glmer(cbind(multi, single) ~ first_laydate +
+          (1|ring) + (1|year),
+        data = renesting_data, family = "binomial")
+```
+
+*run rptR to obtain repeatabilities of random effects*
+```{r, eval=FALSE}
+rpt_renesting <-
+  rpt(multi ~ first_laydate +
+        (1|ring) + (1|year),
+      grname = c("ring", "year", "Fixed"),
+      data = renesting_data,
+      datatype = "Binary",
+      nboot = 1000, npermut = 1000, ratio = TRUE,
+      adjusted = TRUE, ncores = 4, parallel = TRUE)
+```
+
+*run partR2 to obtain marginal R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2m_renesting <-
+  partR2(mod_renesting,
+         partvars = c("first_laydate"),
+         R2_type = "marginal",
+         nboot = 1000, CI = 0.95, max_level = 1)
+```
+
+*run partR2 to obtain conditional R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2c_renesting <-
+  partR2(mod_renesting,
+         partvars = c("first_laydate"),
+         R2_type = "conditional",
+         nboot = 1000, CI = 0.95, max_level = 1)
+```
+
+## Modelling lay date variation
+Modelling the age effects of first nest lay date followed the same logic as the above egg volume model, with a univariate mixed-effect structure that included age-deviance, age-deviance-squared, first observed age, last observed age, and average tarsus length as fixed covariates, and individual and year as random intercepts. Furthermore, recruitment status was also fitted as a two-level fixed effect describing if a breeding female hatched locally ("local recruit") or was first encountered as an adult of unknown origin ("immigrant"). Our sample for studying lay date dynamics used the same nest-level sample as the polyandry model above, however, as we were interested in how the recruitment status of an individual influenced breeding phenology, we excluded data from 2006 as this was the first year of our study when all birds were first individually marked. This resulted in 568 nests from 376 females. We visualized the distribution of lay dates to confirm normality and to assess the population-level variance in breeding schedule – an indication of inter-female breeding asynchrony and the intensity of contest competition for mates (Andersson, 2004).
+
+### *R workflow*
+
+*wrangle data to only include first nests from all years except 2006*
+```{r}
+first_nests_post_2006_data <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::filter(nest_order == 1 & year != "2006") %>% 
+  dplyr::select(ring, ID, first_laydate, est_age_t_deviation, year,
+                first_age_t, last_age_t, n_years_obs, avg_ad_tarsi,
+                age_first_cap, est_age_t) %>% 
+  distinct()
+```
+
+*view dataset used in model*
+```{r, echo=FALSE}
+first_nests_post_2006_data %>% 
+  datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
+```
+
+*liner mixed effect model of lay date*
+```{r, eval=FALSE}
+mod_laydate <-
+  lmer(first_laydate ~ poly(est_age_t_deviation, 2) + 
+         first_age_t + last_age_t + avg_ad_tarsi + age_first_cap +
+         (1|ring) + (1|year),
+       data = first_nests_post_2006_data)
+```
+
+*run rptR to obtain repeatabilities of random effects*
+```{r, eval=FALSE}
+rpt_mod_laydate <-
+  rpt(first_laydate ~ poly(est_age_t_deviation, 2) +
+        first_age_t + last_age_t + avg_ad_tarsi + age_first_cap +
+        (1|ring) + (1|year),
+      grname = c("ring", "year", "Fixed"),
+      data = first_nests_post_2006_data,
+      datatype = "Gaussian",
+      nboot = 1000, npermut = 1000, ratio = TRUE,
+      adjusted = TRUE, ncores = 4, parallel = TRUE)
+```
+
+*run partR2 to obtain marginal R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2m_mod_laydate <-
+  partR2(mod_laydate,
+         partvars = c("poly(est_age_t_deviation, 2)",
+                      "first_age_t",
+                      "last_age_t",
+                      "poly(first_laydate, 2)",
+                      "laydate_deviation",
+                      "avg_ad_tarsi"),
+         R2_type = "marginal",
+         nboot = 1000,
+         CI = 0.95,
+         max_level = 1)
+```
+
+*run partR2 to obtain conditional R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2c_mod_laydate <-
+  partR2(mod_laydate,
+         partvars = c("poly(est_age_t_deviation, 2)",
+                      "first_age_t",
+                      "last_age_t",
+                      "poly(first_laydate, 2)",
+                      "laydate_deviation",
+                      "avg_ad_tarsi"),
+         R2_type = "conditional",
+         nboot = 1000,
+         CI = 0.95,
+         max_level = 1)
+```
+
+## Evaluating uncertainty
+We used the 'lme4' (Bates et al., 2015), 'rptR' (Stoffel et al., 2017) and 'partR2' (Stoffel et al., 2020) packages in R version *Bunny-Wunnies Freak Out* (R Core Team, 2020) to conduct our statistical modelling and assessed homoscedasticity by visually examining the residuals (see Fig. S4). For each of the four mixed-effect models described above, we evaluated uncertainty in our parameter estimates by simulating 1000 parametric bootstraps via the 'partR2::partR2' function (Stoffel et al., 2020). Likewise we derived nest-, individual-, and year-level repeatabilities (i.e., intra-class correlations) by simulating 1000 parametric bootstraps of the four mixed-effect models using 'rptR::rpt'. We report fixed effects as standardized regression coefficients (i.e., beta weights) and repeatability as the 'adjusted repeatability' – interpreted as the repeatability of a given hierarchical group after controlling for fixed effects (Nakagawa & Schielzeth, 2010). 
+
+To ensure that intercepts of our age-dependent models represented the reproductive performance for the earliest age at reproduction (i.e., age 1 in snowy plovers, Page et al., 2009), we fitted age as $age-1$ – otherwise it would represent reproduction as age 0, which is an empirically meaningless estimate. For the *Egg volume model* and *Lay date model* we ran an additional simulation that acknowledged uncertainty in the BaSTA age estimate of a given individual: we bootstrapped each model 1000 times, with every iteration randomly drawing a birth year estimate for unknown aged individuals from their posterior distributions provided by BaSTA. For both simulations, we evaluated the influence of birth year uncertainty by examining the effect size distribution of the 1000 bootstraps in relation to the 95% confidence interval for effect sizes of the original model that used the median birth year estimate from BaSTA. 
+
+### *R workflow*
+
+*Function to randomly draw an age estimate from the BaSTA posteriors, run the age-dependent mixed models, and store the results*
+```{r, eval=FALSE}
+BaSTA_est_age_boot <- 
+  function(nreps = 1000, df = ceuta_egg_chick_female_data){
+  
+  ceuta_egg_chick_female_data_skew <- 
+    ceuta_egg_chick_female_data %>% 
+    mutate(est_age_lower = round(est_age_lower),
+           est_age_upper = round(est_age_upper),
+           est_age = round(est_age)) %>% 
+    dplyr::select(ring, est_age_t, est_age, est_age_lower, est_age_upper, age_first_cap) %>% 
+    distinct() %>% 
+    arrange(ring, est_age) %>% 
+    group_by(ring) %>% 
+    slice(1) %>% 
+    mutate(upper_skew = est_age - round(est_age_upper),
+           lower_skew = est_age - round(est_age_lower))
+  
+  # storage matrices for the predicted values and model statistics
+  mod_eggv_boot_age_dev_fits_storage_matrix <- matrix(numeric(13*nreps), nreps)
+  mod_eggv_boot_first_age_fits_storage_matrix <- matrix(numeric(8*nreps), nreps)
+  mod_eggv_boot_last_age_fits_storage_matrix <- matrix(numeric(13*nreps), nreps)
+  mod_eggv_boot_coef_storage_matrix <- matrix(numeric(9*nreps), nreps)
+  
+  mod_laydate_boot_age_dev_fits_storage_matrix <- matrix(numeric(13*nreps), nreps)
+  mod_laydate_boot_first_age_fits_storage_matrix <- matrix(numeric(8*nreps), nreps)
+  mod_laydate_boot_last_age_fits_storage_matrix <- matrix(numeric(13*nreps), nreps)
+  mod_laydate_boot_coef_storage_matrix <- matrix(numeric(7*nreps), nreps)
+
+  # the bootstrap for-loop
+  for (i in 1:nreps) {
+    
+    # sample a random age for each individual based on their BaSTA posterior
+    # distribution (i.e., draw an age value from a skewed normal distribution 
+    # estimated from the mean and 95% confidence limits provided by BaSTA)
+    ceuta_egg_chick_female_data_boot <- 
+      ceuta_egg_chick_female_data_skew %>% 
+      mutate(skew = -(upper_skew - lower_skew)) %>% 
+      mutate(rand_age = ceiling(fGarch::rsnorm(n = 1, 
+                                               mean = est_age, 
+                                               sd = 2, 
+                                               xi = skew))) %>% 
+      mutate(rand_age = ifelse(age_first_cap == "J", est_age, 
+                               ifelse(rand_age > est_age_upper, est_age_upper,
+                                      ifelse(rand_age < 1, est_age_lower, rand_age)))) %>% 
+      mutate(rand_diff = rand_age - est_age) %>% 
+      dplyr::select(ring, rand_diff) %>% 
+      left_join(dplyr::select(ceuta_egg_chick_female_data,
+                              ring, ID, year, volume_cm, est_age_t, first_age_t,
+                              last_age_t, age_first_cap, first_laydate, 
+                              n_years_obs, nest_order, avg_ad_tarsi,
+                              laydate_deviation), ., 
+                by = "ring") %>% 
+      mutate(boot_est_age_t = est_age_t + rand_diff,
+             boot_firstage_t = first_age_t + rand_diff,
+             boot_lastage_t = last_age_t + rand_diff) %>% 
+      arrange(age_first_cap, ring, ID) %>% 
+      mutate(boot_est_age_t_deviation = boot_est_age_t - boot_firstage_t)
+    
+    first_nests_age_data_boot <-
+      ceuta_egg_chick_female_data_boot %>% 
+      dplyr::select(ring, ID, first_laydate, boot_est_age_t_deviation, year,
+                    boot_firstage_t, boot_lastage_t, n_years_obs, avg_ad_tarsi,
+                    age_first_cap, nest_order, est_age_t) %>% 
+      distinct() %>% 
+      dplyr::filter(!is.na(boot_est_age_t_deviation) & 
+                      nest_order == 1 &
+                      year != "2006")
+    
+    mod_eggv_poly_age_boot <-
+      lmer(volume_cm ~ poly(boot_est_age_t_deviation,2) +
+             boot_firstage_t + boot_lastage_t + avg_ad_tarsi + 
+             laydate_deviation +
+             poly(first_laydate, 2) +
+             (1 | ID) + (1 | ring) + (1 | year),
+           data = ceuta_egg_chick_female_data_boot)
+    
+    mod_laydate_poly_age_boot <-
+      lmer(first_laydate ~ poly(boot_est_age_t_deviation, 2) + 
+             boot_firstage_t + boot_lastage_t + avg_ad_tarsi + age_first_cap +
+             (1|ring) + (1|year),
+           data = first_nests_age_data_boot)
+    
+    # extract fitted values
+    mod_eggv_boot_age_dev_fits <- 
+      as.data.frame(effect("poly(boot_est_age_t_deviation,2)", mod_eggv_poly_age_boot, 
+                           xlevels = list(boot_est_age_t_deviation = 0:max(ceuta_egg_chick_female_data$est_age_t_deviation))))
+    
+    mod_eggv_boot_first_age_fits <- 
+      as.data.frame(effect("boot_firstage_t", mod_eggv_poly_age_boot, 
+                           xlevels = list(boot_firstage_t = c(min(ceuta_egg_chick_female_data$first_age_t):max(ceuta_egg_chick_female_data$first_age_t)))))
+    
+    mod_eggv_boot_last_age_fits <- 
+      as.data.frame(effect("boot_lastage_t", mod_eggv_poly_age_boot, 
+                           xlevels = list(boot_lastage_t = c(min(ceuta_egg_chick_female_data$last_age_t):max(ceuta_egg_chick_female_data$last_age_t)))))
+    
+    
+    mod_laydate_boot_age_dev_fits <- 
+      as.data.frame(effect("poly(boot_est_age_t_deviation,2)", mod_laydate_poly_age_boot, 
+                           xlevels = list(boot_est_age_t_deviation = 0:max(ceuta_egg_chick_female_data$est_age_t_deviation))))
+    
+    mod_laydate_boot_first_age_fits <- 
+      as.data.frame(effect("boot_firstage_t", mod_laydate_poly_age_boot, 
+                           xlevels = list(boot_firstage_t = c(min(ceuta_egg_chick_female_data$first_age_t):max(ceuta_egg_chick_female_data$first_age_t)))))
+    
+    mod_laydate_boot_last_age_fits <- 
+      as.data.frame(effect("boot_lastage_t", mod_laydate_poly_age_boot, 
+                           xlevels = list(boot_lastage_t = c(min(ceuta_egg_chick_female_data$last_age_t):max(ceuta_egg_chick_female_data$last_age_t)))))
+    
+    # store results
+    mod_eggv_boot_age_dev_fits_storage_matrix[i, ] <- mod_eggv_boot_age_dev_fits$fit
+    mod_eggv_boot_first_age_fits_storage_matrix[i, ] <- mod_eggv_boot_first_age_fits$fit
+    mod_eggv_boot_last_age_fits_storage_matrix[i, ] <- mod_eggv_boot_last_age_fits$fit
+    
+    mod_eggv_boot_coef_storage_matrix[i,1] <- summary(mod_eggv_poly_age_boot)$coefficients[1,1]
+    mod_eggv_boot_coef_storage_matrix[i,2] <- summary(mod_eggv_poly_age_boot)$coefficients[2,1]
+    mod_eggv_boot_coef_storage_matrix[i,3] <- summary(mod_eggv_poly_age_boot)$coefficients[3,1]
+    mod_eggv_boot_coef_storage_matrix[i,4] <- summary(mod_eggv_poly_age_boot)$coefficients[4,1]
+    mod_eggv_boot_coef_storage_matrix[i,5] <- summary(mod_eggv_poly_age_boot)$coefficients[5,1]
+    mod_eggv_boot_coef_storage_matrix[i,6] <- summary(mod_eggv_poly_age_boot)$coefficients[6,1]
+    mod_eggv_boot_coef_storage_matrix[i,7] <- summary(mod_eggv_poly_age_boot)$coefficients[7,1]
+    mod_eggv_boot_coef_storage_matrix[i,8] <- summary(mod_eggv_poly_age_boot)$coefficients[8,1]
+    mod_eggv_boot_coef_storage_matrix[i,9] <- summary(mod_eggv_poly_age_boot)$coefficients[9,1]
+    
+    mod_laydate_boot_age_dev_fits_storage_matrix[i, ] <- mod_laydate_boot_age_dev_fits$fit
+    mod_laydate_boot_first_age_fits_storage_matrix[i, ] <- mod_laydate_boot_first_age_fits$fit
+    mod_laydate_boot_last_age_fits_storage_matrix[i, ] <- mod_laydate_boot_last_age_fits$fit
+    
+    mod_laydate_boot_coef_storage_matrix[i,1] <- summary(mod_laydate_poly_age_boot)$coefficients[1,1]
+    mod_laydate_boot_coef_storage_matrix[i,2] <- summary(mod_laydate_poly_age_boot)$coefficients[2,1]
+    mod_laydate_boot_coef_storage_matrix[i,3] <- summary(mod_laydate_poly_age_boot)$coefficients[3,1]
+    mod_laydate_boot_coef_storage_matrix[i,4] <- summary(mod_laydate_poly_age_boot)$coefficients[4,1]
+    mod_laydate_boot_coef_storage_matrix[i,5] <- summary(mod_laydate_poly_age_boot)$coefficients[5,1]
+    mod_laydate_boot_coef_storage_matrix[i,6] <- summary(mod_laydate_poly_age_boot)$coefficients[6,1]
+    mod_laydate_boot_coef_storage_matrix[i,7] <- summary(mod_laydate_poly_age_boot)$coefficients[7,1]
+    
+  }
+  
+  # save as a list
+  results_list <-
+    list(mod_eggv_boot_age_dev_fits = mod_eggv_boot_age_dev_fits_storage_matrix,
+         mod_eggv_boot_first_age_fits = mod_eggv_boot_first_age_fits_storage_matrix,
+         mod_eggv_boot_last_age_fits = mod_eggv_boot_last_age_fits_storage_matrix,
+         mod_eggv_boot_coefs = mod_eggv_boot_coef_storage_matrix,
+           
+         mod_laydate_boot_age_dev_fits = mod_laydate_boot_age_dev_fits_storage_matrix,
+         mod_laydate_boot_first_age_fits = mod_laydate_boot_first_age_fits_storage_matrix,
+         mod_laydate_boot_last_age_fits = mod_laydate_boot_last_age_fits_storage_matrix,
+         mod_laydate_boot_coefs = mod_laydate_boot_coef_storage_matrix)
+  
+}
+
+set.seed(14)
+
+# run the bootstrap
+est_age_boot_out <-
+  BaSTA_est_age_boot(nreps = 1000, df = ceuta_egg_chick_female_data)
+```
+
+# RESULTS
+Over 14 breeding seasons, we collected measurements from 2392 eggs, originating from 841 clutches of 426 females. Modal clutch size was 3 eggs (724 nests, 86.1%; 2-eggs: 103 nests, 12.3%, 1-egg: 14 nests, 1.6%). Average egg length was 3.09 cm (0.10 cm SD, Fig. S1a) and width was 2.24 cm (0.05 cm SD, Fig. S1b), which translated into an average egg volume of 7.59 cm3 (0.46 cm3 SD). The average egg volume of a clutch strongly predicted the average hatch weight of the subsequent brood (β [95% CIs]: 0.63 [0.55–0.70]; R2marginal = 0.370 [0.310–0.436]; Figs. S1c and S3, Table S2, see Appendix S2 for methods). Based on BaSTA's estimated birth year, 185 of the 383 unknown-age females in our sample were first observed nesting at age 1 (48.3%), 120 at age two (31.3%), 72 at age three (18.8%), five at age 4 (1.3%), and one at age 5 (0.3%). Of the 43 locally hatched females in our sample, 29 first nested at age one (67.4%), six were first observed nesting at age two (14.0%), two at age 3 (4.7%), three at age 4 (7.0%), three at ages 5, 7, and 8, respectively (7.0%). The average tenure of all females in the sample was 1.57 years (2.15 SD) with an average age span of 3.12 years (2.03 SD, median: 3, range: 1–14 years) and an average of 1.56 years of observed ages per female (1.04 SD, median: 1, range: 1–8 age-specific observations). Females in our sample were typically observed nesting every consecutive year since their first observation, however, some individuals skipped years (Fig. 2, average yearly interval between nesting attempts = 1.07, 0.27 SD). On average, females made 1.43 (0.56 SD) nesting attempts per season (median = 1, range 1 to 3).
+
+## Individual variation in egg volume
+Overall, mixed effects accounted for 71.2% ([68.2, 74.3] 95%CIs) of variation in egg volume, with fixed effects explaining 7.9% ([5.1, 12.3] 95%CIs) of this variation (Table S3). Females were highly repeatable in their egg volumes between clutches: r = 0.47 ([0.41, 0.53] 95%CIs; Fig. 3, Table S3). Furthermore, eggs within the same clutch were moderately repeatable in volume (r = 0.18 [0.14, 0.22]; Fig. 3, Table S3). Senescence in egg volume was not supported (βage [95% CIs]: 0.00 [-0.06, 0.6], βage2: -0.05 [-0.09, -0.01]; semi-partial R2 of senescence function = 0.003 [0, 0.05]; Fig. 3, Table S3). Furthermore, we found no support for selective (dis)appearance of individuals according to egg volume, as the 95% CIs for first and last observed ages of reproduction overlapped zero (Fig. 3, Table S3). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8a–c) confirmed these results. The strongest fixed effect explaining egg volume variation was the structural size of the mother (βtarsus [95% CI]: 0.23 [0.15, 0.29]; semi-partial R2 of female tarsus = 0.05 [0.02, 0.09]; Figs. S3 and S7b): larger females laid larger eggs than smaller females (model predicted difference: 0.58 cm3 [0.34, 0.81] 95%CI). The second strongest effect was the between-individual quadratic season function (Fig. 4c): eggs were smallest at the start of the season (model prediction: 7.18 cm3 [6.98, 7.37] 95%CI) and largest shortly after the middle of the season (model prediction: 7.68 cm3 [7.60, 7.76] 95%CI). Average egg volume also increased between sequential clutches within individuals but with smaller magnitude than the population-level trend (βwithin [ 95%CI]: 0.10 [0.06, 0.14], predicted increase of 0.21 cm3 [0.04, 0.38]; Fig. 3).
+
+### *Table S3*
+<font size = "2">Sources of egg size variation.</font>
+```{r, echo=FALSE}
 #### Results and data----
 load("output/stats_eggv_mod.rds")
 
@@ -916,88 +1261,2363 @@ eggv_mod_table <-
               table.width = pct(60))
 ```
 
-```{r, include=FALSE}
+```{r, echo=FALSE, fig.align='left'}
 eggv_mod_table
 ```
 
-### Figure 3
-Sources of egg volume (left) and lay date (right) variation. Top row: standardized effect sizes (± 95% CI) of fixed effects. Middle row: variance explained by fixed effects (note: the term ‘Senescence’ describes the collective variation explained by the linear and quadratic within-individual age effects in the top row; the term ‘Selective appearance’ and ‘Selective disappearance’ describe the variation explained by the between individual first- and last-breeding age fixed effects of the top row, respectively; the term ‘Within ind. seasonality’ describes the variation explained by the within individual lay date effect in the top row, and the term ‘Between ind. seasonality’ describes the collective variation explained by the linear and quadratic lay date effects in the top row).
-```{r}
+### *Figure 3*
+<font size = "2">Sources of egg volume. Top row: standardized effect sizes (± 95% CI) of fixed effects. Middle row: variance explained by fixed effects (note: the term 'Senescence' describes the collective variation explained by the linear and quadratic within-individual age effects in the top row; the term 'Selective appearance' and 'Selective disappearance' describe the variation explained by the between individual first- and last-breeding age fixed effects of the top row, respectively; the term 'Within ind. seasonality' describes the variation explained by the within individual lay date effect in the top row, and the term 'Between ind. seasonality' describes the collective variation explained by the linear and quadratic lay date effects in the top row).</font>
+```{r, echo=FALSE, fig.dim=c(6,7.5)}
+# Standardized fixed effects
+eggv_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Between ind. quadratic lay date", 
+                                 "Between ind. linear lay date", 
+                                 "Within ind. lay date",
+                                 "Between ind. last breeding age", "Between ind. first breeding age", 
+                                 "Within ind. quadratic age", "Within ind. linear age",
+                                 "Mother tarsus length")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10, hjust = 0),
+        plot.title = element_text(face = 'italic', hjust = 0.5)) +
+  ylab("Fixed effects") +
+  xlab(expression(italic(paste("              Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
 
+# Semi-partial R2 estimates
+eggv_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Between ind. seasonality",
+                                 "Within ind. seasonality",
+                                 "Selective disappearance",
+                                 "Selective appearance",
+                                 "Senescence",
+                                 "Mother tarsus length",
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10, hjust = 0)) +
+  scale_y_discrete(labels = c("Between ind. seasonality" = expression("Between ind. seasonality"),
+                              "Within ind. seasonality" = expression("Within ind. seasonality"),
+                              "Selective disappearance" = expression("Selective disappearance"),
+                              "Selective appearance" = expression("Selective appearance"),
+                              "Senescence" = expression("Senescence"),
+                              "Mother tarsus length" = expression("Mother tarsus length"),
+                              "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("               Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Random effect variances
+eggv_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual",
+                                 "Nest / Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10, hjust = 0)) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Adjusted repeatabilities
+eggv_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "repeat")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual",
+                                 "Nest / Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10, hjust = 0)) +
+  ylab("Intra-class\ncorrelation") +
+  xlab(expression(italic(paste("              Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
+
+eggv_mod_forest_plot_combo <-
+  (eggv_mod_forest_plot_fixef / eggv_mod_forest_plot_partR2 / 
+     eggv_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A', title = 'Egg volume model', 
+                  theme = theme(plot.title = element_text(face = 'italic', hjust = 0.2))) +
+  plot_layout(heights = unit(c(4.5, 4, 
+                               2.5), c('cm', 'cm', 
+                                       'cm')))
+
+eggv_mod_forest_plot_combo
 ```
 
-### Figure S7
-Relationship between a female’s structural size (i.e., her tarsus length) and A) the lay date of her first nest of the season, and B) the volume of her eggs.
-```{r}
+### *Figure S7*
+<font size = "2">Relationship between a female's structural size (i.e., her tarsus length) and the volume of her eggs.</font>
+```{r, echo=FALSE,fig.dim=c(4,4), fig.align='left'}
+#### Trend plot of egg volume over tarsus ----
+# extract fitted values
+eggv_mod_tarsus_fits <- 
+  as.data.frame(effect(term = "avg_ad_tarsi", mod = stats_eggv_mod$mod_poly, 
+                       xlevels = list(avg_ad_tarsi = seq(min(ceuta_egg_chick_female_data$avg_ad_tarsi, na.rm = TRUE), 
+                                                         max(ceuta_egg_chick_female_data$avg_ad_tarsi, na.rm = TRUE), 0.5))))
 
+# summary of fitted trend
+eggv_mod_tarsus_fits_summary <- 
+  eggv_mod_tarsus_fits %>% 
+  summarise(min_eggv_fit = min(fit),
+            max_eggv_fit = max(fit),
+            min_eggv_tarsus = avg_ad_tarsi[which.min(fit)],
+            max_eggv_tarsus = avg_ad_tarsi[which.max(fit)],
+            min_eggv_lower = lower[which.min(fit)],
+            min_eggv_upper = upper[which.min(fit)],
+            max_eggv_lower = lower[which.max(fit)],
+            max_eggv_upper = upper[which.max(fit)]) %>% 
+  mutate(diff = max_eggv_fit - min_eggv_fit,
+         diff_upper = max_eggv_upper - min_eggv_lower,
+         diff_lower = max_eggv_lower - min_eggv_upper) 
+
+# plot fitted values and raw data
+eggv_tarsus_trend_plot <- 
+  ggplot() +
+  luke_theme +
+  theme(panel.border = element_blank()) +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = avg_ad_tarsi, y = volume_cm),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_line(data = eggv_mod_tarsus_fits, aes(x = avg_ad_tarsi, y = fit),
+            lwd = 0.5) +
+  geom_ribbon(data = eggv_mod_tarsus_fits,
+              aes(x = avg_ad_tarsi, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
+  xlab("Mother tarsus length (mm)") +
+  scale_x_continuous(limits = c(22, 27))
+
+eggv_tarsus_trend_plot
 ```
 
-### Figure S8
-Visualization of the effect of uncertainty in the age estimate provided by BaSTA on age-dependent trends in egg volume (top row) and lay date (bottom row) dynamics. Black trends show the model predictions for the 1000 bootstraps of the BaSTA age estimate posteriors (see Methods). Panels A and D show the within-individual trends of the ‘age-deviation’ score – as expected, these measures are not impacted by uncertainty in the BaSTA age estimate because they are centered for each individual (i.e., the absolute age is irrelevant). Panels B and E show the between-individual trend of the ‘age at first breeding’ (i.e., selective appearance), and panels C and F show the between-individual trend of the ‘age at last breeding’ (i.e., selective disappearance). Yellow trends and grey ribbons visualize the 95% CI of the model predictions when using the mean age estimate provided by BaSTA (i.e., the effect sizes of the ‘egg volume’ and ‘lay date’ models shown in Fig. 3).
-```{r}
+### *Figure S8*
+<font size = "2">Visualization of the effect of uncertainty in the age estimate provided by BaSTA on age-dependent trends in egg volume dynamics. Black trends show the model predictions for the 1000 bootstraps of the BaSTA age estimate posteriors (see Methods). Panels A and D show the within-individual trends of the 'age-deviation' score – as expected, these measures are not impacted by uncertainty in the BaSTA age estimate because they are centered for each individual (i.e., the absolute age is irrelevant). Panels B and E show the between-individual trend of the 'age at first breeding' (i.e., selective appearance), and panels C and F show the between-individual trend of the 'age at last breeding' (i.e., selective disappearance). Yellow trends and grey ribbons visualize the 95% CI of the model predictions when using the mean age estimate provided by BaSTA (i.e., the effect sizes of the 'egg volume' model shown in Fig. 3).</font>
+```{r, echo=FALSE,fig.dim=c(8,4)}
+load("output/age_estimate_uncertainty_bootstraps.rds")
 
+#### Egg volume ----
+mod_eggv_poly <-
+  lmer(volume_cm ~ poly(est_age_t_deviation, 2) +
+         first_age_t + last_age_t + avg_ad_tarsi + 
+         laydate_deviation +
+         poly(first_laydate, 2) +
+         (1 | ID) + (1 | ring) + (1 | year),
+       data = ceuta_egg_chick_female_data)
+
+# Uncertainty in estimate of first age at breeding on between individual variation in egg volume
+eggv_first_age_boot_out_melt <- melt(t(est_age_boot_out[["mod_eggv_boot_first_age_fits"]]))
+colnames(eggv_first_age_boot_out_melt) <- c("first_age", "iteration", "volume_cm")
+
+eggv_mod_first_age_fits <- 
+  as.data.frame(effect(term = "first_age_t", mod = mod_eggv_poly, 
+                       xlevels = list(first_age_t = seq(min(ceuta_egg_chick_female_data$first_age_t, na.rm = TRUE), 
+                                                        max(ceuta_egg_chick_female_data$first_age_t, na.rm = TRUE), 1))))
+
+boot_eggv_first_age_plot <- 
+  ggplot() +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = first_age_t + 1, y = volume_cm),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_ribbon(data = eggv_mod_first_age_fits, 
+              aes(x = first_age_t + 1, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  geom_line(data = eggv_first_age_boot_out_melt,
+            aes(x = as.numeric(first_age), y = volume_cm, group = iteration),
+            lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = eggv_mod_first_age_fits, aes(x = first_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        # axis.title.x = element_blank(),
+        # axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ylab(expression(paste("Egg volume (cm", ''^{3}, ")", sep = ""))) +
+  xlab("Estimated age at first\nlocal breeding attempt") +
+  scale_x_continuous(limits = c(0.5, max(ceuta_egg_chick_female_data$first_age_t) + 1.5), 
+                     breaks = c(1:(max(ceuta_egg_chick_female_data$first_age_t) + 1)))
+                     
+# Uncertainty in estimate of last age at breeding on between individual variation in egg volume
+eggv_last_age_boot_out_melt <- melt(t(est_age_boot_out[["mod_eggv_boot_last_age_fits"]]))
+colnames(eggv_last_age_boot_out_melt) <- c("last_age", "iteration", "volume_cm")
+
+eggv_mod_last_age_fits <- 
+  as.data.frame(effect(term = "last_age_t", mod = mod_eggv_poly, 
+                       xlevels = list(last_age_t = seq(min(ceuta_egg_chick_female_data$last_age_t, na.rm = TRUE), 
+                                                        max(ceuta_egg_chick_female_data$last_age_t, na.rm = TRUE), 1))))
+
+boot_eggv_last_age_plot <- 
+  ggplot() +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = last_age_t + 1, y = volume_cm),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_ribbon(data = eggv_mod_last_age_fits, 
+              aes(x = last_age_t + 1, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  geom_line(data = eggv_last_age_boot_out_melt,
+            aes(x = as.numeric(last_age), y = volume_cm, group = iteration),
+            lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = eggv_mod_last_age_fits, aes(x = last_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        # axis.title.x = element_blank(),
+        # axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ylab(expression(paste("Egg volume (cm", ''^{3}, ")", sep = ""))) +
+  xlab("Estimated age at last\nlocal breeding attempt") +
+  scale_x_continuous(limits = c(0.5, max(ceuta_egg_chick_female_data$last_age_t) + 1.5), 
+                     breaks = seq(1, (max(ceuta_egg_chick_female_data$last_age_t) + 1), 2))
+
+# Uncertainty in estimate of age on within individual variation in egg volume
+eggv_age_dev_boot_out_melt <- melt(t(est_age_boot_out[["mod_eggv_boot_age_dev_fits"]]))
+colnames(eggv_age_dev_boot_out_melt) <- c("est_age_t_deviation", "iteration", "volume_cm")
+
+eggv_mod_age_dev_fits <- 
+  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = mod_eggv_poly, 
+                       xlevels = list(est_age_t_deviation = seq(min(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 
+                                                                max(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 1))))
+
+boot_eggv_age_dev_plot <- 
+  ggplot() +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = est_age_t_deviation, y = volume_cm),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_ribbon(data = eggv_mod_age_dev_fits, 
+              aes(x = est_age_t_deviation, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  geom_line(data = eggv_age_dev_boot_out_melt,
+            aes(x = as.numeric(est_age_t_deviation) - 1, y = volume_cm, group = iteration),
+            lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = eggv_mod_age_dev_fits, aes(x = est_age_t_deviation, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        # axis.title.x = element_blank(),
+        # axis.text.x = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ylab(expression(paste("Egg volume (cm", ''^{3}, ")", sep = ""))) +
+  xlab("Years since first local\nbreeding attempt") +
+  scale_x_continuous(limits = c(-0.5, max(ceuta_egg_chick_female_data$est_age_t_deviation) + 0.5), 
+                     breaks = seq(0, (max(ceuta_egg_chick_female_data$est_age_t_deviation)), by = 2))
+
+(boot_eggv_age_dev_plot | boot_eggv_first_age_plot | boot_eggv_last_age_plot)
 ```
 
-### Figure 4
-Phenology of mating system, re-nesting, egg laying, and egg size in 425 female snowy plovers breeding at Bahía de Ceuta. A) Relationship between polyandry potential and lay date of a female’s first nest of the season. Each datum is the lay date of an individual’s first nest and their observed local mating behaviour of each year. B) Lay date distributions of all nests for females that were polyandrous (yellow) or monogamous (green). C) Seasonal variation in egg volume – trend shows the between-individual polynomial function of the model prediction. Each datum is an egg’s volume (cm3) and lay date. D) Lay date distributions of all nests for females that laid replacement clutches (orange) or did not re-nest (purple) following failure of their first nest. E) Relationship between re-nesting potential and lay date of a female’s first nest of the season. As with panel (A), each datum is the lay date of an individual’s first nest and their observed local re-nesting activity of each year. Late date is standardized for each year across all panels.
-```{r}
+### *Figure 4*
+<font size = "2">Phenology of egg laying and egg size in 425 female snowy plovers breeding at Bahía de Ceuta. Seasonal variation in egg volume – trend shows the between-individual polynomial function of the model prediction. Each datum is an egg's volume (cm3) and lay date. Laydate is standardized for each year.</font>
+```{r, echo=FALSE,fig.dim=c(4,4)}
+#### Trend plot of egg volume over season ----
+# extract the fitted values of the polynomial season effect
+eggv_mod_within_fits <- 
+  as.data.frame(effect("laydate_deviation", stats_eggv_mod$mod_poly, 
+                       xlevels = list(laydate_deviation = seq(min(ceuta_egg_chick_female_data$laydate_deviation), 
+                                                          max(ceuta_egg_chick_female_data$laydate_deviation), 1))))
 
+# summary of fitted trend
+eggv_mod_within_fits_summary <- 
+  eggv_mod_within_fits %>% 
+  summarise(min_eggv_fit = min(fit),
+            max_eggv_fit = max(fit),
+            min_eggv_dev = laydate_deviation[which.min(fit)],
+            max_eggv_dev = laydate_deviation[which.max(fit)],
+            min_eggv_lower = lower[which.min(fit)],
+            min_eggv_upper = upper[which.min(fit)],
+            max_eggv_lower = lower[which.max(fit)],
+            max_eggv_upper = upper[which.max(fit)]) %>% 
+  mutate(diff = max_eggv_fit - min_eggv_fit,
+         diff_upper = max_eggv_upper - min_eggv_lower,
+         diff_lower = max_eggv_lower - min_eggv_upper) 
+
+# 7.788539 - 7.575227
+# 7.683123 - 7.509994
+# 7.893956 - 7.64046
+
+# extract the fitted values of the polynomial season effect
+eggv_mod_date_fits <- 
+  as.data.frame(effect("poly(first_laydate, 2)", stats_eggv_mod$mod_poly, 
+                       xlevels = list(first_laydate = seq(min(ceuta_egg_chick_female_data$jul_lay_date_std_num), 
+                                                          max(ceuta_egg_chick_female_data$jul_lay_date_std_num), 1))))
+
+# summary of fitted trend
+eggv_mod_date_fits_summary <- 
+  eggv_mod_date_fits %>% 
+  summarise(min_eggv_fit = min(fit),
+            max_eggv_fit = max(fit),
+            min_eggv_date = first_laydate[which.min(fit)],
+            max_eggv_date = first_laydate[which.max(fit)],
+            min_eggv_lower = lower[which.min(fit)],
+            min_eggv_upper = upper[which.min(fit)],
+            max_eggv_lower = lower[which.max(fit)],
+            max_eggv_upper = upper[which.max(fit)])
+
+# plot the quadratic trend, pre- and post-peak trend, and raw data
+eggv_date_mod_plot <-
+  ggplot() +
+  geom_point(data = ceuta_egg_chick_female_data, alpha = 0.4,
+             aes(x = jul_lay_date_std_num, y = volume_cm),
+             shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_line(data = eggv_mod_date_fits, aes(x = first_laydate, y = fit),
+            lwd = 0.5, colour = "grey20") +
+  geom_ribbon(data = eggv_mod_date_fits, aes(x = first_laydate, 
+                                             ymax = upper, ymin = lower),
+              lwd = 1, fill = "grey20", alpha = 0.25) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey70", size=0.25),
+        axis.ticks.x = element_blank(),
+        # axis.text.x = element_blank(),
+        # axis.title.x = element_blank(),
+        plot.margin = unit(c(0,0,0,0), "cm")) +
+  ylab(expression(paste("Egg volume (cm", ''^{3}, ")" %+-% "95% CI", sep = ""))) +
+  xlab("Standardized lay date") +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  theme(legend.position = "none") +
+  annotate(geom = "text", y = 9, x = -58,
+           label = "Lay dates for all eggs",
+           color = "black", size = 3, fontface = 'italic', hjust = 0)
+
+eggv_date_mod_plot
 ```
 
 ## Seasonal variation in polyandry and re-nesting potential
-In at least one breeding season throughout the observation period, 55 (29.1%) females re-nested following a failed attempt (annual average incidence of re-nesting: 27%, range: 0–58.3%) and 76 (17.9%) females were polyandrous (annual average incidence of polyandry: 11.8%, range: 0–25.6%). A female’s likelihood of being polyandrous was strongly dependent on the lay date of their first nest (β [95% CIs]: -2.25 [-3.12, -1.84]; R2marginal = 0.37 [0.27, 0.50]; Figs. 4a and S4, Table S4). Likewise, a female’s likelihood of re-nesting following a failed attempt was strongly dependent on the initial lay date (β [95% CIs]: -1.77 [-3.15, -1.30]; R2marginal = 0.39 [0.25, 0.58]; Figs. 4e and S5, Table S5). The lay date distribution of polyandrous females was bimodal, with peaks in the first and second nests occurring 11.1 days before and 29.1 days after the unimodal seasonal peak for monogamous females (Fig. 4b). Likewise, the lay date distribution of renesting females was also bimodal, with peaks in the first and replacement clutches occurring 9.7 days before and 28.4 days after the unimodal seasonal peak for single nesters (Fig. 4d). Females had low repeatability in polyandry among years (adjusted individual cross-year repeatability (r [95% CIs] = 0.01 [0, 0.15]; Table S4, Fig. S4) and we found no evidence of age-dependent polyandry (Fig. S4).
+In at least one breeding season throughout the observation period, 55 (29.1%) females re-nested following a failed attempt (annual average incidence of re-nesting: 27%, range: 0–58.3%) and 76 (17.9%) females were polyandrous (annual average incidence of polyandry: 11.8%, range: 0–25.6%). A female's likelihood of being polyandrous was strongly dependent on the lay date of their first nest (β [95% CIs]: -2.25 [-3.12, -1.84]; R2marginal = 0.37 [0.27, 0.50]; Figs. 4a and S4, Table S4). Likewise, a female's likelihood of re-nesting following a failed attempt was strongly dependent on the initial lay date (β [95% CIs]: -1.77 [-3.15, -1.30]; R2marginal = 0.39 [0.25, 0.58]; Figs. 4e and S5, Table S5). The lay date distribution of polyandrous females was bimodal, with peaks in the first and second nests occurring 11.1 days before and 29.1 days after the unimodal seasonal peak for monogamous females (Fig. 4b). Likewise, the lay date distribution of renesting females was also bimodal, with peaks in the first and replacement clutches occurring 9.7 days before and 28.4 days after the unimodal seasonal peak for single nesters (Fig. 4d). Females had low repeatability in polyandry among years (adjusted individual cross-year repeatability (r [95% CIs] = 0.01 [0, 0.15]; Table S4, Fig. S4) and we found no evidence of age-dependent polyandry (Fig. S4).
 
-### Figure S4
-Sources of variation in a female’s probability of being polyandrous each year.
-```{r}
+```{r, include=FALSE}
+# load the saved results
+load("output/stats_polyandry_age_mod.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
+# wrangle data to include only first nests
+first_nests_data <-
+  ceuta_egg_chick_female_data %>%
+  dplyr::filter(nest_order == 1) %>% 
+  dplyr::select(polyandry, year, ring, first_laydate, n_nests, ID) %>%
+  distinct() %>%
+  mutate(polyandry = as.factor(polyandry)) %>%
+  mutate(poly = ifelse(polyandry == "poly", 1, 0),
+         mono = ifelse(polyandry == "mono", 1, 0)) %>%
+  mutate(poly_plot = ifelse(poly == 1, poly + 0.1, poly - 0.1))
+
+set.seed(42)
+
+m1 <- FLXMRglm(family = "gaussian")
+m2 <- FLXMRglm(family = "gaussian")
+
+poly_data <- 
+  ceuta_egg_chick_female_data %>% 
+  dplyr::filter(polyandry == "poly") %>% 
+  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring) %>%
+  distinct()
+
+polyd <- density(poly_data$jul_lay_date_std_num)
+
+polyd_fit <- flexmix(jul_lay_date_std_num ~ 1, data = poly_data, k = 2, model = list(m1, m2))
+poly_peak1 <- modeltools::parameters(polyd_fit, component=1)[[1]]
+poly_peak2 <- modeltools::parameters(polyd_fit, component=2)[[1]]
+
+plot(polyd)
+abline(v=poly_peak1[[1]], lty=2, col='blue')
+abline(v=poly_peak2[[1]], lty=2, col='red')
+
+mono_data <- 
+  ceuta_egg_chick_female_data %>% 
+  dplyr::filter(polyandry == "mono") %>% 
+  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring) %>%
+  distinct()
+
+monod <- density(mono_data$jul_lay_date_std_num)
+
+monod_fit <- flexmix(jul_lay_date_std_num ~ 1, data = mono_data, k = 2, model = list(m1, m2))
+mono_peak1 <- modeltools::parameters(monod_fit, component=1)[[1]]
+mono_peak2 <- modeltools::parameters(monod_fit, component=2)[[1]]
+
+plot(monod)
+abline(v=mono_peak1[[1]], lty=2, col='blue')
+abline(v=mono_peak2[[1]], lty=2, col='red')
+
+poly_peak2[[1]] - mono_peak1[[1]]
+poly_peak1[[1]] - mono_peak1[[1]]
 ```
 
-### Table S4
-Relationship between the lay date of an individual’s first nest and their likelihood of polyandry each year. Fixed effect size of ‘first nest lay date’ is the standardized estimate on the logit scale.
-```{r}
+### *Table S4*
+<font size = "2">Relationship between the lay date of an individual's first nest and their likelihood of polyandry each year. Fixed effect size of 'first nest lay date' is the standardized estimate on the logit scale.</font>
+```{r, echo=FALSE}
+#### Table of effect sizes ----
+# Retrieve sample sizes
+sample_sizes <-
+  first_nests_data %>% 
+  summarise(Year = n_distinct(year),
+            Individual = n_distinct(ring),
+            Nests = n_distinct(ID))
 
+sample_sizes <- 
+  as.data.frame(t(as.data.frame(sample_sizes))) %>%
+  rownames_to_column("term") %>% 
+  rename(estimate = V1) %>% 
+  mutate(stat = "n")
+
+
+# clean model component names
+mod_comp_names <- 
+  data.frame(comp_name = c("First nest lay date",
+                           "Age since first breeding",
+                           "First breeding age",
+                           "Total Marginal \U1D479\U00B2",
+                           "First nest lay date",
+                           "Age since first breeding",
+                           "First breeding age",
+                           "Total Conditional \U1D479\U00B2",
+                           "Individual",
+                           "Year",
+                           "Individual",
+                           "Year",
+                           "Years",
+                           "Individuals",
+                           "Observations (i.e., Nests)"))
+
+# Fixed effect sizes (non-standardized)
+fixefTable <- 
+  stats_polyandry_age_mod$tidy %>% 
+  dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed") %>% 
+  mutate_at(c("estimate", "conf.low", "conf.high"), invlogit)
+
+# Fixed effect sizes (standardized)
+fixef_bw_Table <- 
+  stats_polyandry_age_mod$partR2m$BW %>% 
+  # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed_bw") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Semi-partial R2 estimates
+ranefTable <- 
+  stats_polyandry_age_mod$tidy %>% 
+  dplyr::filter(effect == "ran_pars") %>% 
+  dplyr::select(group, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "rand") %>% 
+  rename(term = group) %>% 
+  mutate(estimate = estimate^2,
+         conf.high = conf.high^2,
+         conf.low = conf.low^2)
+
+# Random effects variances
+R2Table <- 
+  bind_rows(stats_polyandry_age_mod$partR2m$R2,
+            stats_polyandry_age_mod$partR2c$R2[1,]) %>%   
+  dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "partR2") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Adjusted repeatabilities
+coefRptTable <- 
+  stats_polyandry_age_mod$rptR$R["R_org", ] %>% 
+  dplyr::select(-Fixed) %>%
+  t() %>% 
+  as.data.frame() %>% 
+  bind_cols(stats_polyandry_age_mod$rptR$CI_emp$CI_org[c("ring", "year"),]) %>% 
+  rownames_to_column("term") %>% 
+  rename(estimate = R_org,
+         conf.low = `2.5%`,
+         conf.high = `97.5%`) %>% 
+  mutate(stat = "RptR")
+
+# Store all parameters into a single table and clean it up
+allCoefs_mod <- 
+  bind_rows(fixef_bw_Table,
+            R2Table,
+            ranefTable, 
+            coefRptTable, 
+            sample_sizes) %>% 
+  bind_cols(.,
+            mod_comp_names) %>%
+  mutate(coefString = ifelse(!is.na(conf.low),
+                             paste0("[", 
+                                    round(conf.low, 2), ", ", 
+                                    round(conf.high, 2), "]"),
+                             NA),
+         effect = c(rep("Fixed effects \U1D6FD (logit standardized)", nrow(fixef_bw_Table)),
+                    rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
+                    rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
+                    rep("Adjusted repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
+  dplyr::select(effect, everything())
+
+# draw gt table
+polyandry_mod_table <- 
+  allCoefs_mod %>% 
+  dplyr::select(effect, comp_name, estimate, coefString) %>% 
+  gt(rowname_col = "row",
+     groupname_col = "effect") %>% 
+  cols_label(comp_name = html("<i>Polyandry probability</i>"),
+             estimate = "Mean estimate",
+             coefString = "95% confidence interval") %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 1:12,
+             decimals = 2,
+             use_seps = FALSE) %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 13:15,
+             decimals = 0,
+             use_seps = FALSE) %>% 
+  fmt_missing(columns = 1:4,
+              missing_text = "") %>% 
+  cols_align(align = "left",
+             columns = vars(comp_name)) %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
+
+polyandry_mod_table
 ```
 
-### Figure S5
-Sources of variation in a female’s probability of re-nesting after a failed attempt each year.
-```{r}
+### *Figure S4*
+<font size = "2">Sources of variation in a female's probability of being polyandrous each year.</font>
+```{r, echo=FALSE, fig.dim=c(6,6)}
+# Standardized fixed effects
+poly_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Fixed\neffects") +
+  xlab(expression(italic(paste("Standardized effect size (logit", beta,")" %+-% "95% CI", sep = ""))))
 
+# Semi-partial R2 estimates
+poly_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Age since first breeding",
+                                 "First breeding age",
+                                 "First nest lay date",
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  scale_y_discrete(labels = c("Total Marginal \U1D479\U00B2" = expression(paste("Marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Random effect variances
+poly_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Adjusted repeatabilities
+poly_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "repeat")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Intra-class\ncorrelation") +
+  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
+
+# Patchwork plot
+poly_mod_forest_plot_combo <-
+  (poly_mod_forest_plot_fixef / poly_mod_forest_plot_partR2 / 
+     # poly_mod_forest_plot_randef / 
+     poly_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A', title = 'Polyandry model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_layout(heights = unit(c(2.00, 2.25, 
+                               # 1.5, 
+                               1.5), c('cm', 'cm', 
+                                       # 'cm', 
+                                       'cm')))
+
+poly_mod_forest_plot_combo
 ```
 
-### Table S5
-Relationship between the lay date of an individual’s first nest and their likelihood of re-nesting following breeding failure in a given year. Fixed effect size of ‘first nest lay date’ is the standardized estimate on the logit scale.
-```{r}
+### *Figure 4*
+<font size = "2">Phenology of mating system in 425 female snowy plovers breeding at Bahía de Ceuta. (Top) Relationship between polyandry potential and lay date of a female’s first nest of the season. Each datum is the lay date of an individual’s first nest and their observed local mating behaviour of each year. (bottom) Lay date distributions of all nests for females that were polyandrous (yellow) or monogamous (green). Late date is standardized for each year across all panels.</font>
+```{r, echo=FALSE}
+#### Plotting of polyandry potential Figure ---- 
+# extract fitted values
+polyandry_mod_fits <- function(offs) {
+  model <- lme4::glmer(cbind(poly, mono) ~ 
+                         I(first_laydate - offs) +
+                       (1| ring) + (1 | year), 
+                       data = first_nests_data, family = binomial)
+  
+  ests <- summary(model)$coefficients[1,1:2]
+  
+  # backlink the coefficients to the probability scale
+  return(c(offs, ests, invlogit(ests[1] + c(-1, 0, 1) * 1.96 * ests[2])))
+}
 
+# specify the offs (i.e., vector of numbers from min to max dates stepped by 1)
+offs_first_laydate <- 
+  seq(min(first_nests_data$first_laydate, na.rm = TRUE), 
+      max(first_nests_data$first_laydate, na.rm = TRUE), 1)
+
+# apply the offs vector to the function (retuning a matrix)
+polyandry_fits <- sapply(offs_first_laydate, polyandry_mod_fits)
+
+# transpose the matrix
+polyandry_fits <- t(polyandry_fits)
+
+# convert the matrix to a data.frame
+polyandry_fits <- data.frame(polyandry_fits)
+
+# define the column names
+colnames(polyandry_fits) <- 
+  c("first_laydate", "Estimate", "Std. Error", "Upper", "Mean", "Lower")
+
+polyandry_date_mod_plot <- 
+  ggplot2::ggplot() + 
+  geom_boxplot(data = first_nests_data, 
+               aes(x = first_laydate, y = poly_plot, 
+                   group = polyandry, fill = polyandry), 
+               color = "grey50",
+               width = 0.05, alpha = 0.5,
+               position = position_dodge(width = 0)) +
+  geom_jitter(data = first_nests_data, 
+              aes(x = first_laydate, y = poly, 
+                  group = polyandry, 
+                  fill = polyandry, color = polyandry), 
+              height = 0.02, alpha = 0.4, shape = 19) +
+  geom_ribbon(data = polyandry_fits, 
+              aes(x = first_laydate, y = Mean, ymin = Lower, ymax = Upper), 
+              fill = "grey50", alpha = 0.25) +
+  geom_line(data = polyandry_fits, 
+            aes(x = first_laydate, y = Mean), lwd = 0.5, colour = "grey20") +
+  luke_theme +
+  theme(legend.position = c(0.5, 0),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 10),
+        panel.border = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey70", size=0.25),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_text(size = 11),
+        legend.background = element_blank()) +
+  scale_y_continuous(limits = c(-0.15, 1.2),
+                     breaks = c(0, 0.25, 0.5, 0.75, 1)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  # ylab("Probabilty of polyandry ± 95% CI") +
+  ylab("P(polyandry) ± 95% CI") +
+  scale_color_manual(values = rev(plot_palette_polyandry),
+                     guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
+                     labels = c("Monogamous", "Polyandrous")) +
+  scale_fill_manual(values = rev(plot_palette_polyandry),
+                    guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
+                    labels = c("Monogamous", "Polyandrous")) +
+  annotate(geom = "text", y = 0.5, x = 5,
+           label = "Lay dates for first\nnests of the season",
+           color = "black", size = 3, fontface = 'italic', hjust = 0) +
+  xlab("Standardized lay date")
+
+# plot the posterior age at peak distribution
+polyandry_date_dist_plot <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::select(polyandry, jul_lay_date_std_num, ID, year, ring) %>%
+  distinct() %>%
+  mutate(polyandry = as.factor(polyandry)) %>%
+  dplyr::filter(jul_lay_date_std_num > -50) %>%
+  mutate(jul_lay_date_std_num = as.numeric(jul_lay_date_std_num)) %>% 
+  ggplot(data = ., aes(x = jul_lay_date_std_num, y = 1, group = polyandry)) + 
+  geom_violin(data = . %>% dplyr::filter(polyandry == "mono"), 
+              alpha = 0.5, fill = plot_palette_polyandry[2], color = "grey50",
+              trim = FALSE) +
+  geom_violin(data = . %>% dplyr::filter(polyandry == "poly"), 
+              alpha = 0.5, fill = plot_palette_polyandry[1], color = "grey50",
+              trim = FALSE) +
+  theme_void() +
+  theme(legend.position = c(0.85, 0),
+        legend.title = element_blank(),
+        legend.direction = "horizontal",
+        legend.key.size = unit(0.5,"cm"),
+        panel.grid.major.x = element_line(colour = "grey70", size = 0.25),
+        axis.text.x = element_text(size = 10),
+        axis.title.x = element_text(size = 11)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  scale_y_continuous(limits = c(0.4, 1.8)) +
+  annotate(geom = "text", y = 1.7, x = -58,
+           label = "Lay date distributions for all nests",
+           color = "black", size = 3, fontface = 'italic', hjust = 0) +
+  scale_fill_manual(values = plot_palette_polyandry,
+                    guide = guide_legend(title.position = "top", nrow = 2),
+                    labels = c("Monogamous", "Polyandrous"))
 ```
+```{r, echo=FALSE, fig.dim=c(4, 4)}
+(polyandry_date_mod_plot / polyandry_date_dist_plot) +  
+  plot_layout(heights = c(1, 0.3)) 
+```
+
+### *Table S5*
+<font size = "2">Relationship between the lay date of an individual's first nest and their likelihood of re-nesting following breeding failure in a given year. Fixed effect size of 'first nest lay date' is the standardized estimate on the logit scale.</font>
+```{r, include = FALSE}
+# load the saved results
+load("output/stats_renesting_mod.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
+
+# wrangle data
+renesting_data <-
+  ceuta_egg_chick_female_data %>% 
+  # 1) subset to only cases in which the first nest failed
+  dplyr::filter(nest_order == 1) %>% 
+  select(ID, ring, year, nest_1_fate, first_laydate, n_mates, n_nests, polyandry, multiclutch) %>% 
+  distinct() %>% 
+  # 2) subset to nests that are confirmed failed
+  filter(nest_1_fate != "Hatch" & nest_1_fate != "Unknown") %>% 
+  mutate(multiclutch = as.factor(multiclutch)) %>%
+  mutate(multi = ifelse(multiclutch == "multi", 1, 0),
+         single = ifelse(multiclutch == "single", 1, 0)) %>%
+  mutate(multi_plot = ifelse(multi == 1, multi + 0.1, multi - 0.1))
+
+#### Find peaks for bimodal laydate distribution ---- 
+set.seed(42)
+
+m1 <- FLXMRglm(family = "gaussian")
+m2 <- FLXMRglm(family = "gaussian")
+
+renest_data <- 
+  ceuta_egg_chick_female_data %>% 
+  dplyr::filter(multiclutch == "multi") %>% 
+  dplyr::select(multiclutch, jul_lay_date_std_num, ID, year, ring) %>%
+  distinct()
+
+rened <- density(renest_data$jul_lay_date_std_num)
+
+rened_fit <- flexmix(jul_lay_date_std_num ~ 1, data = renest_data, k = 2, model = list(m1, m2))
+rene_peak1 <- modeltools::parameters(rened_fit, component=1)[[1]]
+rene_peak2 <- modeltools::parameters(rened_fit, component=2)[[1]]
+
+plot(rened)
+abline(v=rene_peak1[[1]], lty=2, col='blue')
+abline(v=rene_peak2[[1]], lty=2, col='red')
+
+single_data <- 
+  ceuta_egg_chick_female_data %>% 
+  dplyr::filter(multiclutch == "single") %>% 
+  dplyr::select(multiclutch, jul_lay_date_std_num, ID, year, ring) %>%
+  distinct()
+
+singd <- density(single_data$jul_lay_date_std_num)
+
+singd_fit <- flexmix(jul_lay_date_std_num ~ 1, data = single_data, k = 2, model = list(m1, m2))
+sing_peak1 <- modeltools::parameters(singd_fit, component=1)[[1]]
+sing_peak2 <- modeltools::parameters(singd_fit, component=2)[[1]]
+
+plot(singd)
+abline(v=sing_peak1[[1]], lty=2, col='blue')
+abline(v=sing_peak2[[1]], lty=2, col='red')
+
+rene_peak2[[1]] - sing_peak1[[1]]
+rene_peak1[[1]] - sing_peak1[[1]]
+```
+```{r, echo=FALSE}
+#### Table of effect sizes ----
+# Retrieve sample sizes
+sample_sizes <-
+  renesting_data %>% 
+  summarise(Year = n_distinct(year),
+            Individual = n_distinct(ring),
+            Nests = n_distinct(ID))
+
+sample_sizes <- 
+  as.data.frame(t(as.data.frame(sample_sizes))) %>%
+  rownames_to_column("term") %>% 
+  rename(estimate = V1) %>% 
+  mutate(stat = "n")
+
+
+# clean model component names
+mod_comp_names <- 
+  data.frame(comp_name = c("First nest lay date",
+                           "Total Marginal \U1D479\U00B2",
+                           "First nest lay date",
+                           "Total Conditional \U1D479\U00B2",
+                           "Individual",
+                           "Year",
+                           "Individual",
+                           "Year",
+                           "Years",
+                           "Individuals",
+                           "Observations (i.e., Nests)"))
+
+# Fixed effect sizes (non-standardized)
+fixefTable <- 
+  stats_renesting_mod$tidy %>% 
+  dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed") %>% 
+  mutate_at(c("estimate", "conf.low", "conf.high"), invlogit)
+
+# Fixed effect sizes (standardized)
+fixef_bw_Table <- 
+  stats_renesting_mod$partR2m$BW %>% 
+  # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed_bw") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Semi-partial R2 estimates
+ranefTable <- 
+  stats_renesting_mod$tidy %>% 
+  dplyr::filter(effect == "ran_pars") %>% 
+  dplyr::select(group, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "rand") %>% 
+  rename(term = group) %>% 
+  mutate(estimate = estimate^2,
+         conf.high = conf.high^2,
+         conf.low = conf.low^2)
+
+# Random effects variances
+R2Table <- 
+  bind_rows(stats_renesting_mod$partR2m$R2,
+            stats_renesting_mod$partR2c$R2[1,]) %>%   
+  dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "partR2") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Adjusted repeatabilities
+coefRptTable <- 
+  stats_renesting_mod$rptR$R["R_org", ] %>% 
+  dplyr::select(-Fixed) %>%
+  t() %>% 
+  as.data.frame() %>% 
+  bind_cols(stats_renesting_mod$rptR$CI_emp$CI_org[c("ring", "year"),]) %>% 
+  rownames_to_column("term") %>% 
+  rename(estimate = R_org,
+         conf.low = `2.5%`,
+         conf.high = `97.5%`) %>% 
+  mutate(stat = "RptR")
+
+# Store all parameters into a single table and clean it up
+allCoefs_mod <- 
+  bind_rows(fixef_bw_Table,
+            R2Table,
+            ranefTable, 
+            coefRptTable, 
+            sample_sizes) %>% 
+  bind_cols(.,
+            mod_comp_names) %>%
+  mutate(coefString = ifelse(!is.na(conf.low),
+                             paste0("[", 
+                                    round(conf.low, 2), ", ", 
+                                    round(conf.high, 2), "]"),
+                             NA),
+         effect = c(rep("Fixed effects \U1D6FD (logit standardized)", nrow(fixef_bw_Table)),
+                    rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
+                    rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
+                    rep("Adjusted repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
+  dplyr::select(effect, everything())
+
+# draw gt table
+renesting_mod_table <- 
+  allCoefs_mod %>% 
+  dplyr::select(effect, comp_name, estimate, coefString) %>% 
+  gt(rowname_col = "row",
+     groupname_col = "effect") %>% 
+  cols_label(comp_name = html("<i>Re-nesting probability</i>"),
+             estimate = "Mean estimate",
+             coefString = "95% confidence interval") %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 1:8,
+             decimals = 2,
+             use_seps = FALSE) %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 9:11,
+             decimals = 0,
+             use_seps = FALSE) %>% 
+  fmt_missing(columns = 1:4,
+              missing_text = "") %>% 
+  cols_align(align = "left",
+             columns = vars(comp_name)) %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
+
+renesting_mod_table
+```
+
+### *Figure S5*
+<font size = "2">Sources of variation in a female's probability of re-nesting after a failed attempt each year.</font>
+```{r, echo=FALSE, fig.dim=c(6,6)}
+# Standardized fixed effects
+renesting_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Fixed\neffects") +
+  xlab(expression(italic(paste("Standardized effect size (logit", beta,")" %+-% "95% CI", sep = ""))))
+
+# Semi-partial R2 estimates
+renesting_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "First nest lay date",
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  scale_y_discrete(labels = c("Total Marginal \U1D479\U00B2" = expression(paste("Marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Random effect variances
+renesting_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Adjusted repeatabilities
+renesting_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "repeat")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Intra-class\ncorrelation") +
+  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
+
+# Patchwork plot
+renesting_mod_forest_plot_combo <-
+  (renesting_mod_forest_plot_fixef / renesting_mod_forest_plot_partR2 / 
+     # poly_mod_forest_plot_randef / 
+     renesting_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A', title = 'Re-nesting model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_layout(heights = unit(c(2.00, 2.25, 
+                               # 1.5, 
+                               1.5), c('cm', 'cm', 
+                                       # 'cm', 
+                                       'cm')))
+
+renesting_mod_forest_plot_combo
+```
+
+### *Figure 4*
+<font size = "2">Phenology of re-nesting and egg size in 425 female snowy plovers breeding at Bahía de Ceuta. Top: Lay date distributions of all nests for females that laid replacement clutches (orange) or did not re-nest (purple) following failure of their first nest. (Bottom) Relationship between re-nesting potential and lay date of a female’s first nest of the season. As with top panel, each datum is the lay date of an individual’s first nest and their observed local re-nesting activity of each year. Late date is standardized for each year across all panels.</font>
+```{r, echo=FALSE}
+# plot the posterior age at peak distribution
+renesting_date_dist_plot <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::select(multiclutch, jul_lay_date_std_num, ID, year, ring) %>%
+  distinct() %>%
+  mutate(multiclutch = as.factor(multiclutch)) %>%
+  dplyr::filter(jul_lay_date_std_num > -50) %>%
+  mutate(jul_lay_date_std_num = as.numeric(jul_lay_date_std_num)) %>% 
+  ggplot(data = ., aes(x = jul_lay_date_std_num, y = 1, group = multiclutch)) + 
+  geom_violin(data = . %>% dplyr::filter(multiclutch == "single"), 
+              alpha = 0.5, fill = plot_palette_renesting[2], color = "grey50",
+              trim = FALSE) +
+  geom_violin(data = . %>% dplyr::filter(multiclutch == "multi"), 
+              alpha = 0.5, fill = plot_palette_renesting[1], color = "grey50",
+              trim = FALSE) +
+  theme_void() +
+  theme(legend.position = c(1, 0.2),
+        legend.title = element_blank(),
+        legend.direction = "horizontal",
+        legend.key.size = unit(0.5,"cm"),
+        panel.grid.major.x = element_line(colour = "grey70", size = 0.25)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  scale_y_continuous(limits = c(0.4, 1.8)) +
+  annotate(geom = "text", y = 1.7, x = -58,
+           label = "Lay date distributions for all nests",
+           color = "black", size = 3, fontface = 'italic', hjust = 0) +
+  scale_fill_manual(values = plot_palette_renesting,
+                    guide = guide_legend(title.position = "top", nrow = 2),
+                    labels = c("Single", "Re-nester"))
+
+#### Plotting of re-nesting potential Figure ----
+# extract fitted values
+renesting_mod_fits <- function(offs) {
+  model <- lme4::glmer(cbind(multi, single) ~ 
+                         I(first_laydate - offs) +
+                         (1| ring) + (1 | year), 
+                       data = renesting_data, family = binomial)
+  
+  ests <- summary(model)$coefficients[1,1:2]
+  
+  # backlink the coefficients to the probability scale
+  return(c(offs, ests, invlogit(ests[1] + c(-1, 0, 1) * 1.96 * ests[2])))
+}
+
+# specify the offs (i.e., vector of numbers from min to max dates stepped by 1)
+offs_first_laydate <- 
+  seq(min(renesting_data$first_laydate, na.rm = TRUE), 
+      max(renesting_data$first_laydate, na.rm = TRUE), 1)
+
+# apply the offs vector to the function (retuning a matrix)
+renesting_fits <- sapply(offs_first_laydate, renesting_mod_fits)
+
+# transpose the matrix
+renesting_fits <- t(renesting_fits)
+
+# convert the matrix to a data.frame
+renesting_fits <- data.frame(renesting_fits)
+
+# define the column names
+colnames(renesting_fits) <- 
+  c("first_laydate", "Estimate", "Std. Error", "Upper", "Mean", "Lower")
+
+renesting_date_mod_plot <- 
+  ggplot2::ggplot() + 
+  geom_boxplot(data = renesting_data, 
+               aes(x = first_laydate, y = multi_plot, 
+                   group = multiclutch, fill = multiclutch), 
+               color = "grey50",
+               width = 0.05, alpha = 0.5,
+               position = position_dodge(width = 0)) +
+  geom_jitter(data = renesting_data, 
+              aes(x = first_laydate, y = multi, 
+                  group = multiclutch, 
+                  fill = multiclutch, color = multiclutch), 
+              height = 0.02, alpha = 0.4, shape = 19) +
+  geom_ribbon(data = renesting_fits, 
+              aes(x = first_laydate, y = Mean, ymin = Lower, ymax = Upper), 
+              fill = "grey50", alpha = 0.25) +
+  geom_line(data = renesting_fits, 
+            aes(x = first_laydate, y = Mean), lwd = 0.5, colour = "grey20") +
+  luke_theme +
+  theme(legend.position = c(0.5, 1),
+    #legend.position = c(0.5, -0.04),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 10),
+        panel.border = element_blank(),
+        # axis.text.x = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 11),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey70", size=0.25),
+        legend.background = element_blank()) +
+  scale_y_continuous(limits = c(-0.15, 1.2),
+                     breaks = c(0, 0.25, 0.5, 0.75, 1)) +
+  scale_x_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  # ylab("Probabilty of renesting after failure ± 95% CI") +
+  ylab("P(re-nesting) ± 95% CI") +
+  xlab("Standardized lay date") +
+  scale_color_manual(values = plot_palette_renesting,
+                     guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
+                     labels = c("Re-nest", "Single")) +
+  scale_fill_manual(values = plot_palette_renesting,
+                    guide = guide_legend(title.position = "top", nrow = 1, ncol = 2),
+                    labels = c("Re-nest", "Single")) +
+  annotate(#geom = "text", y = 1.2, x = -58,
+           geom = "text", y = 0.5, x = 5,
+           label = "Lay dates for first\nnests of the season\nthat failed",
+           color = "black", size = 3, fontface = 'italic', hjust = 0)
+```
+```{r, echo=FALSE, fig.dim=c(4, 4)}
+(renesting_date_dist_plot / renesting_date_mod_plot) +   
+  plot_layout(heights = c(0.3, 1))
+```
+
 
 ## Individual variation in lay date
-Females had moderate repeatability in the lay date of their first nest among years (r = 0.19 [0.06, 0.32] 95%CI; Fig. 3, Table S6). We found strong support for the effect of origin on first nest lay date: females that locally hatched and later recruited into the breeding population initiated nests 7.80 days earlier (95% CI: [5.09, 10.50]) on average compared to conspecifics that had unknown origin (Figs. 3 and 5b). The next strongest effect was within-individual age function predicting the lay date of a female’s first nest in the season: young individuals laid later nests compared to their older conspecifics with lay date advancing by ~2.17 days per year until age six (95% CI: [1.41, 2.93]; Fig. 5a). However, the uncertainty in this trend became unwieldly in the oldest age classes of our sample (Fig. 5a). Notably, female size did not affect lay date (Fig. 3 and S7a), nor did between-individual effects of first or last age at breeding (Fig. 3). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8d–f) confirmed these results.
+Females had moderate repeatability in the lay date of their first nest among years (r = 0.19 [0.06, 0.32] 95%CI; Fig. 3, Table S6). We found strong support for the effect of origin on first nest lay date: females that locally hatched and later recruited into the breeding population initiated nests 7.80 days earlier (95% CI: [5.09, 10.50]) on average compared to conspecifics that had unknown origin (Figs. 3 and 5b). The next strongest effect was within-individual age function predicting the lay date of a female's first nest in the season: young individuals laid later nests compared to their older conspecifics with lay date advancing by ~2.17 days per year until age six (95% CI: [1.41, 2.93]; Fig. 5a). However, the uncertainty in this trend became unwieldly in the oldest age classes of our sample (Fig. 5a). Notably, female size did not affect lay date (Fig. 3 and S7a), nor did between-individual effects of first or last age at breeding (Fig. 3). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8d–f) confirmed these results.
 
-### Table S6
-Sources of lay date variation.
-```{r}
+### *Table S6*
+<font size = "2">Sources of lay date variation.</font>
+```{r, echo=FALSE}
+#### Results ----
+load("output/stats_laydate_mod.rds")
+ceuta_egg_chick_female_data <- 
+  readRDS("data/Ceuta_egg_chick_female_data.rds")
 
+#### Data wrangle ----
+# subset to nest level and first nest attempts of the season for each female
+first_nests_age_data <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, ID, first_laydate, est_age_t_deviation, year,
+                first_age_t, last_age_t, n_years_obs, avg_ad_tarsi,
+                age_first_cap, nest_order, est_age_t) %>% 
+  distinct() %>% 
+  dplyr::filter(!is.na(est_age_t_deviation) & 
+                  nest_order == 1 &
+                  year != "2006") %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 2.2, 0.8))
+
+#### Table of effect sizes ----
+# Retrieve sample sizes
+sample_sizes <-
+  first_nests_age_data %>% 
+  summarise(Year = n_distinct(year),
+            Individual = n_distinct(ring),
+            Nests = n_distinct(ID))
+
+sample_sizes <- 
+  as.data.frame(t(as.data.frame(sample_sizes))) %>%
+  rownames_to_column("term") %>% 
+  rename(estimate = V1) %>% 
+  mutate(stat = "n")
+
+# clean model component names
+mod_comp_names <- 
+  data.frame(comp_name = c("Within ind. linear age",
+                           "Within ind. quadratic age",
+                           "Between ind. first breeding age",
+                           "Between ind. last breeding age",
+                           "Mother tarsus length",
+                           "Local recruit",
+                           "Total Marginal \U1D479\U00B2",
+                           "Senescence",
+                           "Selective appearance",
+                           "Selective disappearance",
+                           "Mother tarsus length",
+                           "Local recruit",
+                           "Total Conditional \U1D479\U00B2",
+                           "Individual",
+                           "Year",
+                           "Residual",
+                           "Individual",
+                           "Year",
+                           "Residual",
+                           "Years",
+                           "Individuals",
+                           "Observations (i.e., Nests)"))
+
+
+# str(model_parameters(stats_laydate_mod$mod_poly, standardize = "refit"))
+# model_parameters(stats_laydate_mod$mod_poly, standardize = "refit")$Coefficient
+# model_parameters(stats_laydate_mod$mod_I, standardize = "refit")$Coefficient
+# model_parameters(stats_laydate_mod$mod_I, standardize = "refit")$CI_low
+# model_parameters(stats_laydate_mod$mod_I, standardize = "refit")$CI_high
+
+# Fixed effect sizes (non-standardized)
+fixefTable <- 
+  stats_laydate_mod$tidy %>% 
+  dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed")
+
+# Fixed effect sizes (standardized)
+fixef_bw_Table <- 
+  stats_laydate_mod$partR2m$BW %>% 
+  # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed_bw") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Semi-partial R2 estimates
+fixef_bw_Table <-
+  model_parameters(stats_laydate_mod$mod_I, standardize = "refit") %>%
+  select(Parameter, Coefficient, CI_low, CI_high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed_bw") %>% 
+  rename(conf.low = CI_low,
+         conf.high = CI_high,
+         term = Parameter,
+         estimate = Coefficient) %>% 
+  filter(term != "(Intercept)")
+
+R2Table <- 
+  bind_rows(stats_laydate_mod$partR2m$R2,
+            stats_laydate_mod$partR2c$R2[1,]) %>% 
+  dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "partR2") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Random effects variances
+ranefTable <- 
+  stats_laydate_mod$tidy %>% 
+  dplyr::filter(effect == "ran_pars") %>% 
+  dplyr::select(group, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "rand") %>% 
+  rename(term = group) %>% 
+  mutate(estimate = estimate^2,
+         conf.high = conf.high^2,
+         conf.low = conf.low^2)
+
+# Adjusted repeatabilities
+coefRptTable <- 
+  stats_laydate_mod$rptR$R_boot %>% 
+  dplyr::select(-Fixed) %>% 
+  mutate(residual = 1 - rowSums(.)) %>% 
+  apply(., 2, 
+        function(x) c(mean (x), quantile (x, prob = c(0.025, 0.975)))) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("term") %>% 
+  rename(estimate = V1,
+         conf.low = `2.5%`,
+         conf.high = `97.5%`) %>% 
+  mutate(stat = "RptR")
+
+# Store all parameters into a single table and clean it up
+allCoefs_mod <- 
+  bind_rows(fixef_bw_Table,
+            R2Table,
+            ranefTable, 
+            coefRptTable, 
+            sample_sizes) %>% 
+  bind_cols(.,
+            mod_comp_names) %>%
+  mutate(coefString = ifelse(!is.na(conf.low),
+                             paste0("[", 
+                                    round(conf.low, 2), ", ", 
+                                    round(conf.high, 2), "]"),
+                             NA),
+         effect = c(rep("Fixed effects \U1D6FD (standardized)", nrow(fixef_bw_Table)),
+                    rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
+                    rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
+                    rep("Adjusted repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
+  dplyr::select(effect, everything())
+
+# re-organize model components for table
+allCoefs_mod <-
+  allCoefs_mod[c(5, 6, 1:4, 7, 13, 11, 12, 8:10, 14:22), ]
+
+# draw gt table
+laydate_mod_table <- 
+  allCoefs_mod %>% 
+  dplyr::select(effect, comp_name, estimate, coefString) %>% 
+  gt(rowname_col = "row",
+     groupname_col = "effect") %>% 
+  cols_label(comp_name = html("<i>Lay date of first nest</i>"),
+             estimate = "Mean estimate",
+             coefString = "95% confidence interval") %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 1:19,
+             decimals = 2,
+             use_seps = FALSE) %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 20:22,
+             decimals = 0,
+             use_seps = FALSE) %>% 
+  fmt_missing(columns = 1:4,
+              missing_text = "") %>% 
+  cols_align(align = "left",
+             columns = vars(comp_name)) %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
+
+laydate_mod_table
 ```
 
-### Figure 5
-Age- and origin-dependent breeding phenology of female snowy plovers. A) Within-individual variation in age-specific nest initiation date – as females gained more experience in the local population, they started nesting earlier, however this trend reversed at older ages. Each datum represents an individual’s ‘age-deviance’ (i.e., a within-group centred measure of the number of years since the individual’s first observed local breeding attempt, see Methods for more details) and the lay date of its first nest each year. B) Origin-specific variation in nest initiation date – females that hatched locally and recruited into the breeding population (orange) tended to nest earlier than birds originating from elsewhere (purple). Inner-most distributions show the model estimates and 95% CI, outer-most box plots show the inter-quartile ranges of the raw data (point-cloud).
-```{r}
+### *Figure 3*
+<font size = "2">Sources of lay date variation. Top row: standardized effect sizes (± 95% CI) of fixed effects. Middle row: variance explained by fixed effects (note: the term 'Senescence' describes the collective variation explained by the linear and quadratic within-individual age effects in the top row; the term 'Selective appearance' and 'Selective disappearance' describe the variation explained by the between individual first- and last-breeding age fixed effects of the top row, respectively; the term 'Within ind. seasonality' describes the variation explained by the within individual lay date effect in the top row, and the term 'Between ind. seasonality' describes the collective variation explained by the linear and quadratic lay date effects in the top row).</font>
+```{r, echo=FALSE, fig.dim=c(6,7.5)}
+# Standardized fixed effects
+laydate_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Local recruit",
+                                 "Between ind. last breeding age", 
+                                 "Between ind. first breeding age", 
+                                 "Within ind. quadratic age", "Within ind. linear age",
+                                 "Mother tarsus length")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank(),
+        plot.title = element_text(face = 'italic', hjust = 0.5)) +
+  ylab("Fixed effects") +
+  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
 
+# Semi-partial R2 estimates
+laydate_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 # "Seasonality",
+                                 "Local recruit",
+                                 "Selective disappearance",
+                                 "Selective appearance",
+                                 "Senescence",
+                                 "Mother tarsus length",
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank()) +
+  scale_y_discrete(labels = c(#"Seasonality" = expression("Seasonality"),
+    "Selective disappearance" = expression("Selective disappearance"),
+    "Selective appearance" = expression("Selective appearance"),
+    "Senescence" = expression("Senescence"),
+    "Mother tarsus length" = expression("Mother tarsus length"),
+    "Recruit status" = expression("Recruit status"),
+    "Total Marginal \U1D479\U00B2" = expression(paste("Total marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Random effect variances
+laydate_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank()) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Adjusted repeatabilities
+laydate_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "repeat")) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Residual",
+                                 "Year",
+                                 "Individual")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  # theme(axis.title.x = element_text(size = 10)) +
+  theme(axis.title.x = element_blank(),
+        plot.background = element_blank()) +
+  
+  ylab("Intra-class\ncorrelation") +
+  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
+
+# Patchwork plot
+laydate_mod_forest_plot_combo <-
+  (laydate_mod_forest_plot_fixef / laydate_mod_forest_plot_partR2 / 
+     laydate_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A', title = 'Lay date model', 
+                  theme = theme(plot.title = element_text(face = 'italic', hjust = 0.2))) +
+  plot_layout(heights = unit(c(4, 4, 
+                               # 2.5, 
+                               2.5), c('cm', 'cm', 
+                                       # 'cm',
+                                       'cm')))
+
+laydate_mod_forest_plot_combo
+```
+
+### *Figure 5*
+<font size = "2">Age- and origin-dependent breeding phenology of female snowy plovers. A) Within-individual variation in age-specific nest initiation date – as females gained more experience in the local population, they started nesting earlier, however this trend reversed at older ages. Each datum represents an individual's 'age-deviance' (i.e., a within-group centred measure of the number of years since the individual's first observed local breeding attempt, see Methods for more details) and the lay date of its first nest each year. B) Origin-specific variation in nest initiation date – females that hatched locally and recruited into the breeding population (orange) tended to nest earlier than birds originating from elsewhere (purple). Inner-most distributions show the model estimates and 95% CI, outer-most box plots show the inter-quartile ranges of the raw data (point-cloud).</font>
+```{r, echo=FALSE,fig.dim=c(8,4)}
+#### Plot of trend ----
+# extract fitted values
+laydate_mod_age_fits <- 
+  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = stats_laydate_mod$mod_poly, 
+                       xlevels = list(est_age_t_deviation = seq(min(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 
+                                                                max(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 1))))
+
+# summary of fitted trend
+laydate_mod_age_fits_summary <- 
+  laydate_mod_age_fits %>% 
+  summarise(min_laydate_fit = min(fit),
+            max_laydate_fit = max(fit),
+            min_laydate_age = est_age_t_deviation[which.min(fit)],
+            max_laydate_age = est_age_t_deviation[which.max(fit)],
+            min_laydate_lower = lower[which.min(fit)],
+            min_laydate_upper = upper[which.min(fit)],
+            max_laydate_lower = lower[which.max(fit)],
+            max_laydate_upper = upper[which.max(fit)])
+
+# (laydate_mod_age_fits[1, 2] - laydate_mod_age_fits[6, 2])/5
+# (laydate_mod_age_fits[1, 4] - laydate_mod_age_fits[6, 4])/5
+# (laydate_mod_age_fits[1, 5] - laydate_mod_age_fits[6, 5])/5
+
+# plot predicted trend and raw data
+date_age_trend_plot <- 
+  ggplot() +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        axis.title.y = element_text(size = 11),
+        axis.title.x = element_text(size = 11),
+        axis.ticks.y = element_blank()) +#,
+        # axis.text.x = element_blank(),
+        # axis.title.x = element_blank()) +
+  geom_jitter(data = first_nests_age_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = est_age_t_deviation, y = first_laydate),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_line(data = laydate_mod_age_fits, aes(x = est_age_t_deviation, y = fit),
+            lwd = 0.5) +
+  geom_ribbon(data = laydate_mod_age_fits, 
+              aes(x = est_age_t_deviation, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
+  xlab("Years since first local breeding attempt") +
+  scale_x_continuous(limits = c(-0.5, 12.5), breaks = seq(0, 12, by = 2)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  annotate(geom = "text", y = 55, x = 0,
+           label = "First nests of the season",
+           color = "black", size = 3, fontface = 'italic', hjust = 0)
+
+# extract fitted values
+laydate_mod_rec_fits <- 
+  as.data.frame(effect(term = "age_first_cap", mod = stats_laydate_mod$mod_poly, 
+                       xlevels = list(age_first_cap = c("A", "J")))) %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 1.8, 1.2))
+
+plot_palette_recruit <- brewer.pal(6, "Dark2")[c(2,3)]
+
+# laydate_mod_rec_fits[1, 2] - laydate_mod_rec_fits[2, 2] 
+# laydate_mod_rec_fits[1, 4] - laydate_mod_rec_fits[2, 4] 
+# laydate_mod_rec_fits[1, 5] - laydate_mod_rec_fits[2, 5] 
+
+date_recruit_plot <- 
+  ggplot2::ggplot() + 
+  geom_boxplot(data = first_nests_age_data,
+               aes(x = age_first_cap_plot, y = first_laydate,
+                   group = age_first_cap, fill = age_first_cap),
+               color = "grey50",
+               width = 0.05, alpha = 0.5,
+               position = position_dodge(width = 0)) +
+  geom_errorbar(data = laydate_mod_rec_fits, 
+                aes(x = age_first_cap_plot, ymax = upper, ymin = lower),
+                alpha = 1, color = "black", width = 0.05, lwd = 0.5) + 
+  geom_point(data = laydate_mod_rec_fits, 
+             aes(x = age_first_cap_plot, y = fit, fill = age_first_cap),
+             lwd = 1, shape = 21, color= "black") +
+  geom_jitter(data = first_nests_age_data, 
+                aes(x = age_first_cap, y = first_laydate, 
+                    group = age_first_cap, 
+                    fill = age_first_cap, color = age_first_cap), 
+                width = 0.02, alpha = 0.2, shape = 19) +
+  luke_theme +
+  theme(legend.position = "none",
+        panel.border = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        # axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.background = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        axis.title.x = element_text(size = 11)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  scale_x_discrete(labels = c("A" = "Immigrant",
+                              "J" = "Local\nrecruit")) +
+  ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
+  xlab("Origin") +
+  scale_color_manual(values = rev(plot_palette_recruit)) +
+  scale_fill_manual(values = rev(plot_palette_recruit))# +
+  # annotate(geom = "text", x = 0.5, y = 58,
+  #          label = "First nests of the season",
+  #          color = "black", size = 3, fontface = 'italic', hjust = 0)
+
+#### Combo plot of age dynamics ----
+Age_plot <-
+  (date_age_trend_plot | date_recruit_plot) + 
+  plot_annotation(tag_levels = 'A') + 
+  plot_layout(heights = unit(c(7, 7), c('cm', 'cm')),
+              widths = unit(c(7, 4), c('cm', 'cm')))
+Age_plot
+```
+
+### *Figure S7*
+<font size = "2">Relationship between a female's structural size (i.e., her tarsus length) and the lay date of her first nest of the season.</font>
+```{r, echo=FALSE,fig.dim=c(4,4), fig.align='left'}
+#### Trend plot of egg volume over tarsus ----
+# extract fitted values
+date_tarsus_mod_fits <- 
+  as.data.frame(effect(term = "avg_ad_tarsi", mod = stats_laydate_mod$mod_poly, 
+                       xlevels = list(avg_ad_tarsi = seq(min(first_nests_age_data$avg_ad_tarsi, na.rm = TRUE), 
+                                                         max(first_nests_age_data$avg_ad_tarsi, na.rm = TRUE), 0.5))))
+
+# plot predicted trend and raw data
+date_tarsus_trend_plot <- 
+  ggplot() +
+  luke_theme +
+  theme(panel.border = element_blank()) +
+  geom_jitter(data = first_nests_age_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = avg_ad_tarsi, y = first_laydate),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_line(data = date_tarsus_mod_fits, aes(x = avg_ad_tarsi, y = fit),
+            lwd = 0.5) +
+  geom_ribbon(data = date_tarsus_mod_fits,
+              aes(x = avg_ad_tarsi, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  ylab(expression(paste("Standardized lay date" %+-%  "95% CI", sep = ""))) +
+  xlab("Estimated age (years)") +
+  scale_x_continuous(limits = c(22, 27)) +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60))
+
+date_tarsus_trend_plot
+```
+
+### *Figure S8*
+<font size = "2">Visualization of the effect of uncertainty in the age estimate provided by BaSTA on age-dependent trends in lay date (bottom row) dynamics. Black trends show the model predictions for the 1000 bootstraps of the BaSTA age estimate posteriors (see Methods). Panels A and D show the within-individual trends of the 'age-deviation' score – as expected, these measures are not impacted by uncertainty in the BaSTA age estimate because they are centered for each individual (i.e., the absolute age is irrelevant). Panels B and E show the between-individual trend of the 'age at first breeding' (i.e., selective appearance), and panels C and F show the between-individual trend of the 'age at last breeding' (i.e., selective disappearance). Yellow trends and grey ribbons visualize the 95% CI of the model predictions when using the mean age estimate provided by BaSTA (i.e., the effect sizes of the 'lay date' models shown in Fig. 3).</font>
+```{r, echo=FALSE,fig.dim=c(8,4)}
+load("output/age_estimate_uncertainty_bootstraps.rds")
+
+first_nests_age_data <-
+  ceuta_egg_chick_female_data %>% 
+  dplyr::select(ring, ID, first_laydate, est_age_t_deviation, year,
+                first_age_t, last_age_t, n_years_obs, avg_ad_tarsi,
+                age_first_cap, nest_order, est_age_t) %>% 
+  distinct() %>% 
+  dplyr::filter(!is.na(est_age_t_deviation) & 
+                  nest_order == 1 &
+                  year != "2006") %>%
+  mutate(age_first_cap_plot = ifelse(age_first_cap == "J", 2.2, 0.8))
+
+mod_laydate_poly <-
+  lmer(first_laydate ~ poly(est_age_t_deviation, 2) + 
+         first_age_t + last_age_t + avg_ad_tarsi + age_first_cap +
+         (1|ring) + (1|year),
+       data = first_nests_age_data)
+
+# Uncertainty in estimate of first age at breeding on between individual variation in laydate
+laydate_first_age_boot_out_melt <- melt(t(est_age_boot_out[["mod_laydate_boot_first_age_fits"]]))
+colnames(laydate_first_age_boot_out_melt) <- c("first_age", "iteration", "first_laydate")
+
+laydate_mod_first_age_fits <- 
+  as.data.frame(effect(term = "first_age_t", mod = mod_laydate_poly, 
+                       xlevels = list(first_age_t = seq(min(ceuta_egg_chick_female_data$first_age_t, na.rm = TRUE), 
+                                                        max(ceuta_egg_chick_female_data$first_age_t, na.rm = TRUE), 1))))
+
+boot_laydate_first_age_plot <-
+  ggplot() +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = first_age_t + 1, y = first_laydate),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_ribbon(data = laydate_mod_first_age_fits, 
+              aes(x = first_age_t + 1, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  geom_line(data = laydate_first_age_boot_out_melt,
+            aes(x = as.numeric(first_age), y = first_laydate, group = iteration),
+            lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = laydate_mod_first_age_fits, aes(x = first_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ylab("Standardized lay date of first nest") +
+  xlab("Estimated age at first\nlocal breeding attempt") +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  scale_x_continuous(limits = c(0.5, max(ceuta_egg_chick_female_data$first_age_t) + 1.5), 
+                     breaks = c(1:(max(ceuta_egg_chick_female_data$first_age_t) + 1)))
+
+# Uncertainty in estimate of last age at breeding on between individual variation in laydate
+laydate_last_age_boot_out_melt <- melt(t(est_age_boot_out[["mod_laydate_boot_last_age_fits"]]))
+colnames(laydate_last_age_boot_out_melt) <- c("last_age", "iteration", "first_laydate")
+
+laydate_mod_last_age_fits <- 
+  as.data.frame(effect(term = "last_age_t", mod = mod_laydate_poly, 
+                       xlevels = list(last_age_t = seq(min(ceuta_egg_chick_female_data$last_age_t, na.rm = TRUE), 
+                                                       max(ceuta_egg_chick_female_data$last_age_t, na.rm = TRUE), 1))))
+
+boot_laydate_last_age_plot <- 
+  ggplot() +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = last_age_t + 1, y = first_laydate),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_ribbon(data = laydate_mod_last_age_fits, 
+              aes(x = last_age_t + 1, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  geom_line(data = laydate_last_age_boot_out_melt,
+            aes(x = as.numeric(last_age), y = first_laydate, group = iteration),
+            lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = laydate_mod_last_age_fits, aes(x = last_age_t + 1, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ylab("Standardized lay date of first nest") +
+  xlab("Estimated age at last\nlocal breeding attempt") +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  scale_x_continuous(limits = c(0.5, max(ceuta_egg_chick_female_data$last_age_t) + 1.5), 
+                     breaks = seq(1, (max(ceuta_egg_chick_female_data$last_age_t) + 1), 2))
+
+# Uncertainty in estimate of age on within individual variation in laydate
+laydate_age_dev_boot_out_melt <- melt(t(est_age_boot_out[["mod_laydate_boot_age_dev_fits"]]))
+colnames(laydate_age_dev_boot_out_melt) <- c("est_age_t_deviation", "iteration", "first_laydate")
+
+laydate_mod_age_dev_fits <- 
+  as.data.frame(effect(term = "poly(est_age_t_deviation, 2)", mod = mod_laydate_poly, 
+                       xlevels = list(est_age_t_deviation = seq(min(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 
+                                                                max(ceuta_egg_chick_female_data$est_age_t_deviation, na.rm = TRUE), 1))))
+
+boot_laydate_age_dev_plot <- 
+  ggplot() +
+  geom_jitter(data = ceuta_egg_chick_female_data, 
+              alpha = 0.4, width = 0.3,
+              aes(x = est_age_t_deviation, y = first_laydate),
+              shape = 19, color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_ribbon(data = laydate_mod_age_dev_fits, 
+              aes(x = est_age_t_deviation, ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25, fill = "grey20") +
+  geom_line(data = laydate_age_dev_boot_out_melt,
+            aes(x = as.numeric(est_age_t_deviation) - 1, y = first_laydate, group = iteration),
+            lwd = 1, alpha = 0.01, color = "black") +
+  geom_line(data = laydate_mod_age_dev_fits, aes(x = est_age_t_deviation, y = fit),
+            lwd = 0.5, color = brewer.pal(8, "Set2")[c(6)]) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey70", size = 0.25),
+        panel.grid.minor.y = element_line(colour = "grey70", size = 0.1),
+        axis.ticks.y = element_blank()) +
+  ylab("Standardized lay date of first nest") +
+  xlab("Years since first local\nbreeding attempt") +
+  scale_y_continuous(limits = c(-65, 65), breaks = c(-60, -30, 0, 30, 60)) +
+  scale_x_continuous(limits = c(-0.5, max(ceuta_egg_chick_female_data$est_age_t_deviation) + 0.5), 
+                     breaks = seq(0, (max(ceuta_egg_chick_female_data$est_age_t_deviation)), by = 2))
+
+(boot_laydate_age_dev_plot | boot_laydate_first_age_plot | boot_laydate_last_age_plot)
+```
+
+## App. S1. BaSTA modeling
+To explain how mortality risk is associated with age, we compared four commonly used survival functions: exponential, Gompertz, logistic, and Weibull models. The exponential function keeps survival constant across age (Cox & Oakes, 1984), whereas the other functions allow for age-dependent variation in survival: the Gompertz model is an exponential function in which age-specific mortality is scaled by baseline mortality (Gompertz, 1812; Pletcher, 1999) and the Weibull model is a power function which assumes that baseline and age-specific mortality rates are independent (Pinder et al., 1978). In addition to the stand-alone versions of these functions, we considered two alternative forms of the Gompertz, logistic, and Weibull functions – “Makeham” and “bathtub” shapes. The Makeham shape constrains the survival function to converge to a constant, rather than zero, as age increases(Pletcher, 1999), whereas the bathtub shape enables concavity in the function, such that mortality could decrease at early ages, but increase later in life (Siler, 1979).
+
+We used four parallel simulations to run the Markov chain Monte Carlo (MCMC) optimization procedure in BaSTA with 800,000 iterations, a 100,000 burn-in period, and a thinning interval of 2000 to minimize serial autocorrelation in the chain (see Fig. S1 for simulation diagnostics). We ranked the survival models according to their deviance information criterion (DIC) and determined that the logistic model with a bathtub shape fitted our data best (i.e., lowest DIC, (Spiegelhalter et al., 2002); Table S1). This logistic model revealed that female mortality rate increased until age 5 years, after which it became constant (Fig. 1b). Using the top model, we extracted the point estimate and 95% credible interval birth year for each individual in the capture-mark-recapture sample.
+
+*examine the data used in the BaSTA analysis*
+```{r, echo=FALSE}
+load(file = "data/BaSTA_checked_life_table_females_2006-2020.rds")
+BaSTA_checked_life_table_females_2006_2020$newData %>% 
+  as.data.frame %>% 
+  datatable(class = 'cell-border stripe', rownames = FALSE)
+```
+
+*assess all BaSTA survival functions simultaneously with `BaSTA::multibasta`*
+```{r, eval=FALSE}
+BaSTA_output <-
+  multibasta(object = BaSTA_checked_life_table_females_2006_2020$newData,
+             studyStart = 2006, studyEnd = 2020, covarsStruct = "fused", 
+             minAge = 1, niter = 800000, burnin = 10000, thinning = 2000,
+             nsim = 4, parallel = TRUE, ncpus = 4, updateJumps = TRUE)
+```
+
+### *Figure S2. *
+<font size = "2">Bayesian model diagnostics of the Logistic bathtub shaped survival model. a) Serial autocorrelation of iterations within chains and b) chain convergence (*R-hat*) of model.</font>
+```{r, echo=FALSE, fig.dim=c(5,7)}
+# Extract top model
+plover_survival_model <- 
+  multiout_females$runs[[1]]
+
+# Check the diagnostics to assess the simulation performance
+BaSTA_autocorr_plot <- 
+  plover_survival_model$coefficients %>% 
+  as.data.frame() %>% 
+  dplyr::select(SerAutocor) %>% 
+  mutate(coeffs = rownames(.)) %>% 
+  ggplot() +
+  geom_col(aes(x = coeffs, y = SerAutocor)) +
+  scale_y_continuous(limits = c(-1, 1)) +
+  ylab("Serial autocorrelation within chain") +
+  luke_theme +
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank())
+
+BaSTA_chain_converg_plot <- 
+  plover_survival_model$convergence %>% 
+  as.data.frame() %>% 
+  dplyr::select(Rhat) %>% 
+  mutate(coeffs = rownames(.)) %>% 
+  ggplot() +
+  geom_hline(yintercept = 1, color = "red") +
+  geom_point(aes(x = coeffs, y = Rhat), size = 2) +
+  scale_y_continuous(limits = c(0.9, 1.1)) +
+  ylab("Chain convergence (R-hat)") +
+  xlab("Coefficient") +
+  luke_theme +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Serial autcorrelation: values should hover around zero...good!
+# Convergence: values should hover around one...good!
+BaSTA_model_diag_plot <-
+  BaSTA_autocorr_plot + BaSTA_chain_converg_plot + 
+  plot_layout(heights = c(0.45, 0.55)) +
+  plot_annotation(tag_levels = "A")
+
+BaSTA_model_diag_plot
+```
+
+### *Figure S2c* 
+<font size = "2">Bayesian model diagnostics of the Logistic bathtub shaped survival model: trace plots of chain dynamics</font>
+```{r, echo=FALSE, fig.dim=c(7, 8)}
+plot(plover_survival_model)
 ```
 
 
-## Appendix 2. Egg volume and chick weight relationship
+```{r, echo=FALSE}
+load(file = "output/multibasta_output_females_min_age_1_2006-2020.rds")
+load(file = "data/raw_life_table_females_2006_2020.rds")
+
+# DIC model selection shows that the Logistic mortality model with bathtub 
+# shape fits our data the best
+BaSTA_DIC_table <- 
+  multiout_females$DICs %>% 
+  as.data.frame() %>% 
+  mutate(model = ifelse(model == "LO", "Logistic",
+                        ifelse(model == "WE", "Weibull",
+                               ifelse(model == "GO", "Gompertz", "Exponential"))),
+         shape = paste0(toupper(substr(shape, 1, 1)), 
+                        substr(shape, 2, nchar(.)))) %>% 
+  mutate(shape = ifelse(shape == "Simp", "Simple", shape)) %>% 
+  dplyr::select(model, shape, k, DICdiff) %>% 
+  gt() %>% 
+  cols_label(model = "Mortality function",
+             shape = "Shape",
+             k = md("*k*"),
+             # DIC = md("*DIC*"),
+             DICdiff = md("\U0394*DIC*")) %>% 
+  fmt_number(columns = vars(DICdiff),
+             decimals = 2,
+             use_seps = FALSE) %>% 
+  # tab_options(column_labels.font.weight = "bold",
+  #             table.width = pct(50),
+  #             column_labels.font.size = 14,
+  #             table.font.size = 12,
+  #             data_row.padding = 5, table.align = "left") %>% 
+  fmt_missing(columns = 3,
+              missing_text = "") %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
+```
+
+### *Table S1*
+<font size = "2">Hierarchical capture-mark-recapture models used to describe mortality patterns of snowy plovers at Bahía de Ceuta, Mexico, between 2006 and 2020. *k*: number of modelled parameters; *ΔDIC*: difference in deviance information criterion (*DIC*) between a given model and the top model. *DIC* value of top model was 5279.1.</font>
+```{r, echo=FALSE}
+BaSTA_DIC_table
+```
+
+## App. S2. chick ~ egg model
 In theory, the selective benefits of larger eggs is that the subsequent hatchlings will be larger and have higher survival owing to more intrinsic reserves provided by the mother (Blomqvist et al., 1997). To link egg size variation to potential fitness consequences of subsequent offspring we evaluated the predicted positive relationship between egg volume and chick weight using the egg dataset described above but reduced observations to the nest level and filtered to only include nests that had chicks measured within one day of hatching, resulting in 456 nests from 276 females. As it was unclear which chick came from which egg, each datum represented the nest-level average of chick weights and egg volumes. We included random intercepts for mother identity and year, and assumed a Gaussian error distribution of egg volume.
 
-### Figure S1c
-Average egg volume of a clutch was highly correlated with the clutch’s average chick weight at hatch. Ribbon shows the 95% CI of the model prediction, vertical and horizontal error bars visualize within clutch variation in egg volume and chick hatch weight (1 SD); see Appendix S2 for modelling methods.
+*wrangle data so that each datum represented the nest-level average of chick weights and egg volumes*
 ```{r}
-
+eggs_and_chicks_nest_summary <- 
+  ceuta_egg_chick_female_data %>% 
+  group_by(ID, ring, year, jul_lay_date_std_num, 
+           avg_chick_weight, sd_chick_weight) %>% 
+  summarise(avg_egg_volume = mean(volume_cm, na.rm = TRUE),
+            sd_egg_volume = sd(volume_cm, na.rm = TRUE)) %>% 
+  rename(mother_ring = ring)
 ```
 
-### Table S2
-Relationship between the average egg volume of a clutch and the average chick weight at hatching.
-```{r}
+*view dataset used in model*
+```{r, echo=FALSE}
+eggs_and_chicks_nest_summary %>% 
+  datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
+```
 
+*liner mixed effect model of chick hatching weight*
+```{r, eval=FALSE}
+mod_chick_weight <-
+  lmer(avg_chick_weight ~ avg_egg_volume +
+         (1|mother_ring) + (1|year),
+       data = eggs_and_chicks_nest_summary)
+```
+
+*run rptR to obtain repeatabilities of random effects*
+```{r, eval=FALSE}
+rpt_mod_chick_weight <-
+  rpt(avg_chick_weight ~ avg_egg_volume +
+        (1|mother_ring) + (1|year),
+      grname = c("mother_ring", "year", "Fixed"),
+      data = eggs_and_chicks_nest_summary,
+      datatype = "Gaussian",
+      nboot = 1000, npermut = 1000, ratio = TRUE,
+      adjusted = FALSE, ncores = 4, parallel = TRUE)
+```
+
+*run partR2 to obtain marginal R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2m_mod_chick_weight <-
+  partR2(mod_chick_weight,
+         partvars = c("avg_egg_volume"),
+         R2_type = "marginal", nboot = 1000, CI = 0.95, max_level = 1)
+```
+
+*run partR2 to obtain conditional R2, parameter estimates, and beta weights*
+```{r, eval=FALSE}
+R2c_mod_chick_weight <-
+  partR2(mod_chick_weight,
+         partvars = c("avg_egg_volume"),
+         R2_type = "conditional", nboot = 1000, CI = 0.95, max_level = 1)
+```
+
+### *Figure S1c*
+<font size = "2">Average egg volume of a clutch was highly correlated with the clutch's average chick weight at hatch. Ribbon shows the 95% CI of the model prediction, vertical and horizontal error bars visualize within clutch variation in egg volume and chick hatch weight (1 SD); see Appendix S2 for modelling methods.</font>
+```{r, echo=FALSE, fig.dim=c(4,4)}
+#### Results and data----
+load("output/stats_chick_mod.rds")
+
+# extract fitted values of chick weight v egg volume model
+mod_chickw_eggv_fits <- 
+  as.data.frame(effect(term = "avg_egg_volume", mod = stats_chick_mod$mod, 
+                       xlevels = list(avg_chick_weight = seq(min(eggs_and_chicks_nest_summary[, "avg_chick_weight"], na.rm = TRUE),
+                                                             max(eggs_and_chicks_nest_summary[, "avg_chick_weight"], na.rm = TRUE), 0.01))))
+# model summary a diagnostics
+# summary(mod_chickw_eggv)
+# plot(allEffects(mod_chickw_eggv))
+# coefplot2(mod_chickw_eggv)
+# summary(glht(mod_chickw_eggv))
+
+#### Manuscript plot: chick weight v egg volume ----
+chickw_eggv_plot <-
+  ggplot() +
+  geom_errorbarh(data = eggs_and_chicks_nest_summary,
+                 aes(y = avg_chick_weight, x = avg_egg_volume, 
+                     xmin = avg_egg_volume - sd_egg_volume, 
+                     xmax = avg_egg_volume + sd_egg_volume), 
+                 alpha = 0.3, size = 0.5, linetype = "solid",
+                 color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_errorbar(data = eggs_and_chicks_nest_summary,
+                aes(y = avg_chick_weight, x = avg_egg_volume, 
+                    ymin = avg_chick_weight - sd_chick_weight, 
+                    ymax = avg_chick_weight + sd_chick_weight), 
+                alpha = 0.2, size = 0.5, linetype = "solid",
+                color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_point(data = eggs_and_chicks_nest_summary,
+             aes(x = avg_egg_volume, y = avg_chick_weight),
+             alpha = 0.4,
+             shape = 19, #21, 
+             color = brewer.pal(8, "Set1")[c(2)]) +
+  geom_line(data = mod_chickw_eggv_fits, aes(x = avg_egg_volume, y = fit),
+            lwd = 0.5) +
+  geom_ribbon(data = mod_chickw_eggv_fits, aes(x = avg_egg_volume, 
+                                               ymax = upper, ymin = lower),
+              lwd = 1, alpha = 0.25) +
+  luke_theme +
+  theme(panel.border = element_blank(),
+        plot.margin = margin(0, 0, 0, 0.5, "cm"),
+        axis.title.y = element_text(vjust = 5)) +
+  scale_y_continuous(limits = c(min(eggs_and_chicks_nest_summary$avg_chick_weight, na.rm = TRUE), 
+                                max(eggs_and_chicks_nest_summary$avg_chick_weight, na.rm = TRUE) * 1.05)) +
+  ylab("Avg. chick weight at hatch (g)") +
+  xlab(expression(paste("Avg. egg volume (cm", ''^{3}, ")", sep = ""))) 
+
+chickw_eggv_plot
+```
+
+### *Table S2*
+<font size = "2">Relationship between the average egg volume of a clutch and the average chick weight at hatching.</font>
+```{r, echo=FALSE}
+# Retrieve sample sizes
+sample_sizes <-
+  eggs_and_chicks_nest_summary %>% 
+  ungroup() %>% 
+  summarise(Year = n_distinct(year),
+            Individual = n_distinct(mother_ring),
+            Nests = n_distinct(ID))
+
+sample_sizes <- 
+  as.data.frame(t(as.data.frame(sample_sizes))) %>%
+  rownames_to_column("term") %>% 
+  rename(estimate = V1) %>% 
+  mutate(stat = "n")
+
+
+# clean model component names
+mod_comp_names <- 
+  data.frame(comp_name = c("Average egg volume of clutch",
+                           "Total Marginal \U1D479\U00B2",
+                           "Total Conditional \U1D479\U00B2",
+                           "Mother identity",
+                           "Year",
+                           "Residual",
+                           "Mother identity",
+                           "Year",
+                           "Residual",
+                           "Year",
+                           "Individuals",
+                           "Observations (i.e., Nests)"))
+
+# Fixed effect sizes (non-standardized)
+fixefTable <- 
+  stats_chick_mod$tidy %>% 
+  dplyr::filter(effect == "fixed") %>% 
+  dplyr::select(term, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed") %>% 
+  mutate_at(c("estimate", "conf.low", "conf.high"), invlogit)
+
+# Fixed effect sizes (standardized)
+fixef_bw_Table <- 
+  stats_chick_mod$partR2m$BW %>% 
+  # dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "fixed_bw") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Semi-partial R2 estimates
+ranefTable <- 
+  stats_chick_mod$tidy %>% 
+  dplyr::filter(effect == "ran_pars") %>% 
+  dplyr::select(group, estimate, conf.low, conf.high) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "rand") %>% 
+  rename(term = group) %>% 
+  mutate(estimate = estimate^2,
+         conf.high = conf.high^2,
+         conf.low = conf.low^2)
+
+# Random effects variances
+R2Table <- 
+  bind_rows(stats_chick_mod$partR2m$R2[1,],
+            stats_chick_mod$partR2c$R2[1,]) %>%   
+  dplyr::select(term, estimate, CI_lower, CI_upper) %>% 
+  as.data.frame() %>% 
+  mutate(stat = "partR2") %>% 
+  rename(conf.low = CI_lower,
+         conf.high = CI_upper)
+
+# Adjusted repeatabilities
+coefRptTable <- 
+  stats_chick_mod$rptR$R_boot %>% 
+  dplyr::select(-Fixed) %>% 
+  mutate(residual = 1 - rowSums(.)) %>% 
+  apply(., 2, 
+        function(x) c(mean (x), quantile (x, prob = c(0.025, 0.975)))) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("term") %>% 
+  rename(estimate = V1,
+         conf.low = `2.5%`,
+         conf.high = `97.5%`) %>% 
+  mutate(stat = "RptR")
+
+# Store all parameters into a single table and clean it up
+allCoefs_mod <- 
+  bind_rows(fixef_bw_Table,
+            R2Table,
+            ranefTable, 
+            coefRptTable, 
+            sample_sizes) %>% 
+  bind_cols(.,
+            mod_comp_names) %>%
+  mutate(coefString = ifelse(!is.na(conf.low),
+                             paste0("[", 
+                                    round(conf.low, 2), ", ", 
+                                    round(conf.high, 2), "]"),
+                             NA),
+         effect = c(rep("Fixed effects \U1D6FD (standardized)", nrow(fixef_bw_Table)),
+                    rep("Partitioned \U1D479\U00B2", nrow(R2Table)),
+                    rep("Random effects \U1D70E\U00B2", nrow(ranefTable)),
+                    rep("Adjusted repeatability \U1D45F", nrow(coefRptTable)),
+                    rep("Sample sizes \U1D45B", nrow(sample_sizes)))) %>%
+  dplyr::select(effect, everything())
+
+# draw gt table
+chick_mod_table <- 
+  allCoefs_mod %>% 
+  dplyr::select(effect, comp_name, estimate, coefString) %>% 
+  gt(rowname_col = "row",
+     groupname_col = "effect") %>% 
+  cols_label(comp_name = html("<i>Chick hatch weight</i>"),
+             estimate = "Mean estimate",
+             coefString = "95% confidence interval") %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 1:9,
+             decimals = 2,
+             use_seps = FALSE) %>% 
+  fmt_number(columns = vars(estimate),
+             rows = 10:12,
+             decimals = 0,
+             use_seps = FALSE) %>% 
+  fmt_missing(columns = 1:4,
+              missing_text = "") %>% 
+  cols_align(align = "left",
+             columns = vars(comp_name)) %>% 
+  tab_options(row_group.font.weight = "bold",
+              row_group.background.color = brewer.pal(9,"Greys")[3],
+              table.font.size = 12,
+              data_row.padding = 3,
+              row_group.padding = 4,
+              summary_row.padding = 2,
+              column_labels.font.size = 14,
+              row_group.font.size = 12,
+              table.width = pct(60))
+
+chick_mod_table
+```
+
+### *Figure S3*
+<font size = "2">Sources of variation in the average hatch weight of chicks..</font>
+```{r, echo=FALSE, fig.dim=c(6,5)}
+# Standardized fixed effects
+chick_mod_forest_plot_fixef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Fixed") & 
+           term != "(Intercept)") %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Fixed\neffects") +
+  xlab(expression(italic(paste("Standardized effect size (", beta,")" %+-% "95% CI", sep = ""))))
+
+# Semi-partial R2 estimates
+chick_mod_forest_plot_partR2 <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Partitioned") & str_detect(comp_name, "Conditional", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Total Marginal \U1D479\U00B2")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  scale_y_discrete(labels = c("Total Marginal \U1D479\U00B2" = expression(paste("Marginal ", italic("R"), ''^{2}, sep = "")))) +
+  ylab(expression(paste("Semi-partial ", italic("R"),''^{2}, sep = ""))) +
+  xlab(expression(italic(paste("Variance explained (R", ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Random effect variances
+chick_mod_forest_plot_randef <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "Random") & str_detect(comp_name, "Residual", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Mother identity")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Random\neffects") +
+  xlab(expression(italic(paste("Variance (", sigma, ''^{2}, ")" %+-% "95% CI", sep = ""))))
+
+# Adjusted repeatabilities
+chick_mod_forest_plot_rptR <-
+  allCoefs_mod %>%
+  filter(str_detect(effect, "repeat") & str_detect(comp_name, "Residual", negate = TRUE)) %>%
+  mutate(comp_name = fct_relevel(comp_name,
+                                 "Year",
+                                 "Mother identity")) %>%
+  ggplot() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey") +
+  geom_errorbarh(aes(xmin = conf.low,
+                     xmax = conf.high,
+                     y = comp_name),
+                 alpha = 1, color = col_all, 
+                 size = 0.5,
+                 height = 0) +
+  geom_point(aes(y = comp_name, x = estimate),
+             size = 3, shape = 21, 
+             fill = "#ECEFF4", col = col_all, 
+             alpha = 1, stroke = 0.5) +
+  luke_theme +
+  theme(axis.title.x = element_text(size = 10)) +
+  ylab("Intra-class\ncorrelation") +
+  xlab(expression(italic(paste("Adjusted repeatability (r)" %+-% "95% CI", sep = ""))))
+
+# Patchwork plot
+chick_mod_forest_plot_combo <-
+  (chick_mod_forest_plot_fixef / chick_mod_forest_plot_partR2 / 
+     # chick_mod_forest_plot_randef / 
+     chick_mod_forest_plot_rptR) + 
+  plot_annotation(tag_levels = 'A', title = 'chick model', theme = theme(plot.title = element_text(face = 'italic'))) +
+  plot_layout(heights = unit(c(0.75, 0.75, 
+                               # 1.5, 
+                               1.5), c('cm', 'cm', 
+                                       # 'cm', 
+                                       'cm')))
+
+chick_mod_forest_plot_combo
 ```
