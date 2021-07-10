@@ -23,7 +23,7 @@ For a complete overview of the methods and results presented in our manuscript, 
 
 [**`data/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/data)
 
-  - [`mol_sex.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/mol_sex.rds)
+  - [`mol_sex.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/mol_sex.rds) is the molecular sex-type data for a subsample of the individuals in the `ceuta_egg_chick_female_data.rds`
   - [`chicks_2006_2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/chicks_2006_2020.rds)
   - [`BaSTA_checked_life_table_females_2006-2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/BaSTA_checked_life_table_females_2006-2020.rds) is the processed BaSTA file containing the encounter histories of all individually marked plovers in the population
   - [`ceuta_egg_chick_female_data.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/ceuta_egg_chick_female_data.rds) is the trait data used in the polyandry, egg volume, and lay date models
@@ -32,36 +32,37 @@ For a complete overview of the methods and results presented in our manuscript, 
 
 [**`output/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/output)
 
-  - [`multibasta_output_females_min_age_1_2006-2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/multibasta_output_females_min_age_1_2006-2020.rds)
+  - [`multibasta_output_females_min_age_1_2006-2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/multibasta_output_females_min_age_1_2006-2020.rds) is the output from the BaSTA modl selection
   - [`stats_eggv_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_eggv_mod.rds) is the output from the egg volume model
-  - [`age_estimate_uncertainty_bootstraps.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/age_estimate_uncertainty_bootstraps.rds)
   - [`stats_polyandry_age_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_polyandry_mod.rds) is the output from the polyandry model
   - [`stats_renesting_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_renesting_mod.rds)is the output from the re-nesting model
   - [`stats_laydate_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_laydate_mod.rds) is the output from the lay date model
   - [`stats_chick_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_chick_mod.rds) is the output from the chick weight model
+  - [`age_estimate_uncertainty_bootstraps.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/age_estimate_uncertainty_bootstraps.rds) is the output form the BaSTA age uncertainty bootstrap
 
 
 [**`products/figures/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/products/figures)
 
-  - [`Figure_1.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_1.jpg)
-  - [`Figure_2.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_2.jpg)
-  - [`Figure_3.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_3.jpg)  
-  - [`Figure_4.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_4.png) 
-  - [`Figure_5.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_5.jpg)  
-  - [`Figure_S1.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S1.jpg)  
-  - [`Figure_S2.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S2.png) 
-  - [`Figure_S3.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S3.jpg) 
-  - [`Figure_S4.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S4.jpg)  
-  - [`Figure_S5.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S5.jpg)
-  - [`Figure_S6.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S6.jpg)  
-  - [`Figure_S7.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S7.jpg)  
-  - [`Figure_S8.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S8.jpg)  
+  - [`Figure_1.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_1.jpg): BaSTA survival function
+  - [`Figure_2.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_2.jpg): sampling distribution
+  - [`Figure_3.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_3.jpg): egg volume and lay date models forest plots
+  - [`Figure_4.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_4.png): seasonal correlates
+  - [`Figure_5.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_5.jpg): lay date variation by age and origin
+  - [`Figure_S1.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S1.jpg): raw egg size variation
+  - [`Figure_S2.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S2.png): BaSTA model diagnostics
+  - [`Figure_S3.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S3.jpg): chick model forest plot
+  - [`Figure_S4.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S4.jpg): polyandry model forest plot
+  - [`Figure_S5.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S5.jpg): re-nesting model forest plot
+  - [`Figure_S6.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S6.jpg): residuals plot
+  - [`Figure_S7.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S7.jpg): tarsus correlates
+  - [`Figure_S8.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S8.jpg): BaSTA age uncertainty plots
 
 
 [**`products/tables/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/products/tables)
 
-  - [`Table_S1.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S1.png)
-  - [`Table_S2.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S2.png)
-  - [`Table_S3.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S3.png)  
-  - [`Table_S4.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S4.png) 
-  - [`Table_S5.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S5.png) 
+  - [`Table_S1.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S1.png): BaSTA model selection results
+  - [`Table_S2.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S2.png): chick weight model results
+  - [`Table_S3.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S3.png): egg volume model results
+  - [`Table_S4.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S4.png): polyandry model results
+  - [`Table_S5.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S5.png): re-nesting model results 
+  - [`Table_S6.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S6.png): lay date model results 
