@@ -8,7 +8,7 @@ In this repository you can find all the raw data and code needed to reproduce ou
 For a complete overview of the methods and results presented in our manuscript, please view our project vignette: [Supplementary File 1](https://raw.githack.com/leberhartphillips/snowy_plover_eggs/main/Rmd/Supplementary_File_1/Supplementary_File_1.html)
 
 <p align="center">
-  <img width="600" src="./products/figures/jpg/eggs_plot_ms.jpg">
+  <img width="600" src="./products/figures/Figure_S1.jpg">
 </p>  
 
 <p align="center" > <i>Egg size variation and its relationship to chick size in snowy plovers (Charadrius nivosus). Illustrations by Luke Eberhart-Hertel.</i></p>
@@ -22,7 +22,9 @@ For a complete overview of the methods and results presented in our manuscript, 
   - `results_X.R` scripts contain code used to process the model output into figures and tables
 
 [**`data/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/data)
-  
+
+  - [`mol_sex.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/mol_sex.rds)
+  - [`chicks_2006_2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/chicks_2006_2020.rds)
   - [`BaSTA_checked_life_table_females_2006-2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/BaSTA_checked_life_table_females_2006-2020.rds) is the processed BaSTA file containing the encounter histories of all individually marked plovers in the population
   - [`ceuta_egg_chick_female_data.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/ceuta_egg_chick_female_data.rds) is the trait data used in the polyandry, egg volume, and lay date models
   - [`raw_encounter_histories_females_2006_2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/data/raw_encounter_histories_females_2006_2020.rds) is the raw unprocessed encounter histories of all individually marked plovers in the population with each row being an encounter.
@@ -30,29 +32,36 @@ For a complete overview of the methods and results presented in our manuscript, 
 
 [**`output/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/output)
 
-  - [`stats_chick_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_chick_mod.rds) is the output from the chick weight model
-  - [`stats_polyandry_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_polyandry_mod.rds) is the output from the polyandry model
+  - [`multibasta_output_females_min_age_1_2006-2020.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/multibasta_output_females_min_age_1_2006-2020.rds)
   - [`stats_eggv_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_eggv_mod.rds) is the output from the egg volume model
-  - [`stats_laydate_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output) is the output from the lay date model
-  - [`stats_renesting_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output) is the output from the re-nesting model
+  - [`age_estimate_uncertainty_bootstraps.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/age_estimate_uncertainty_bootstraps.rds)
+  - [`stats_polyandry_age_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_polyandry_mod.rds) is the output from the polyandry model
+  - [`stats_renesting_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_renesting_mod.rds)is the output from the re-nesting model
+  - [`stats_laydate_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_laydate_mod.rds) is the output from the lay date model
+  - [`stats_chick_mod.rds`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/output/stats_chick_mod.rds) is the output from the chick weight model
+
 
 [**`products/figures/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/products/figures)
 
-  - [`egg_widths_plot.svg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)
-  - [`egg_lengths_plot.svg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)
-  - [`chickw_eggv_plot.svg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
-  - [`egg_summary.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite) 
-  - [`season_combo_plot.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
-  - [`season_combo_plot_ms.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
-  - [`age_combo_plot_ms.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite) 
-  - [`tarsus_combo_plot_ms.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite) 
-  - [`polyandry_forest_ms.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
-  - [`egg_forest_ms.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)
-  - [`laydate_forest_ms.jpg`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
+  - [`Figure_1.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_1.jpg)
+  - [`Figure_2.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_2.jpg)
+  - [`Figure_3.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_3.jpg)  
+  - [`Figure_4.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_4.png) 
+  - [`Figure_5.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_5.jpg)  
+  - [`Figure_S1.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S1.jpg)  
+  - [`Figure_S2.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S2.png) 
+  - [`Figure_S3.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S3.jpg) 
+  - [`Figure_S4.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S4.jpg)  
+  - [`Figure_S5.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S5.jpg)
+  - [`Figure_S6.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S6.jpg)  
+  - [`Figure_S7.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S7.jpg)  
+  - [`Figure_S8.jpg`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/figures/Figure_S8.jpg)  
+
 
 [**`products/tables/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/products/tables)
 
-  - [`eggv_mod_table.png`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)
-  - [`polyandry_mod_table.png`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)
-  - [`laydate_mod_table.png`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite)  
-  - [`BaSTA_DIC_table.png`](https://github.com/leberhartphillips/Ceuta_CLOSED/blob/master/data/Ceuta_CLOSED_version_releases/Ceuta_CLOSED_v1-1.sqlite) 
+  - [`Table_S1.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S1.png)
+  - [`Table_S2.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S2.png)
+  - [`Table_S3.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S3.png)  
+  - [`Table_S4.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S4.png) 
+  - [`Table_S5.png`](https://github.com/leberhartphillips/snowy_plover_eggs/blob/main/products/tables/Table_S5.png) 
