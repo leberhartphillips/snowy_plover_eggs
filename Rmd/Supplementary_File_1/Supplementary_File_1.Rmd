@@ -657,7 +657,7 @@ We modelled within-individual age effects on egg volume by fitting a univariate 
 *view dataset used in model*
 ```{r, echo=FALSE}
 ceuta_egg_chick_female_data %>%
-  select(ID, ring, year, volume_cm, est_age_t_deviation, first_age_t, last_age_t, avg_ad_tarsi, laydate_deviation) %>% 
+  select(ID, ring, year, volume_cm, est_age_t_deviation, first_age_t, last_age_t, avg_ad_tarsi, laydate_deviation, first_laydate) %>% 
   distinct() %>% 
   datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
 ```
