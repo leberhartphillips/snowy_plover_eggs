@@ -3132,7 +3132,8 @@ boot_laydate_age_dev_plot <-
 (boot_laydate_age_dev_plot | boot_laydate_first_age_plot | boot_laydate_last_age_plot)
 ```
 
-## App. S1. BaSTA modeling
+# APPENDICES
+## App. S1. BaSTA modeling 
 To explain how mortality risk is associated with age, we compared four commonly used survival functions: exponential, Gompertz, logistic, and Weibull models. The exponential function keeps survival constant across age (Cox & Oakes, 1984), whereas the other functions allow for age-dependent variation in survival: the Gompertz model is an exponential function in which age-specific mortality is scaled by baseline mortality (Gompertz, 1812; Pletcher, 1999) and the Weibull model is a power function which assumes that baseline and age-specific mortality rates are independent (Pinder et al., 1978). In addition to the stand-alone versions of these functions, we considered two alternative forms of the Gompertz, logistic, and Weibull functions – “Makeham” and “bathtub” shapes. The Makeham shape constrains the survival function to converge to a constant, rather than zero, as age increases(Pletcher, 1999), whereas the bathtub shape enables concavity in the function, such that mortality could decrease at early ages, but increase later in life (Siler, 1979).
 
 We used four parallel simulations to run the Markov chain Monte Carlo (MCMC) optimization procedure in BaSTA with 800,000 iterations, a 100,000 burn-in period, and a thinning interval of 2000 to minimize serial autocorrelation in the chain (see Fig. S1 for simulation diagnostics). We ranked the survival models according to their deviance information criterion (DIC) and determined that the logistic model with a bathtub shape fitted our data best (i.e., lowest DIC, (Spiegelhalter et al., 2002); Table S1). This logistic model revealed that female mortality rate increased until age 5 years, after which it became constant (Fig. 1b). Using the top model, we extracted the point estimate and 95% credible interval birth year for each individual in the capture-mark-recapture sample.
@@ -3621,3 +3622,100 @@ chick_mod_forest_plot_combo <-
 
 chick_mod_forest_plot_combo
 ```
+
+# LITERATURE CITED
+
+<font size = "2">
+
+*Argüelles-Tico, A., Küpper, C., Kelsh, R.N., Kosztolányi, A., Székely, T. & van Dijk, R.E. (2015) Geographic variation in breeding system and environment predicts melanin-based plumage ornamentation of male and female Kentish plovers. Behavioral Ecology and Sociobiology, 70, 49–60.*
+
+*Bates D, Mächler M, Bolker B, Walker S (2015) Fitting linear mixed-effects models using lme4. J Stat Softw 67:1–48.*
+
+*Blomqvist, D., Johansson, O.C. & Götmark, F. (1997) Parental quality and egg size affect chick survival in a precocial bird, the lapwing Vanellus vanellus. Oecologia, 110, 18–24.*
+
+*Bouwhuis, S., Charmantier, A., Verhulst, S. & Sheldon, B.C. (2010) Trans-generational effects on ageing in a wild bird population. Journal of Evolutionary Biology, 23, 636–642.*
+
+*Colchero, F., Jones, O.R. & Rebke, M. (2012) BaSTA: An R package for Bayesian estimation of age-specific survival from incomplete mark-recapture/recovery data with covariates. Methods in Ecology and Evolution, 3, 466–470.*
+
+*Cox, D.R. & Oakes, D. (1984) Analysis of Survival Data. Chapman and Hall, London.*
+
+*Cruz-López, M., Eberhart-Phillips, L.J., Fernández, G., Beamonte-Barrientos, R., Székely, T., Serrano-Meneses, M.A., et al. (2017) The plight of a plover: viability of an important snowy plover population with flexible brood care in Mexico. Biological Conservation, 209, 440–448.*
+
+*Dingemanse, N.J., Moiron, M., Araya-Ajoy, Y.G., Mouchet, A. & Abbey-Lee, R.N. (2020) Individual variation in age-dependent reproduction: Fast explorers live fast but senesce young? Journal of Animal Ecology, 89, 601–613.*
+
+*Dittmann T, Hötker H (2001) Intraspecific Variation in the Egg Size of the Pied Avocet. Waterbirds: The International Journal of Waterbird Biology 24:83–88.*
+
+*Eberhart-Phillips, L.J., Cruz-López, M., Lozano-Angulo, L., Gómez del Ángel, S., Rojas-Abreu, W., Bucio-Pacheco, M., et al. (2020a) CeutaOPEN, individual-based field observations of breeding snowy plovers Charadrius nivosus. Scientific Data, 7, 149.*
+
+*Eberhart-Phillips, L.J., Cruz-López, M., Lozano-Angulo, L., Gómez del Ángel, S., Rojas-Abreu, W., Bucio-Pacheco, M., et al. (2020b) CeutaOPEN v1.5. Open Science Framework.*
+
+*Eberhart-Phillips, L.J., Küpper, C., Carmona-Isunza, M.C., Vincze, O., Zefania, S., Cruz-López, M., et al. (2018) Demographic causes of adult sex ratio variation and their consequences for parental cooperation. Nature Communications, 9, 1–8.*
+
+*Eberhart-Phillips, L.J., Küpper, C., Miller, T.E.X., Cruz-López, M., Maher, K.H., Remedios, dos, N., et al. (2017) Sex-specific early survival drives adult sex ratio bias in snowy plovers and impacts mating system and population growth. Proceedings of the National Academy of Sciences of the United States of America, 114, e5474–e5481.*
+
+*Gompertz, B. (1812) On the nature of the function expressive of the law of human mortality, and on a new mode of determining the value of life contingencies. Philosophical Transactions of the Royal Society of London B: Biological Sciences, 115, 513–583.*
+
+*Graham, J.L., Bauer, C.M., Heidinger, B.J., Ketterson, E.D. & Greives, T.J. (2019) Early-breeding females experience greater telomere loss. Molecular Ecology, 28, 114–126.*
+
+*Griffiths, R., Double, M.C., Orr, K. & Dawson, R.J.G. (1998) A DNA test to sex most birds. Molecular Ecology, 7, 1071–1075.*
+
+*Hall, L.K. & Cavitt, J.F. (2012) Comparative study of trapping methods for ground-nesting shorebirds. Waterbirds, 35, 342–346.*
+
+*Hanson, H.C. (1954) Apparatus for the study of incubated bird eggs. The Journal of Wildlife Management, 18, 191–198.*
+
+*Herborn, K.A., Daunt, F., Heidinger, B.J., Granroth-Wilding, V.H.M., Burthe, S.J., Newell, M.A., et al. (2016) Age, oxidative stress exposure and fitness in a long-lived seabird. Functional Ecology, 30, 913–921.*
+
+*Hoyt, D.F. (1979) Practical methods of estimating volume and fresh weight of bird eggs. The Auk, 96, 73–77.*
+
+*Kubelka, V., Sládeček, M., Zámečník, V., Vozabulová, E. & Šálek, M. (2020) Seasonality predicts egg size better than nesting habitat in a precocial shorebird. Ardea, 107, 239.*
+
+*Kupán, K., Székely, T., Cruz-López, M., Seymour, K. & Küpper, C. (2021) Offspring desertion with care? Chick mortality and plastic female desertion in Snowy Plovers. Behavioral Ecology.*
+
+*Küpper, C., Augustin, J., Kosztolányi, A., Burke, T., Flguerola, J. & Székely, T. (2009) Kentish versus snowy plover: phenotypic and genetic analyses of Charadrius alexandrinus reveal divergence of Eurasian and American subspecies. The Auk, 126, 839–852.*
+
+*Küpper, C., Horsburgh, G.J., Dawson, D.A., ffrench-Constant, R., Székely, T. & Burke, T. (2007) Characterization of 36 polymorphic microsatellite loci in the Kentish plover (Charadrius alexandrinus) including two sex-linked loci and their amplification in four other Charadrius species. Molecular Ecology Notes, 7, 35–39.*
+
+*Kwon, E., English, W.B., Weiser, E.L., Franks, S.E., Hodkinson, D.J., Lank, D.B., et al. (2018) Delayed egg-laying and shortened incubation duration of Arctic-breeding shorebirds coincide with climate cooling. Ecology and Evolution, 8, 1339–1351.*
+
+*Nakagawa, S. & Schielzeth, H. (2010) Repeatability for Gaussian and non‐Gaussian data: a practical guide for biologists. Biological Reviews, 85, 935–956.*
+
+*Nosály, G. & Székely, T. (1993) Clutch and egg-size variation in the Kentish Plover (Charadrius alexandrinus) during the breeding season. Aquila, 100, 161–179.*
+
+*Page, G.W., Stenzel, L.E., Warriner, J.S., Warriner, J.C. & Paton, P.W. (2009) Snowy Plover (Charadrius nivosus). The Birds of North America Online, 71935–72002.*
+
+*Pinder, J.E., Wiener, J.G. & Smith, M.H. (1978) The Weibull distribution: a new method of summarizing survivorship data. Ecology, 59, 175–179.*
+
+*Plaschke, S., Bulla, M., Cruz-López, M., Gómez del Ángel, S. & Küpper, C. (2019) Nest initiation and flooding in response to season and semi-lunar spring tides in a ground-nesting shorebird. Frontiers in Zoology, 16, 15–11.*
+
+*Pletcher, S. (1999) Model fitting and hypothesis testing for age-specific mortality data. Journal of Evolutionary Biology, 12, 430–439.*
+
+*R Core Team. (2020) R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/.*
+
+*Remedios, dos, N., Lee, P.L., Székely, T., Dawson, D.A. & Küpper, C. (2010) Molecular sex-typing in shorebirds: a review of an essential method for research in evolution, ecology and conservation. Wader Study Group Bulletin, 117, 109–118.*
+
+*Schroeder, J., Burke, T., Mannarelli, M.E., Dawson, D.A. & Nakagawa, S. (2012) Maternal effects and heritability of annual productivity. Journal of Evolutionary Biology, 25, 149–156.*
+
+*Siler, W. (1979) A Competing‐Risk Model for Animal Mortality. Ecology, 60, 750–757.*
+
+*Skrade, P. & Dinsmore, S.J. (2013) Egg-size investment in a bird with uniparental incubation by both sexes. The Condor, 115, 508–514.*
+
+*Snijders, T. & Bosker, R.J. (2011) Multilevel analysis: An introduction to basic and advanced multilevel modeling. 2nd edn. Sage.*
+
+*Spiegelhalter, D.J., Best, N.G., Carlin, B.P. & Van Der Linde, A. (2002) Bayesian measures of model complexity and fit. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 64, 583–639.*
+
+*Stoffel, M.A., Nakagawa, S. & Schielzeth, H. (2017) rptR: repeatability estimation and variance decomposition by generalized linear mixed‐effects models. Methods in Ecology and Evolution, 8, 1639–1644.*
+
+*Stoffel, M.A., Nakagawa, S. & Schielzeth, H. (2020) partR2: Partitioning R2 in generalized linear mixed models. bioRxiv, 2020.07.26.221168.*
+
+*Székely, T. & Kosztolányi, A. (2006) Practical guide for investigating breeding ecology of Kentish plover Charadrius alexandrinus. University of Bath.*
+
+*Székely, T., Argüelles-Tico, A., Kosztolányi, A. & Küpper, C. (2011) Practical guide for investigating breeding ecology of Kentish plover, 1–16.*
+
+*Székely, T., Kozma, J. & Piti, A. (1994) The volume of snowy plover eggs (el volumen de los huevos de Charadrius alexandrinus). Journal of Field Ornithology, 65, 60–64.*
+
+*van de Pol, M. & Verhulst, S. (2006) Age‐dependent traits: a new statistical model to separate within‐ and between‐individual effects. The American Naturalist, 167, 766–773.*
+
+*Verhoeven, M.A., Loonstra, A.H.J., McBride, A.D., Tinbergen, J.M., Kentie, R., Hooijmeijer, J.C.E.W., et al. (2020) Variation in egg size of black-tailed godwits. Ardea, 107, 291.*
+
+*Vincze, O., Kosztolányi, A., Barta, Z., Küpper, C., Alrashidi, M., Amat, J.A., et al. (2017) Parental cooperation in a changing climate: fluctuating environments predict shifts in care division. Global Ecology and Biogeography, 26, 347–358.*
+</font>
