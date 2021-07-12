@@ -28,6 +28,7 @@
 !R/results_sample_summary.R
 !R/wrangle_BaSTA_data.R
 !R/wrangle_egg_female_chick_data.R
+!R/publons_response.R
 
 !data/mol_sex.rds
 !data/chicks_2006_2020.rds
