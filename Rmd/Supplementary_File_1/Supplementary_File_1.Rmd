@@ -178,14 +178,13 @@ chick_measuring_age <-
   mutate(prop_age = as.numeric(as.character(n))/sum(n))
 ```
 # DATA COLLECTION
-We studied the reproductive effort and breeding schedules of snowy plovers at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site located on the coast of Sinaloa, western Mexico. Details on the study site and population are provided elsewhere (e.g., Cruz-López et al., 2017b; Eberhart-Phillips et al., 2020a). In brief, we annually monitored breeding birds from mid-April until early July, and collected mark-recapture data following the methods described in (Székely et al., 2011). We searched for nests using telescopes and mobile hides to minimize disturbance. Upon finding a nest, we measured each eggs' length and width to the nearest tenth of a mm to determine egg size (Figs. S1). Using these egg dimensions, we calculated egg volume following (Hoyt, 1979) as:
+We studied the reproductive effort and breeding schedules of snowy plovers at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site located on the coast of Sinaloa, western Mexico. Details on the study site and population are provided elsewhere (e.g., Cruz-López et al., 2017b; Eberhart-Phillips et al., 2020a). In brief, we annually monitored breeding birds from mid-April until early July, and collected mark-recapture data following the methods described in (Székely et al., 2011). We searched for nests using telescopes and mobile hides to minimize disturbance. Upon finding a nest, we measured each eggs' length and width to the nearest tenth of a mm to determine egg size (Figs. S1AB). Using these egg dimensions, we calculated egg volume following (Hoyt, 1979) as:
 
 Eq. 1  $egg\_volume= K × length × width^2$,
 
 where K is 0.486, a volume-index constant for snowy plovers determined by (Székely et al., 1994) through the use of an egg volumeter (Hanson, 1954). The modal clutch size of snowy plovers is three (86.2%) and is the maximum number of eggs we have observed in this population (Eberhart-Phillips et al., 2020b). We regularly checked incomplete nests until the clutch was completed and assigned the age of these nests according to the lay date of the last egg laid (Plaschke et al., 2019). If the clutch was complete upon discovery and had not been incubated longer than 10 days, we determined its lay date by floating the egg and estimating the stage of embryonic development (Nosály & Székely, 1993). For successful clutches found after 10 days we assumed an incubation period of 25 days and back-calculated the laying date based on the hatching date (Plaschke et al., 2019). In the rare case that the nest did not hatch and we discovered it after day 10 of embryonic development, we assumed that the nest was 17 days old upon discovery (i.e., the midpoint between the minimum age of 11 days and the 25 day incubation period). In summary, the lay dates for `r lay_date_methods[1,2]` (`r round(lay_date_methods[1,3], 2)*100`%) nests were determined through floatation, `r lay_date_methods[3,2]` (`r round(lay_date_methods[3,3], 2)*100`%) were back-calculated from hatch date, and `r lay_date_methods[2,2]` (`r round(lay_date_methods[2,3], 2)*100`%) were assumed to be 17 days old at discovery.
 
-### *Figure S1*.
-<font size = "2">Raw egg size variation.</font>
+### *Figure S1AB (panels A and B in manuscript)*.
 ```{r egg measurements, echo=FALSE, message=FALSE, fig.dim = c(8, 8), warning=FALSE}
 egg_image <- image_read("media/plover_egg.png")
 egg_image_grob <- rasterGrob(egg_image, interpolate = TRUE, height = 0.6)
@@ -283,7 +282,7 @@ We visited known active nests every four or five days to determine the status of
 
 For the years 2006 to 2016 all longitudinal data collected has been compiled as part of the [CeutaOPEN](https://www.nature.com/articles/s41597-020-0490-y) project – an open-access database for individual-based field studies in evolutionary ecology and conservation biology (Eberhart-Phillips et al., 2020a). We accessed these data directly from the open source repository (Eberhart-Phillips et al., 2020b) and supplemented them with data from four additional field seasons: 2017–2020. The CeutaOPEN database is composed of five tables that correspond to our routine data collection in the field (Székely & Kosztolányi, 2006). Here we used the "Captures", "Resights", and "Nests" tables. The "Captures" and "Resights" tables contain information about all the individuals captured and observed, whereas the "Nests" table contains the morphometric and spatiotemporal information related to each nest monitored.
 
-# STATISTICAL ANLAYSES
+# STATISTICAL ANALYSES
 ## Age estimation with BaSTA
 Investigating age-dependent processes of marked populations in the wild is challenging as they are often composed of a mix of individuals that are of known or unknown age (Colchero et al., 2012) – with the former being individuals initially marked at birth (i.e., uncensored), and the latter being immigrants of unknown age or those that were born before the study's first marking occasion (i.e., left-truncated). To estimate the ages of unknown individuals in our marked population we employed a capture-mark-recapture analysis using the 'Bayesian Survival Trajectory Analysis' (`BaSTA`) package in R (v1.9.4, Colchero et al., 2012), which uses a Bayesian hierarchical framework to fit parametric survival functions of the marked population while accounting for imperfect detection. Furthermore, BaSTA derives birth year estimates of left-truncated individuals from the population mean of the projected survival function. As snowy plovers show prominent sex differences in survival (Eberhart-Phillips et al., 2017; 2018), we used female-specific survival functions for this study. Due to high natal dispersal, we could not confidently determine the fate of juveniles marked in our population. To acknowledge this uncertainty, our capture-mark-recapture sample only included individuals that survived to their first breeding season, i.e., we constrained first-year survival probability to 1.
 
@@ -412,8 +411,6 @@ recruit_ages_freq_plot <-
            label = "Frequency distribution of observations\n of known-aged females",
            color = "black", size = 3, fontface = 'italic')
 
-# draw the three panels together for Fig S1
-# Fig_1 <-
 max_dims <- get_max_dim(recruit_ages_freq_plot, female_survival_plot, female_mortality_plot)
 set_dim(recruit_ages_freq_plot, max_dims)
 
@@ -426,7 +423,7 @@ BaSTA_curve_plot <-
 In total, our capture-mark-recapture data comprised of `r sum(BaSTA_summary[,2])` uniquely marked females, of which `r BaSTA_summary[2,2]` hatched locally and subsequently recruited into the adult population as known-age individuals (Fig. 1a), and the remaining `r BaSTA_summary[1,2]` females were adults of unknown age and origin. Over the 14-year study period we monitored the presence or absence of marked individuals annually by recapturing or observing them in the field, amounting to a total of `r detection_summary` post-birth detections of the `r sum(BaSTA_summary[,2])` females in our sample (median detections per adult = `r dplyr::pull(detection_summary2[1,3])`; mean = `r round(detection_summary2[1,1], 2)`, `r round(detection_summary2[1,2], 2)` SD). A logistic bathtub-shaped mortality model had the best fit to our data (Table S1) – revealing that female mortality rate increased until age 5 years, after which it became constant (Fig. 1b; see Appendix S1 for detailed methods). Using this model, we extracted the birth year estimate posteriors for each unknown-age individual in the capture-mark-recapture sample. Note that three individuals (one first encountered as an adult [CA1579] and two local recruits [CA2036 and CA1526]; Fig. 2) had been already marked two years prior to the start of our monitoring period (i.e., pre-2006) and were thus added to our sample after running BaSTA on the 2006–2020 capture-mark-recapture data.
 
 ### *Figure 1*.
-<font size = "2">Logistic-bathtub mortality function for snowy plover females: a) frequency distribution of age-specific observations of 45 known-aged females and b) age-dependent mortality hazard.</font>
+<font size = "2">Logistic-bathtub mortality function for snowy plover females: A) frequency distribution of age-specific observations of 45 known-aged females and B) age-dependent mortality hazard.</font>
 ```{r, echo=FALSE, fig.dim=c(6,6)}
 BaSTA_curve_plot 
 ```
@@ -595,7 +592,7 @@ plot_of_sample_population2 <-
 ```
 
 ```{r, echo=FALSE, fig.dim=c(6,10)}
-plot_of_sample_population
+plot_of_sample_population2
 ```
 
 ```{r, include=FALSE}
@@ -662,7 +659,7 @@ ceuta_egg_chick_female_data %>%
   datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
 ```
 
-*liner mixed effect model of egg volume*
+*linear mixed effect model of egg volume*
 ```{r, eval=FALSE}
 mod_egg_volume <-
   lmer(volume_cm ~ poly(est_age_t_deviation, 2) +
@@ -744,7 +741,7 @@ first_nests_data %>%
   datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
 ```
 
-*liner mixed effect model of polyandry potential*
+*linear mixed effect model of polyandry potential*
 ```{r, eval=FALSE}
 mod_polyandry <-
   lme4::glmer(cbind(poly, mono) ~ first_laydate + est_age_t_deviation + first_age_t +
@@ -811,7 +808,7 @@ renesting_data %>%
   datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
 ```
 
-*liner mixed effect model of re-nesting potential*
+*linear mixed effect model of re-nesting potential*
 ```{r, eval=FALSE}
 mod_renesting <-
   glmer(cbind(multi, single) ~ first_laydate +
@@ -850,7 +847,7 @@ R2c_renesting <-
 ```
 
 ## Modelling lay date variation
-Modelling the age effects of first nest lay date followed the same logic as the above egg volume model, with a univariate mixed-effect structure that included age-deviance, age-deviance-squared, first observed age, last observed age, and average tarsus length as fixed covariates, and individual and year as random intercepts. Furthermore, recruitment status was also fitted as a two-level fixed effect describing if a breeding female hatched locally ("local recruit") or was first encountered as an adult of unknown origin ("immigrant"). Our sample for studying lay date dynamics used the same nest-level sample as the polyandry model above, however, as we were interested in how the recruitment status of an individual influenced breeding phenology, we excluded data from 2006 as this was the first year of our study when all birds were first individually marked. This resulted in 568 nests from 376 females. We visualized the distribution of lay dates to confirm normality and to assess the population-level variance in breeding schedule – an indication of inter-female breeding asynchrony and the intensity of contest competition for mates (Andersson, 2004).
+Modelling the age effects of first nest lay date followed the same logic as the above egg volume model, with a univariate mixed-effect structure that included age-deviance, age-deviance-squared, first observed age, last observed age, and average tarsus length as fixed covariates, and individual and year as random intercepts. Furthermore, recruitment status was also fitted as a two-level fixed effect describing if a breeding female hatched locally ("local recruit") or was first encountered as an adult of unknown origin ("immigrant"). Our sample for studying lay date dynamics used the same nest-level sample as the polyandry model above, however, as we were interested in how the recruitment status of an individual influenced breeding phenology, we excluded data from 2006 as this was the first year of our study when all birds were first individually marked. This resulted in 568 nests from 376 females. We visualized the distribution of lay dates to confirm normality and to assess the population-level variance in breeding schedule – an indication of inter-female breeding asynchrony and the intensity of competition for mates (Andersson, 2004).
 
 ### *R workflow*
 
@@ -871,7 +868,7 @@ first_nests_post_2006_data %>%
   datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
 ```
 
-*liner mixed effect model of lay date*
+*linear mixed effect model of lay date*
 ```{r, eval=FALSE}
 mod_laydate <-
   lmer(first_laydate ~ poly(est_age_t_deviation, 2) + 
@@ -1092,10 +1089,10 @@ est_age_boot_out <-
 ```
 
 # RESULTS
-Over 14 breeding seasons, we collected measurements from 2392 eggs, originating from 841 clutches of 426 females. Modal clutch size was 3 eggs (724 nests, 86.1%; 2-eggs: 103 nests, 12.3%, 1-egg: 14 nests, 1.6%). Average egg length was 3.09 cm (0.10 cm SD, Fig. S1a) and width was 2.24 cm (0.05 cm SD, Fig. S1b), which translated into an average egg volume of 7.59 cm3 (0.46 cm3 SD). The average egg volume of a clutch strongly predicted the average hatch weight of the subsequent brood (β [95% CIs]: 0.63 [0.55–0.70]; R2marginal = 0.370 [0.310–0.436]; Figs. S1c and S3, Table S2, see Appendix S2 for methods). Based on BaSTA's estimated birth year, 185 of the 383 unknown-age females in our sample were first observed nesting at age 1 (48.3%), 120 at age two (31.3%), 72 at age three (18.8%), five at age 4 (1.3%), and one at age 5 (0.3%). Of the 43 locally hatched females in our sample, 29 first nested at age one (67.4%), six were first observed nesting at age two (14.0%), two at age 3 (4.7%), three at age 4 (7.0%), three at ages 5, 7, and 8, respectively (7.0%). The average tenure of all females in the sample was 1.57 years (2.15 SD) with an average age span of 3.12 years (2.03 SD, median: 3, range: 1–14 years) and an average of 1.56 years of observed ages per female (1.04 SD, median: 1, range: 1–8 age-specific observations). Females in our sample were typically observed nesting every consecutive year since their first observation, however, some individuals skipped years (Fig. 2, average yearly interval between nesting attempts = 1.07, 0.27 SD). On average, females made 1.43 (0.56 SD) nesting attempts per season (median = 1, range 1 to 3).
+Over 14 breeding seasons, we collected measurements from 2392 eggs, originating from 841 clutches of 426 females. Modal clutch size was 3 eggs (724 nests, 86.1%; 2-eggs: 103 nests, 12.3%, 1-egg: 14 nests, 1.6%). Average egg length was 3.09 cm (0.10 cm SD, Fig. S1AB) and width was 2.24 cm (0.05 cm SD, Fig. S1AB), which translated into an average egg volume of 7.59 cm3 (0.46 cm3 SD). The average egg volume of a clutch strongly predicted the average hatch weight of the subsequent brood ($\beta$ [95% CIs]: 0.63 [0.55–0.70]; $R^2_{marginal}$ = 0.370 [0.310–0.436]; Figs. S1C and S3, Table S2, see Appendix S2 for methods). Based on BaSTA's estimated birth year, 185 of the 383 unknown-age females in our sample were first observed nesting at age 1 (48.3%), 120 at age two (31.3%), 72 at age three (18.8%), five at age 4 (1.3%), and one at age 5 (0.3%). Of the 43 locally hatched females in our sample, 29 first nested at age one (67.4%), six were first observed nesting at age two (14.0%), two at age 3 (4.7%), three at age 4 (7.0%), three at ages 5, 7, and 8, respectively (7.0%). The average tenure of all females in the sample was 1.57 years (2.15 SD) with an average age span of 3.12 years (2.03 SD, median: 3, range: 1–14 years) and an average of 1.56 years of observed ages per female (1.04 SD, median: 1, range: 1–8 age-specific observations). Females in our sample were typically observed nesting every consecutive year since their first observation, however, some individuals skipped years (Fig. 2, average yearly interval between nesting attempts = 1.07, 0.27 SD). On average, females made 1.43 (0.56 SD) nesting attempts per season (median = 1, range 1 to 3).
 
 ## Individual variation in egg volume
-Overall, mixed effects accounted for 71.2% ([68.2, 74.3] 95%CIs) of variation in egg volume, with fixed effects explaining 7.9% ([5.1, 12.3] 95%CIs) of this variation (Table S3). Females were highly repeatable in their egg volumes between clutches: r = 0.47 ([0.41, 0.53] 95%CIs; Fig. 3, Table S3). Furthermore, eggs within the same clutch were moderately repeatable in volume (r = 0.18 [0.14, 0.22]; Fig. 3, Table S3). Senescence in egg volume was not supported (βage [95% CIs]: 0.00 [-0.06, 0.6], βage2: -0.05 [-0.09, -0.01]; semi-partial R2 of senescence function = 0.003 [0, 0.05]; Fig. 3, Table S3). Furthermore, we found no support for selective (dis)appearance of individuals according to egg volume, as the 95% CIs for first and last observed ages of reproduction overlapped zero (Fig. 3, Table S3). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8a–c) confirmed these results. The strongest fixed effect explaining egg volume variation was the structural size of the mother (βtarsus [95% CI]: 0.23 [0.15, 0.29]; semi-partial R2 of female tarsus = 0.05 [0.02, 0.09]; Figs. S3 and S7b): larger females laid larger eggs than smaller females (model predicted difference: 0.58 cm3 [0.34, 0.81] 95%CI). The second strongest effect was the between-individual quadratic season function (Fig. 4c): eggs were smallest at the start of the season (model prediction: 7.18 cm3 [6.98, 7.37] 95%CI) and largest shortly after the middle of the season (model prediction: 7.68 cm3 [7.60, 7.76] 95%CI). Average egg volume also increased between sequential clutches within individuals but with smaller magnitude than the population-level trend (βwithin [ 95%CI]: 0.10 [0.06, 0.14], predicted increase of 0.21 cm3 [0.04, 0.38]; Fig. 3).
+Overall, mixed effects accounted for 71.2% ([68.2, 74.3] 95%CIs) of variation in egg volume, with fixed effects explaining 7.9% ([5.1, 12.3] 95%CIs) of this variation (Table S3). Females were highly repeatable in their egg volumes between clutches: r = 0.47 ([0.41, 0.53] 95%CIs; Fig. 3L, Table S3). Furthermore, eggs within the same clutch were moderately repeatable in volume (r = 0.18 [0.14, 0.22]; Fig. 3L, Table S3). Senescence in egg volume was not supported ($\beta_{age}$ [95% CIs]: 0.00 [-0.06, 0.6], $\beta_{age^2}$: -0.05 [-0.09, -0.01]; semi-partial R2 of senescence function = 0.003 [0, 0.05]; Fig. 3L, Table S3). Furthermore, we found no support for selective (dis)appearance of individuals according to egg volume, as the 95% CIs for first and last observed ages of reproduction overlapped zero (Fig. 3L, Table S3). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8T) confirmed these results. The strongest fixed effect explaining egg volume variation was the structural size of the mother ($\beta_{tarsus}$ [95% CI]: 0.23 [0.15, 0.29]; semi-partial R2 of female tarsus = 0.05 [0.02, 0.09]; Figs. S3 and S7B): larger females laid larger eggs than smaller females (model predicted difference: 0.58 cm3 [0.34, 0.81] 95%CI). The second strongest effect was the between-individual quadratic season function (Fig. 4C): eggs were smallest at the start of the season (model prediction: 7.18 cm3 [6.98, 7.37] 95%CI) and largest shortly after the middle of the season (model prediction: 7.68 cm3 [7.60, 7.76] 95%CI). Average egg volume also increased between sequential clutches within individuals but with smaller magnitude than the population-level trend ($\beta_{within}$ [ 95%CI]: 0.10 [0.06, 0.14], predicted increase of 0.21 cm3 [0.04, 0.38]; Fig. 3L).
 
 ### *Table S3*
 <font size = "2">Sources of egg size variation.</font>
@@ -1264,8 +1261,8 @@ eggv_mod_table <-
 eggv_mod_table
 ```
 
-### *Figure 3*
-<font size = "2">Sources of egg volume. Top row: standardized effect sizes (± 95% CI) of fixed effects. Middle row: variance explained by fixed effects (note: the term 'Senescence' describes the collective variation explained by the linear and quadratic within-individual age effects in the top row; the term 'Selective appearance' and 'Selective disappearance' describe the variation explained by the between individual first- and last-breeding age fixed effects of the top row, respectively; the term 'Within ind. seasonality' describes the variation explained by the within individual lay date effect in the top row, and the term 'Between ind. seasonality' describes the collective variation explained by the linear and quadratic lay date effects in the top row).</font>
+### *Figure 3L (<ins>L</ins>eft panel in manuscript)*
+<font size = "2">Sources of egg volume. A) standardized effect sizes (± 95% CI) of fixed effects. B) variance explained by fixed effects (note: the term 'Senescence' describes the collective variation explained by the linear and quadratic within-individual age effects in the top row; the term 'Selective appearance' and 'Selective disappearance' describe the variation explained by the between individual first- and last-breeding age fixed effects of the top row, respectively; the term 'Within ind. seasonality' describes the variation explained by the within individual lay date effect in the top row, and the term 'Between ind. seasonality' describes the collective variation explained by the linear and quadratic lay date effects in the top row). C) Adjusted repeatabilities (± 95% CI) of random effects. </font>
 ```{r, echo=FALSE, fig.dim=c(6,7.5)}
 # Standardized fixed effects
 eggv_mod_forest_plot_fixef <-
@@ -1397,7 +1394,7 @@ eggv_mod_forest_plot_combo <-
 eggv_mod_forest_plot_combo
 ```
 
-### *Figure S7*
+### *Figure S7L (<ins>L</ins>ower panel in manuscript)*
 <font size = "2">Relationship between a female's structural size (i.e., her tarsus length) and the volume of her eggs.</font>
 ```{r, echo=FALSE,fig.dim=c(4,4), fig.align='left'}
 #### Trend plot of egg volume over tarsus ----
@@ -1443,8 +1440,8 @@ eggv_tarsus_trend_plot <-
 eggv_tarsus_trend_plot
 ```
 
-### *Figure S8*
-<font size = "2">Visualization of the effect of uncertainty in the age estimate provided by BaSTA on age-dependent trends in egg volume dynamics. Black trends show the model predictions for the 1000 bootstraps of the BaSTA age estimate posteriors (see Methods). Panels A and D show the within-individual trends of the 'age-deviation' score – as expected, these measures are not impacted by uncertainty in the BaSTA age estimate because they are centered for each individual (i.e., the absolute age is irrelevant). Panels B and E show the between-individual trend of the 'age at first breeding' (i.e., selective appearance), and panels C and F show the between-individual trend of the 'age at last breeding' (i.e., selective disappearance). Yellow trends and grey ribbons visualize the 95% CI of the model predictions when using the mean age estimate provided by BaSTA (i.e., the effect sizes of the 'egg volume' model shown in Fig. 3).</font>
+### *Figure S8T (<ins>T</ins>op row in manuscript)*
+<font size = "2">Visualization of the effect of uncertainty in the age estimate provided by BaSTA on age-dependent trends in egg volume dynamics. Black trends show the model predictions for the 1000 bootstraps of the BaSTA age estimate posteriors (see Methods). A) within-individual trend of the 'age-deviation' score – as expected, this measure is not impacted by uncertainty in the BaSTA age estimate because they are centered for each individual (i.e., the absolute age is irrelevant). B) between-individual trend of the 'age at first breeding' (i.e., selective appearance). C) between-individual trend of the 'age at last breeding' (i.e., selective disappearance). Yellow trends and grey ribbons visualize the 95% CI of the model predictions when using the mean age estimate provided by BaSTA (i.e., the effect sizes of the 'lay date' models shown in Fig. 3R).</font>
 ```{r, echo=FALSE,fig.dim=c(8,4)}
 load("output/age_estimate_uncertainty_bootstraps.rds")
 
@@ -1566,10 +1563,11 @@ boot_eggv_age_dev_plot <-
   scale_x_continuous(limits = c(-0.5, max(ceuta_egg_chick_female_data$est_age_t_deviation) + 0.5), 
                      breaks = seq(0, (max(ceuta_egg_chick_female_data$est_age_t_deviation)), by = 2))
 
-(boot_eggv_age_dev_plot | boot_eggv_first_age_plot | boot_eggv_last_age_plot)
+(boot_eggv_age_dev_plot | boot_eggv_first_age_plot | boot_eggv_last_age_plot) +
+  plot_annotation(tag_levels = "A")
 ```
 
-### *Figure 4*
+### *Figure 4C (panel C in manuscript)*
 <font size = "2">Phenology of egg laying and egg size in 425 female snowy plovers breeding at Bahía de Ceuta. Seasonal variation in egg volume – trend shows the between-individual polynomial function of the model prediction. Each datum is an egg's volume (cm3) and lay date. Laydate is standardized for each year.</font>
 ```{r, echo=FALSE,fig.dim=c(4,4)}
 #### Trend plot of egg volume over season ----
@@ -1645,8 +1643,8 @@ eggv_date_mod_plot <-
 eggv_date_mod_plot
 ```
 
-## Seasonal variation in polyandry and re-nesting potential
-In at least one breeding season throughout the observation period, 55 (29.1%) females re-nested following a failed attempt (annual average incidence of re-nesting: 27%, range: 0–58.3%) and 76 (17.9%) females were polyandrous (annual average incidence of polyandry: 11.8%, range: 0–25.6%). A female's likelihood of being polyandrous was strongly dependent on the lay date of their first nest (β [95% CIs]: -2.25 [-3.12, -1.84]; R2marginal = 0.37 [0.27, 0.50]; Figs. 4a and S4, Table S4). Likewise, a female's likelihood of re-nesting following a failed attempt was strongly dependent on the initial lay date (β [95% CIs]: -1.77 [-3.15, -1.30]; R2marginal = 0.39 [0.25, 0.58]; Figs. 4e and S5, Table S5). The lay date distribution of polyandrous females was bimodal, with peaks in the first and second nests occurring 11.1 days before and 29.1 days after the unimodal seasonal peak for monogamous females (Fig. 4b). Likewise, the lay date distribution of renesting females was also bimodal, with peaks in the first and replacement clutches occurring 9.7 days before and 28.4 days after the unimodal seasonal peak for single nesters (Fig. 4d). Females had low repeatability in polyandry among years (adjusted individual cross-year repeatability (r [95% CIs] = 0.01 [0, 0.15]; Table S4, Fig. S4) and we found no evidence of age-dependent polyandry (Fig. S4).
+## Polyandry and re-nesting potential
+In at least one breeding season throughout the observation period, 55 (29.1%) females re-nested following a failed attempt (annual average incidence of re-nesting: 27%, range: 0–58.3%) and 76 (17.9%) females were polyandrous (annual average incidence of polyandry: 11.8%, range: 0–25.6%). A female's likelihood of being polyandrous was strongly dependent on the lay date of their first nest ($\beta$ [95% CIs]: -2.25 [-3.12, -1.84]; $R^2_{marginal}$ = 0.37 [0.27, 0.50]; Figs. 4AB and S4, Table S4). Likewise, a female's likelihood of re-nesting following a failed attempt was strongly dependent on the initial lay date ($\beta$ [95% CIs]: -1.77 [-3.15, -1.30]; $R^2_{marginal}$ = 0.39 [0.25, 0.58]; Figs. 4DE and S5, Table S5). The lay date distribution of polyandrous females was bimodal, with peaks in the first and second nests occurring 11.1 days before and 29.1 days after the unimodal seasonal peak for monogamous females (Fig. 4AB). Likewise, the lay date distribution of renesting females was also bimodal, with peaks in the first and replacement clutches occurring 9.7 days before and 28.4 days after the unimodal seasonal peak for single nesters (Fig. 4DE). Females had low repeatability in polyandry among years (adjusted individual cross-year repeatability (r [95% CIs] = 0.01 [0, 0.15]; Table S4, Fig. S4) and we found no evidence of age-dependent polyandry (Fig. S4).
 
 ```{r, include=FALSE}
 # load the saved results
@@ -1965,7 +1963,7 @@ poly_mod_forest_plot_combo <-
 poly_mod_forest_plot_combo
 ```
 
-### *Figure 4*
+### *Figure 4AB (panels A and B in manuscript)*
 <font size = "2">Phenology of mating system in 425 female snowy plovers breeding at Bahía de Ceuta. (Top) Relationship between polyandry potential and lay date of a female’s first nest of the season. Each datum is the lay date of an individual’s first nest and their observed local mating behaviour of each year. (bottom) Lay date distributions of all nests for females that were polyandrous (yellow) or monogamous (green). Late date is standardized for each year across all panels.</font>
 ```{r, echo=FALSE}
 #### Plotting of polyandry potential Figure ---- 
@@ -2397,7 +2395,7 @@ renesting_mod_forest_plot_combo <-
 renesting_mod_forest_plot_combo
 ```
 
-### *Figure 4*
+### *Figure 4DE (panels D and E in manuscript)*
 <font size = "2">Phenology of re-nesting and egg size in 425 female snowy plovers breeding at Bahía de Ceuta. Top: Lay date distributions of all nests for females that laid replacement clutches (orange) or did not re-nest (purple) following failure of their first nest. (Bottom) Relationship between re-nesting potential and lay date of a female’s first nest of the season. As with top panel, each datum is the lay date of an individual’s first nest and their observed local re-nesting activity of each year. Late date is standardized for each year across all panels.</font>
 ```{r, echo=FALSE}
 # plot the posterior age at peak distribution
@@ -2516,7 +2514,7 @@ renesting_date_mod_plot <-
 
 
 ## Individual variation in lay date
-Females had moderate repeatability in the lay date of their first nest among years (r = 0.19 [0.06, 0.32] 95%CI; Fig. 3, Table S6). We found strong support for the effect of origin on first nest lay date: females that locally hatched and later recruited into the breeding population initiated nests 7.80 days earlier (95% CI: [5.09, 10.50]) on average compared to conspecifics that had unknown origin (Figs. 3 and 5b). The next strongest effect was within-individual age function predicting the lay date of a female's first nest in the season: young individuals laid later nests compared to their older conspecifics with lay date advancing by ~2.17 days per year until age six (95% CI: [1.41, 2.93]; Fig. 5a). However, the uncertainty in this trend became unwieldly in the oldest age classes of our sample (Fig. 5a). Notably, female size did not affect lay date (Fig. 3 and S7a), nor did between-individual effects of first or last age at breeding (Fig. 3). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8d–f) confirmed these results.
+Females had moderate repeatability in the lay date of their first nest among years (r = 0.19 [0.06, 0.32] 95%CI; Fig. 3R, Table S6). We found strong support for the effect of origin on first nest lay date: females that locally hatched and later recruited into the breeding population initiated nests 7.80 days earlier (95% CI: [5.09, 10.50]) on average compared to conspecifics that had unknown origin (Figs. 3 and 5b). The next strongest effect was within-individual age function predicting the lay date of a female's first nest in the season: young individuals laid later nests compared to their older conspecifics with lay date advancing by ~2.17 days per year until age six (95% CI: [1.41, 2.93]; Fig. 5a). However, the uncertainty in this trend became unwieldly in the oldest age classes of our sample (Fig. 5a). Notably, female size did not affect lay date (Fig. 3R and S7T), nor did between-individual effects of first or last age at breeding (Fig. 3R). The bootstrap analysis incorporating the individual birth-year posteriors estimated from BaSTA (Fig. S8L) confirmed these results.
 
 ### *Table S6*
 <font size = "2">Sources of lay date variation.</font>
@@ -2709,8 +2707,8 @@ laydate_mod_table <-
 laydate_mod_table
 ```
 
-### *Figure 3*
-<font size = "2">Sources of lay date variation. Top row: standardized effect sizes (± 95% CI) of fixed effects. Middle row: variance explained by fixed effects (note: the term 'Senescence' describes the collective variation explained by the linear and quadratic within-individual age effects in the top row; the term 'Selective appearance' and 'Selective disappearance' describe the variation explained by the between individual first- and last-breeding age fixed effects of the top row, respectively; the term 'Within ind. seasonality' describes the variation explained by the within individual lay date effect in the top row, and the term 'Between ind. seasonality' describes the collective variation explained by the linear and quadratic lay date effects in the top row).</font>
+### *Figure 3R (<ins>R</ins>ight panel in manuscript)*
+<font size = "2">Sources of lay date variation. A) standardized effect sizes (± 95% CI) of fixed effects. B) variance explained by fixed effects (note: the term 'Senescence' describes the collective variation explained by the linear and quadratic within-individual age effects in the top row; the term 'Selective appearance' and 'Selective disappearance' describe the variation explained by the between individual first- and last-breeding age fixed effects of the top row, respectively; the term 'Within ind. seasonality' describes the variation explained by the within individual lay date effect in the top row, and the term 'Between ind. seasonality' describes the collective variation explained by the linear and quadratic lay date effects in the top row). C) Adjusted repeatabilities (± 95% CI) of random effects.</font>
 ```{r, echo=FALSE, fig.dim=c(6,7.5)}
 # Standardized fixed effects
 laydate_mod_forest_plot_fixef <-
@@ -2969,7 +2967,7 @@ Age_plot <-
 Age_plot
 ```
 
-### *Figure S7*
+### *Figure S7T (<ins>T</ins>op panel in manuscript)*
 <font size = "2">Relationship between a female's structural size (i.e., her tarsus length) and the lay date of her first nest of the season.</font>
 ```{r, echo=FALSE,fig.dim=c(4,4), fig.align='left'}
 #### Trend plot of egg volume over tarsus ----
@@ -3001,8 +2999,8 @@ date_tarsus_trend_plot <-
 date_tarsus_trend_plot
 ```
 
-### *Figure S8*
-<font size = "2">Visualization of the effect of uncertainty in the age estimate provided by BaSTA on age-dependent trends in lay date (bottom row) dynamics. Black trends show the model predictions for the 1000 bootstraps of the BaSTA age estimate posteriors (see Methods). Panels A and D show the within-individual trends of the 'age-deviation' score – as expected, these measures are not impacted by uncertainty in the BaSTA age estimate because they are centered for each individual (i.e., the absolute age is irrelevant). Panels B and E show the between-individual trend of the 'age at first breeding' (i.e., selective appearance), and panels C and F show the between-individual trend of the 'age at last breeding' (i.e., selective disappearance). Yellow trends and grey ribbons visualize the 95% CI of the model predictions when using the mean age estimate provided by BaSTA (i.e., the effect sizes of the 'lay date' models shown in Fig. 3).</font>
+### *Figure S8L (<ins>L</ins>ower row in manuscript)*
+<font size = "2">Visualization of the effect of uncertainty in the age estimate provided by BaSTA on age-dependent trends in lay date dynamics. Black trends show the model predictions for the 1000 bootstraps of the BaSTA age estimate posteriors (see Methods). A) within-individual trend of the 'age-deviation' score – as expected, this measure is not impacted by uncertainty in the BaSTA age estimate because they are centered for each individual (i.e., the absolute age is irrelevant). B) between-individual trend of the 'age at first breeding' (i.e., selective appearance). C) between-individual trend of the 'age at last breeding' (i.e., selective disappearance). Yellow trends and grey ribbons visualize the 95% CI of the model predictions when using the mean age estimate provided by BaSTA (i.e., the effect sizes of the 'lay date' models shown in Fig. 3R).</font>
 ```{r, echo=FALSE,fig.dim=c(8,4)}
 load("output/age_estimate_uncertainty_bootstraps.rds")
 
@@ -3129,14 +3127,15 @@ boot_laydate_age_dev_plot <-
   scale_x_continuous(limits = c(-0.5, max(ceuta_egg_chick_female_data$est_age_t_deviation) + 0.5), 
                      breaks = seq(0, (max(ceuta_egg_chick_female_data$est_age_t_deviation)), by = 2))
 
-(boot_laydate_age_dev_plot | boot_laydate_first_age_plot | boot_laydate_last_age_plot)
+(boot_laydate_age_dev_plot | boot_laydate_first_age_plot | boot_laydate_last_age_plot) +
+  plot_annotation(tag_levels = "A")
 ```
 
 # APPENDICES
 ## App. S1. BaSTA modeling 
 To explain how mortality risk is associated with age, we compared four commonly used survival functions: exponential, Gompertz, logistic, and Weibull models. The exponential function keeps survival constant across age (Cox & Oakes, 1984), whereas the other functions allow for age-dependent variation in survival: the Gompertz model is an exponential function in which age-specific mortality is scaled by baseline mortality (Gompertz, 1812; Pletcher, 1999) and the Weibull model is a power function which assumes that baseline and age-specific mortality rates are independent (Pinder et al., 1978). In addition to the stand-alone versions of these functions, we considered two alternative forms of the Gompertz, logistic, and Weibull functions – “Makeham” and “bathtub” shapes. The Makeham shape constrains the survival function to converge to a constant, rather than zero, as age increases(Pletcher, 1999), whereas the bathtub shape enables concavity in the function, such that mortality could decrease at early ages, but increase later in life (Siler, 1979).
 
-We used four parallel simulations to run the Markov chain Monte Carlo (MCMC) optimization procedure in BaSTA with 800,000 iterations, a 100,000 burn-in period, and a thinning interval of 2000 to minimize serial autocorrelation in the chain (see Fig. S1 for simulation diagnostics). We ranked the survival models according to their deviance information criterion (DIC) and determined that the logistic model with a bathtub shape fitted our data best (i.e., lowest DIC, (Spiegelhalter et al., 2002); Table S1). This logistic model revealed that female mortality rate increased until age 5 years, after which it became constant (Fig. 1b). Using the top model, we extracted the point estimate and 95% credible interval birth year for each individual in the capture-mark-recapture sample.
+We used four parallel simulations to run the Markov chain Monte Carlo (MCMC) optimization procedure in BaSTA with 800,000 iterations, a 100,000 burn-in period, and a thinning interval of 2000 to minimize serial autocorrelation in the chain (see Fig. S2 for simulation diagnostics). We ranked the survival models according to their deviance information criterion (DIC) and determined that the logistic model with a bathtub shape fitted our data best (i.e., lowest DIC, (Spiegelhalter et al., 2002); Table S1). This logistic model revealed that female mortality rate increased until age 5 years, after which it became constant (Fig. 1b). Using the top model, we extracted the point estimate and 95% credible interval birth year for each individual in the capture-mark-recapture sample.
 
 *examine the data used in the BaSTA analysis*
 ```{r, echo=FALSE}
@@ -3258,7 +3257,7 @@ BaSTA_DIC_table <-
 BaSTA_DIC_table
 ```
 
-## App. S2. chick ~ egg model
+## App. S2. chick weight model
 In theory, the selective benefits of larger eggs is that the subsequent hatchlings will be larger and have higher survival owing to more intrinsic reserves provided by the mother (Blomqvist et al., 1997). To link egg size variation to potential fitness consequences of subsequent offspring we evaluated the predicted positive relationship between egg volume and chick weight using the egg dataset described above but reduced observations to the nest level and filtered to only include nests that had chicks measured within one day of hatching, resulting in 456 nests from 276 females. As it was unclear which chick came from which egg, each datum represented the nest-level average of chick weights and egg volumes. We included random intercepts for mother identity and year, and assumed a Gaussian error distribution of egg volume.
 
 *wrangle data so that each datum represented the nest-level average of chick weights and egg volumes*
@@ -3278,7 +3277,7 @@ eggs_and_chicks_nest_summary %>%
   datatable(class = 'cell-border stripe', rownames = FALSE, filter = 'top')
 ```
 
-*liner mixed effect model of chick hatching weight*
+*linear mixed effect model of chick hatching weight*
 ```{r, eval=FALSE}
 mod_chick_weight <-
   lmer(avg_chick_weight ~ avg_egg_volume +
