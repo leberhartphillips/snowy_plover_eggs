@@ -335,7 +335,9 @@ BaSTA_checked_life_table_females_2006_2020$newData %>%
   ungroup() %>% 
   summarise(mean_detections = mean(total_detections),
             sd_detections = sd(total_detections),
-            median_detections = median(total_detections))
+            median_detections = median(total_detections),
+            max_detections = max(total_detections),
+            min_detections = min(total_detections))
 
 # number of observations in egg model
 ceuta_egg_chick_female_data %>% 
