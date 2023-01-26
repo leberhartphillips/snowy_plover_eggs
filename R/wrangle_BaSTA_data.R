@@ -66,10 +66,10 @@ resightings <-
   dplyr::filter(species == "SNPL") %>% 
   
   # merge the ring identity to the resight codes
-  left_join(., dplyr::select(captures, ring, code), by = "code") %>% 
+  left_join(., dplyr::select(captures, ring, code), by = "code") #%>% 
   
   # remove duplicates
-  distinct()
+  #distinct()
 
 # extract combinations that are unique
 unique_combos <- 
@@ -89,6 +89,20 @@ unique_combos <-
   summarise(n_obs = n_distinct(ring)) %>% 
   arrange(desc(n_obs)) %>% 
   dplyr::filter(n_obs == 1)
+
+resightings_n <- 
+  # extract the resight datatable
+  dbReadTable(CeutaCLOSED,"Resights") %>% 
+  
+  # subset to only include snowy plovers
+  dplyr::filter(species == "SNPL") %>% 
+  
+  # merge the ring identity to the resight codes
+  left_join(., dplyr::select(captures, ring, code), by = "code") %>%
+  filter(code %in% unique_combos$code) %>%
+  dplyr::filter(!is.na(ring)) %>%
+  group_by(ring, year) %>% 
+  summarise(n_obs = n())
 
 # Tidy up capture and resight data
 resightings <- 
@@ -134,10 +148,30 @@ resightings_final <-
   # remove duplicates
   distinct()
 
+resightings_final_n <- 
+  resightings_n %>%
+  
+  # paste ring and year together to make a unique identifier for this observation
+  unite(ring_year, ring, year, remove = FALSE) %>%
+  
+  # specify as a resight
+  mutate(observation = "resight") %>%
+  
+  # clean up output
+  dplyr::select(ring_year, ring, year, n_obs, observation) %>% 
+  
+  # join with the capture data to merge recruit status, sex, and birth year
+  left_join(., dplyr::select(capture_final, ring, recruit, birth, sex), by = "ring") %>% 
+  
+  # remove duplicates
+  distinct()
+
 # Bind capture and resight data into a complete encounter history
-encounter_histories <- 
+encounter_histories_n <- 
   bind_rows(capture_final, resightings_final) %>% 
-  arrange(ring_year)
+  arrange(ring_year) %>% 
+  group_by(ring_year, ring, year, observation) %>% 
+  summarise(n_obs = n())
 
 # Remove resight encounters that occurred prior to the first capture
 # determine the year of first capture for each individual
@@ -156,11 +190,27 @@ resights_before_first_capture <-
   left_join(., first_cap, by = "ring") %>% 
   dplyr::filter(observation == "resight" & (as.numeric(year) < as.numeric(first_cap)))
 
+# determine which resights occurred before the first capture
+resights_before_first_capture_n <- 
+  encounter_histories_n %>% 
+  left_join(., first_cap, by = "ring") %>% 
+  dplyr::filter(observation == "resight" & (as.numeric(year) < as.numeric(first_cap)))
+
 # exclude early resightings from encounter history
 encounter_histories <-
   encounter_histories %>% 
   dplyr::filter(ring_year %!in% resights_before_first_capture$ring_year) %>% 
   arrange(ring, as.numeric(year))
+
+encounter_histories_n <-
+  encounter_histories_n %>% 
+  dplyr::filter(ring_year %!in% resights_before_first_capture_n$ring_year) %>% 
+  arrange(ring, as.numeric(year))
+
+encounter_histories_n %>% 
+  pivot_wider(values_from = n_obs, names_from = observation) %>% 
+  arrange(ring_year) %>% 
+  filter(as.numeric(resight) > 1)
 
 # Make the encounter history table needed for the survival analysis
 encounter_history_table <- 

@@ -96,7 +96,6 @@ save(stats_laydate_mod,
 
 load(file = "output/stats_laydate_mod.rds")
 
-
 plot(allEffects(mod_laydate_p_no_outlier))
 random_parameters(stats_laydate_mod$mod_poly)
 model_parameters(stats_laydate_mod$mod_poly, standardize = "refit")
