@@ -3,17 +3,17 @@
 #### Luke J. Eberhart-Hertel, Lourenço Falcão Rodrigues, Johannes Krietsch, Anne G. Eberhart-Hertel, Medardo Cruz López, Karina Alejandra Vázquez-Rojas, Erick González-Medina, Julia Schroeder, and Clemens Küpper
 #### *In review* 
 
-##### *Please see our pre-print on bioRxiv (published on July 22, 2021)*: [*doi.org/10.1101/2021.07.21.453188*](https://www.biorxiv.org/content/10.1101/2021.07.21.453188v1)
+##### *Please see our pre-print on bioRxiv (published on April 10, 2023)*: [*doi.org/10.1101/2020.08.07.240150*](https://www.biorxiv.org/content/10.1101/2020.08.07.240150v3)
 
 In this repository you can find all the raw data and code needed to reproduce our investigation of egg size variation in snowy plovers (_Charadrius nivosus_) monitored annually since 2006 at [Bahía de Ceuta](https://www.google.com/maps/@23.9197739,-106.9668912,2358m/data=!3m1!1e3 "Google Map Satellite") – an important breeding site in western Mexico.
 
-For a complete overview of the methods and results presented in our manuscript, please view our project vignette: [Supplementary File 1](https://raw.githack.com/leberhartphillips/snowy_plover_eggs/main/Rmd/Supplementary_File_1/Supplementary_File_1.html)
+For a complete overview of the methods and results presented in our manuscript, please view our project vignette: [Supplementary File 1](https://raw.githack.com/leberhartphillips/snowy_plover_eggs/main/Rmd/Supplementary_File_1/Supplementary_File_1_.html)
 
 <p align="center">
-  <img width="600" src="./products/figures/Figure_S1.jpg">
+  <img width="1200" src="./products/figures/png/eggs_plot_ms_cs.png">
 </p>  
 
-<p align="center" > <i>Egg size variation and its relationship to chick size in snowy plovers (Charadrius nivosus). Illustrations by Luke Eberhart-Hertel.</i></p>
+<p align="center" > <i>Egg size variation and its relationship to chick size in snowy plovers (Charadrius nivosus). Illustrations and photo by Luke Eberhart-Hertel.</i></p>
 
 #### Repository Contents
 [**`R/`**](https://github.com/leberhartphillips/snowy_plover_eggs/tree/main/R)
